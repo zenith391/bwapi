@@ -489,6 +489,14 @@ function playWorld(req, res) {
 }
 
 module.exports.run = function(app) {
+	if (!fs.existsSync("worlds")) {
+		fs.mkdirSync("worlds");
+		console.log("Created folder \"worlds\"");
+	}
+	if (!fs.existsSync("conf/new_world_id.txt")) {
+		fs.writeFileSync("conf/new_world_id.txt", "1")
+		console.log("Created file \"conf/new_world_id.txt\"");
+	}
 	app.delete("/api/v1/worlds/:id", deleteWorld);
 	app.get("/api/v1/worlds/:id/basic_info", worldBasicInfo);
 	app.get("/api/v1/worlds/:id", world);

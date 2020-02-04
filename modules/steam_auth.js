@@ -92,6 +92,11 @@ function create_steam_user(req, res) {
 }
 
 module.exports.run = function(app) {
+	if (!fs.existsSync("usersSteamLinks")) {
+		fs.mkdirSync("usersSteamLinks");
+		console.log("Created folder \"usersSteamLinks\"");
+	}
+
 	app.get("/api/v1/steam_current_user", function(req, res) {
 		steam_current_user(req, res, url.parse(req.url, true))
 	});

@@ -301,6 +301,15 @@ function purchaseModel(req, res) {
 }
 
 module.exports.run = function(app) {
+	if (!fs.existsSync("models")) {
+		fs.mkdirSync("models");
+		console.log("Created folder \"models\"");
+	}
+	if (!fs.existsSync("conf/new_model_id.txt")) {
+		fs.writeFileSync("conf/new_model_id.txt", "1")
+		console.log("Created file \"conf/new_model_id.txt\"");
+	}
+
 	app.get("/api/v1/u2u_models", modelsGet);
 	app.get("/api/v1/users/:user/u2u_models", modelsGet);
 	app.get("/api/v1/u2u_models/:id", function(req, res) {

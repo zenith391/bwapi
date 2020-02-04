@@ -165,6 +165,15 @@ function current_user_worlds(req, res) {
 }
 
 module.exports.run = function(app) {
+	if (!fs.existsSync("users")) {
+		fs.mkdirSync("users");
+		console.log("Created folder \"users\"");
+	}
+	if (!fs.existsSync("conf/new_account_id.txt")) {
+		fs.writeFileSync("conf/new_account_id.txt", "1")
+		console.log("Created file \"conf/new_account_id.txt\"");
+	}
+
 	app.get("/api/v1/current_user/worlds", current_user_worlds);
 	app.get("/api/v1/current_user/worlds_for_teleport", current_user_worlds);
 	app.get("/api/v1/current_user/profile_world", current_user_profile_world);

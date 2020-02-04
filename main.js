@@ -8,6 +8,11 @@ ROOT_NAME = __dirname;
 authTokens = {};
 capabilities = {}; // for modded
 
+if (!fs.existsSync("conf")) {
+	console.error("Missing 'conf' directory. Please refer to the 'README.md' for more details on how to setup.");
+	return;
+}
+
 const options = {
 	key: fs.readFileSync("cert/privkey.key"),
 	cert: fs.readFileSync("cert/fullchain.pem")
