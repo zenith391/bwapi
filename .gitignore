@@ -1,0 +1,19 @@
+cert/fullchain.pem
+cert/privkey.key
+conf/plugins
+conf/news_articles
+conf/world_templates
+conf/new_account_id.txt
+conf/new_model_id.txt
+conf/new_world_id.txt
+worlds/
+models/
+images/
+users/
+usersSteamLinks/
+usersWoolLinks/
+# private module
+modules/bwwool.js
+
+# Node
+node_modules/

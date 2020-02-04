@@ -1,0 +1,25 @@
+<%- include("header", {title: "Home"}) %>
+	<div class="container">
+		<label>Memory:</label>
+		<div class="progress">
+			<div id="memory-bar" class="progress-bar" style="width:0%">
+				?/? MB
+			</div>
+		</div>
+	</div>
+	<script>
+		setInterval(function() {
+			$.ajax("server_stats", {
+				dataType: "json"
+			}).done(function(data) {
+				if (data) {
+					let used = Math.round(data.memory.used / 1024 / 1024);
+					let total = Math.round(data.memory.total / 1024 / 1024);
+					$("#memory-bar")
+						.css("width", Math.round((data.memory.used/data.memory.total)*100) + "%")
+						.text(used + "/" + total + " MB");
+				}
+			});
+		}, 1000);
+	</script>
+<%- include("footer") %>

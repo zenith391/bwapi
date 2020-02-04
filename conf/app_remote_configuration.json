@@ -1,0 +1,16 @@
+{
+	"publication_cooldowns": "False",
+	"cooldown_minutes_per_coin_model": 0,
+	"cooldown_minutes_per_coin_world": 0,
+	"cooldown_minutes_per_model": 0,
+	"cooldown_minutes_per_world": 0,
+	"cooldown_minutes_per_model_tier1": 0,
+	"cooldown_minutes_per_world_tier1": 0,
+	"cooldown_minutes_per_model_tier2": 0,
+	"cooldown_minutes_per_world_tier2": 0,
+	"cooldown_minutes_per_model_tier3": 0,
+	"cooldown_minutes_per_world_tier3": 0,
+	"redemption_exchange_coins": "0",
+	"redemption_exchange_usd": "0",
+	"world_low_effort_gaf_count": 0
+}
