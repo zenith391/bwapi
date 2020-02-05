@@ -10,6 +10,12 @@ userMetadata = function(id) {
 // Module code //
 function basic_info(req, res) {
 	let userId = req.params.id
+	if (!fs.existsSync("users/" + userId + "/metadata.json")) {
+		res.status(404).json({
+			"error": 404,
+			"error_msg": "user not found."
+		});
+	}
 	let metadata = JSON.parse(fs.readFileSync("users/"+userId+"/metadata.json"));
 	let json = {
 		"id": metadata.id,

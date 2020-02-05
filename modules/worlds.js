@@ -385,7 +385,7 @@ function worldsGet(req, res, u) {
 					time: new Date(json["first_published_at"]).getTime() + ((parseInt(json["play_count"]) * 290000000) * rate)
 				}
 			});
-		} else {
+		} else { // "recent" and "unmoderated"
 			files = files.map(function (fileName) {
 				let json = JSON.parse(fs.readFileSync("worlds/"+fileName+"/metadata.json"));
 				let date = new Date(json["first_published_at"]);
