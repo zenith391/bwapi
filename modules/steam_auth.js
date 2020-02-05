@@ -63,7 +63,7 @@ function create_steam_user(req, res) {
 			"profile_image_url": "https://cdn.discordapp.com/attachments/645634229136261120/645660160769130498/octoberthinking.png",
 			"id": parseInt(newId),
 			"username": persona,
-			"user_status": 2,
+			"user_status": 6, // steam and early access; see Util.cs in Blocksworld source code
 			"blocksworld_premium": 0,
 			"_SERVER_worlds": []
 		}

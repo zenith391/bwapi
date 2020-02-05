@@ -150,7 +150,7 @@ function current_user_worlds(req, res) {
 			} else {
 				user.worlds.push(w);
 			}
-		catch (e) {
+		} catch (e) {
 			console.debug(e);
 			console.error("could not retrieve wolrds for user " + userId + "!");
 			res.status(200).json({
