@@ -24,6 +24,23 @@ let pushEvent = function(room, event) {
 	room.events.push(event);
 }
 
+let toBuffer = function(chunk) {
+	if (!Buffer.isBuffer(chunk)) {
+		chunk = Buffer.from(chunk);
+	}
+	return chunk
+}
+
+let waitFor = function(stream, length) {
+	while (true) {
+		let chunk = stream.read(length);
+		console.log(chunk);
+		if (chunk != null) {
+			return toBuffer(chunk);
+		}
+	}
+}
+
 module.exports.run = function(app) {
 	capabilities["bwmulti"] = {
 		"version": "1.0.0"
@@ -57,16 +74,32 @@ module.exports.run = function(app) {
 	app.get("/api/v2/worlds/:wid/rooms/:id/event_stream", function(req, res) {
 		console.log("event stream")
 		let socket = req.socket;
-		socket.resume();
-		socket.on("data", function (chunk) {
-			if (!Buffer.isBuffer(chunk)) {
-				chunk = Buffer.from(chunk);
-			}
-			let type = chunk.readUInt8(0);
-			if (type == 1) {
-				let len = chunk.readUInt16BE(1);
+		let _end = socket.end; // will be overriden later
+		socket.setKeepAlive(true, 0x7FFFFFFF);
+		socket.setNoDelay(true);
+		socket.on("readable", function () {
+			console.log("readable");
+			let type = toBuffer(this.read(1)).readUInt8(0);
+			if (type == 1) { // world source
+				console.log("world source");
+				let len = waitFor(this, 4).readUInt32BE(0);
+				console.log("of length " + len);
+				//let source = waitFor(this, len);
+			} else {
+				console.log("unknown type: " + type.toString());
 			}
 		});
+		socket.on("end", function() {
+			console.error("CLOSED!");
+		});
+
+		socket.end = function() {
+			console.log("intercepted attempt to end socket");
+		};
+
+		socket.destroy = function() {
+			console.log("intercepted attempt to destroy socket");
+		};
 
 		/*
 		let event = JSON.parse(req.body["event_json_str"]);
