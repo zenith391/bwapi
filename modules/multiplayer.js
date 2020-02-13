@@ -34,7 +34,7 @@ let toBuffer = function(chunk) {
 let waitFor = function(stream, length) {
 	while (true) {
 		let chunk = stream.read(length);
-		console.log(chunk);
+		//console.log(chunk);
 		if (chunk != null) {
 			return toBuffer(chunk);
 		}

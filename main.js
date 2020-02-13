@@ -4,12 +4,13 @@ const multiparty = require("multiparty");
 
 HOST = "https://bwsecondary.ddns.net:8080";
 ROOT_NAME = __dirname;
+EARLY_ACCESS = true; // is this server early access? (used for some status identifiers)
 
 authTokens = {};
 capabilities = {}; // for modded
 
-if (!fs.existsSync("conf")) {
-	console.error("Missing 'conf' directory. Please refer to the 'README.md' for more details on how to setup.");
+if (!fs.existsSync("cert")) {
+	console.error("Missing 'cert' directory. Please refer to the 'README.md' for more details on how to setup.");
 	return;
 }
 
@@ -87,16 +88,17 @@ value = function(body, name) {
 validAuthToken = function(req, res, bodyCheck) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
-		res.status(400).json({
-			"error": 400,
-			"error_msg": "Missing auth token"
+		res.status(405).json({
+			"error": 405,
+			"error_msg": "missing authentication token"
 		});
 		return [false];
 	}
 	let userId = authTokens[authToken];
 	if (userId == undefined) {
-		res.status(403).json({
-			"error": "unauthentificated user"
+		res.status(405).json({
+			"error": 405,
+			"error_msg": "unauthentificated user"
 		});
 		return [false];
 	}
@@ -189,24 +191,6 @@ app.get("/api/v1/block_items/pricing", function(req, res) {
 
 app.get("/api/v1/store/coin_packs", function(req, res) {
 	res.status(200).sendFile("conf/coin_packs.json", fileOptions);
-});
-
-app.get("/api/v1/user/:id/followed_users", function(req, res) {
-	let id = req.params["id"];
-	if (!fs.existsSync("users/"+id)) {
-		res.status(404);
-		return;
-	}
-	res.status(200).sendFile("users/"+id+"/followed_users.json", fileOptions);
-});
-
-app.get("/api/v1/user/:id/followers", function(req, res) {
-	let id = req.params["id"];
-	if (!fs.existsSync("users/"+id)) {
-		res.status(404);
-		return;
-	}
-	res.status(200).sendFile("users/"+id+"/followers.json", fileOptions);
 });
 
 app.get("/api/v1/users/:id/liked_worlds", function(req, res) {

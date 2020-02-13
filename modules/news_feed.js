@@ -10,10 +10,6 @@ addFeed = function(userId, feed) {
 }
 
 module.exports.run = function(app) {
-	capabilities["custom_blog"] = {
-		"version": "1.0.0"
-	}
-	
 	app.get("/api/v1/user/:id/recent_activity", function(req, res) {
 		let newsFeed = [];
 		let id = req.params["id"];
@@ -74,7 +70,6 @@ module.exports.run = function(app) {
 			for (i in feeds["news_feed"]) {
 				newsFeed.push(JSON.stringify(feeds["news_feed"][i]));
 			}
-			console.debug(newsFeed);
 			res.status(200).json({
 				"news_feed": newsFeed
 			});

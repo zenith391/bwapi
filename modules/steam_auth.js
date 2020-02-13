@@ -2,14 +2,35 @@ const express = require("express");
 const url = require("url");
 const fs = require("fs");
 
+/* Secure auth (without Steam Auth Ticket you can't access without being Linden):
+
+1. Client generate key pair
+2. Client sends its public key to server
+
+*/
+
 function steam_current_user(req, res, u) {
 	let steam_id = u.query.steam_id
 	let auth_ticket = u.query.steam_auth_ticket
+
 	console.log(steam_id + " is logging in..")
 	if (fs.existsSync("usersSteamLinks/" + steam_id + ".txt")) {
 		let userId = fs.readFileSync("usersSteamLinks/"+steam_id+".txt",
 			{"encoding": "utf8"})
 		let user = JSON.parse(fs.readFileSync("users/"+userId+"/metadata.json"));
+		let updated = false;
+		if (user["user_status"] == 2 && EARLY_ACCESS) {
+			user["user_status"] = 6;
+			console.log("Adding early access user status to user " + userId);
+			updated = true;
+		}
+		if (!user["account_type"]) {
+			user["account_type"] = "user";
+			console.log("Adding 'account_type' to user " + userId);
+			updated = true;
+		}
+		if (updated)
+			fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(user));
 		let authToken = require("uuid/v4")();
 		let worldTemplates = [];
 		if (!fs.existsSync("users/"+userId+"/world_ratings.json")) {
@@ -30,6 +51,7 @@ function steam_current_user(req, res, u) {
 			user["blocks_inventory_str"] = fs.readFileSync("conf/user_block_inventory.txt", {"encoding":"utf8"});
 			user["world_templates"] = worldTemplates;
 			user["_SERVER_worlds"] = undefined;
+			user["_SERVER_models"] = undefined;
 			user["api_v2_supported"] = true;
 			authTokens[authToken] = userId;
 			res.status(200).json(user);
@@ -55,6 +77,9 @@ function create_steam_user(req, res) {
 		fs.writeFileSync("conf/new_account_id.txt", (parseInt(newId)+1).toString());
 		fs.writeFileSync("usersSteamLinks/" + steamId + ".txt", newId);
 		fs.mkdirSync("users/"+newId);
+		let newUserStatus = 2; // "steam account" flag
+		if (EARLY_ACCESS)
+			newUserStatus += 4; // add "early access" flag
 		let userInfo = {
 			"coins": 100,
 			"ios_link_available": false,
@@ -63,7 +88,7 @@ function create_steam_user(req, res) {
 			"profile_image_url": "https://cdn.discordapp.com/attachments/645634229136261120/645660160769130498/octoberthinking.png",
 			"id": parseInt(newId),
 			"username": persona,
-			"user_status": 6, // steam and early access; see Util.cs in Blocksworld source code
+			"user_status": newUserStatus, // see Util.cs in Blocksworld source code for info about user_status
 			"blocksworld_premium": 0,
 			"_SERVER_worlds": []
 		}

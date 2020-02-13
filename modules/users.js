@@ -3,8 +3,22 @@ const url = require("url");
 
 // Functions exported to global //
 userMetadata = function(id) {
+	if (!fs.existsSync("users/"+id))
+		return null;
 	let metadata = JSON.parse(fs.readFileSync("users/"+id+"/metadata.json"));
 	return metadata;
+}
+
+socialUser = function(id, date) {
+	let metadata = userMetadata(id);
+	return {
+		"user_id": parseInt(id),
+		"username": metadata["username"],
+		"user_status": metadata["user_status"],
+		"user_blocksworld_premium": metadata["user_status"],
+		"started_following_at": date,
+		"relationship": 2
+	}
 }
 
 // Module code //
@@ -23,6 +37,7 @@ function basic_info(req, res) {
 		"is_username_blocked": metadata.is_username_blocked,
 		"is_image_locked": metadata.is_image_locked,
 		"user_status": metadata.user_status,
+		"account_type": metadata["account_type"],
 		"blocksworld_premium": metadata.blocksworld_premium,
 		"profile_image_url": metadata.profile_image_url
 	}
@@ -30,22 +45,11 @@ function basic_info(req, res) {
 }
 
 function save_current_user_profile_world(req, res) {
-	let authToken = getAuthToken(req)
-	if (authToken === undefined) {
-		res.status(400);	// different from official implementation
-		res.json({
-			"error": 400,
-			"error_msg": "Missing auth token"
-		});			// the official just end the connection
+	let valid = validAuthToken(req, res, false);
+	if (!valid[0]) {
 		return;
 	}
-	let userId = authTokens[authToken];
-	if (userId == undefined) {
-		res.status(403).json({
-			"error": "unauthentificated user"
-		});
-		return;
-	}
+	let userId = valid[1];
 	console.log("User with token " + authToken + " uploading his profile world.");
 	if (!fs.existsSync("users/"+userId+"/profile_world")) {
 		fs.mkdirSync("users/"+userId+"/profile_world");
@@ -83,22 +87,11 @@ function save_current_user_profile_world(req, res) {
 }
 
 function current_user_profile_world(req, res) {
-	let authToken = getAuthToken(req)
-	if (authToken === undefined) {
-		res.status(400);	// different from official implementation
-		res.json({
-			"error": 400,
-			"error_msg": "Missing auth token"
-		});			// the official just end the connection
+	let valid = validAuthToken(req, res, false);
+	if (!valid[0]) {
 		return;
 	}
-	let userId = authTokens[authToken];
-	if (userId == undefined) {
-		res.status(403).json({
-			"error": "unauthentificated user"
-		});
-		return;
-	}
+	let userId = valid[1];
 	console.log("User with token " + authToken + " downloading his profile world.");
 	if (!fs.existsSync("users/"+userId+"/profile_world")) {
 		fs.mkdirSync("users/"+userId+"/profile_world");
@@ -126,22 +119,11 @@ function current_user_profile_world(req, res) {
 
 function current_user_worlds(req, res) {
 	let is_published = url.parse(req.url, true).query.is_published
-	let authToken = getAuthToken(req)
-	if (authToken === undefined) {
-		res.status(400);	// different from official implementation
-		res.json({
-			"error": 400,
-			"error_msg": "Missing auth token"
-		});			// the official just end the connection
+	let valid = validAuthToken(req, res, false);
+	if (!valid[0]) {
 		return;
 	}
-	let userId = authTokens[authToken];
-	if (userId == undefined) {
-		res.status(403).json({
-			"error": "unauthentificated user"
-		});
-		return;
-	}
+	let userId = valid[1];
 	console.log("User with token " + authToken + " downloading his worlds.");
 	let user = JSON.parse(fs.readFileSync("users/"+userId+"/metadata.json"));
 	user.worlds = [];
@@ -170,6 +152,62 @@ function current_user_worlds(req, res) {
 	res.status(200).json(user);
 }
 
+function follow(req, res) {
+	let valid = validAuthToken(req, res, false);
+	if (!valid[0]) {
+		return;
+	}
+	let userId = parseInt(valid[1]);
+	let targetId = parseInt(req.params["id"]);
+	let user = JSON.parse(fs.readFileSync("users/"+userId+"/followed_users.json"));
+	let target;
+	if (fs.existsSync("users/"+targetId+"/followers.json")) {
+		target = JSON.parse(fs.readFileSync("users/"+targetId+"/followers.json"))
+	} else {
+		res.status(404).json({
+			"error": "the target doesn't exists"
+		});
+		return;
+	}
+	user["attrs_for_follow_users"][targetId] = dateString();
+	target["attrs_for_follow_users"][userId] = dateString();
+	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err) {
+		if (err) throw err;
+		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err) {
+			if (err) throw err;
+			res.status(200);
+		});
+	});
+}
+
+function unfollow(req, res) {
+	let valid = validAuthToken(req, res, false);
+	if (!valid[0]) {
+		return;
+	}
+	let userId = parseInt(valid[1]);
+	let targetId = parseInt(req.params["id"]);
+	let user = JSON.parse(fs.readFileSync("users/"+userId+"/followed_users.json"));
+	let target;
+	if (fs.existsSync("users/"+targetId+"/followers.json")) {
+		target = JSON.parse(fs.readFileSync("users/"+targetId+"/followers.json"))
+	} else {
+		res.status(404).json({
+			"error": "the target doesn't exists"
+		});
+		return;
+	}
+	user["attrs_for_follow_users"][targetId] = undefined;
+	target["attrs_for_follow_users"][userId] = undefined;
+	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err) {
+		if (err) throw err;
+		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err) {
+			if (err) throw err;
+			res.status(200);
+		});
+	});
+}
+
 module.exports.run = function(app) {
 	if (!fs.existsSync("users")) {
 		fs.mkdirSync("users");
@@ -184,6 +222,48 @@ module.exports.run = function(app) {
 	app.get("/api/v1/current_user/worlds_for_teleport", current_user_worlds);
 	app.get("/api/v1/current_user/profile_world", current_user_profile_world);
 	app.put("/api/v1/current_user/profile_world", save_current_user_profile_world);
+	app.post("/api/v1/user/:id/follow_activity", follow);
+	app.delete("/api/v1/user/:id/follow_activity", unfollow);
+
+	app.get("/api/v1/user/:id/followed_users", function(req, res) {
+		let id = req.params["id"];
+		if (!fs.existsSync("users/"+id)) {
+			res.status(404);
+			return;
+		}
+		let json = JSON.parse(fs.readFileSync("users/"+id+"/followed_users.json"))["attrs_for_follow_users"];
+		let out = {};
+		for (i in json) {
+			if (json[i] != undefined)
+				out.push(socialUser(i, json[i]));
+		}
+		res.status(200).json({
+			"attrs_for_follow_users": out
+		});
+	});
+
+	app.get("/api/v1/user/:id/followers", function(req, res) {
+		let id = req.params["id"];
+		if (!fs.existsSync("users/"+id)) {
+			res.status(404);
+			return;
+		}
+		let valid = validAuthToken(req, res, false);
+		if (!valid[0]) {
+			return;
+		}
+		let out = {};
+		if (valid[1] == id) {
+			let json = JSON.parse(fs.readFileSync("users/"+id+"/followed_users.json"))["attrs_for_follow_users"];
+			for (i in json) {
+				if (json[i] != undefined)
+					out.push(socialUser(i, json[i]));
+			}
+		}
+		res.status(200).json({
+			"attrs_for_follow_users": out
+		});
+	});
 
 	app.get("/api/v1/current_user/pending_payouts", function(req, res) {
 		res.status(200).json({

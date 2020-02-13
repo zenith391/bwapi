@@ -2,6 +2,8 @@ const fs = require("fs");
 const express = require("express");
 const url = require("url");
 
+MAX_WORLD_LIMIT = 100;
+
 // Functions exported to global //
 processUserWorld = function(meta) {
 	let user = userMetadata(meta["author_id"].toString());
@@ -11,6 +13,9 @@ processUserWorld = function(meta) {
 	meta["author_blocksworld_premium"] = (user["blocksworld_premium"] != 0);
 	if (meta["is_blog_post"] == true) {
 		meta["description"] = fs.readFileSync("worlds/" + meta["id"] + "/description.txt", {"encoding": "utf8"});
+	}
+	if (user["account_type"]) {
+		meta["author_account_type"] = user["account_type"]
 	}
 	return meta;
 }
@@ -196,6 +201,14 @@ function createWorld(req, res) {
 	if (req.body == undefined || req.body == null) {
 		res.status(403).json({
 			"error": "no body"
+		});
+		return;
+	}
+	let user = userMetadata(userId);
+	if (user["_SERVER_worlds"].length > MAX_WORLD_LIMIT) {
+		res.status(400).json({
+			"error": 400,
+			"error_msg": "Too many worlds created."
 		});
 		return;
 	}
@@ -473,7 +486,7 @@ function playWorld(req, res) {
 		let playedWorlds = JSON.parse(fs.readFileSync("users/"+userId+"/played_worlds.json"))
 		if (playedWorlds["worlds"].indexOf(parseInt(id)) == -1) {
 			metadata["play_count"] += 1;
-			let metaStr = JSON.stringify(metadata)
+			let metaStr = JSON.stringify(metadata);
 			fs.writeFile("worlds/"+id+"/metadata.json", metaStr, function(err) {
 				if (err != null)
 					console.log("file error for world update: " + err);
@@ -485,6 +498,7 @@ function playWorld(req, res) {
 					console.log("file error for world update: " + err);
 			});
 		}
+		res.status(200);
 	}
 }
 
