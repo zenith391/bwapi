@@ -266,7 +266,7 @@ function purchaseModel(req, res) {
 			let usr = JSON.parse(fs.readFileSync("users/" + userId + "/purchased_u2u_models.json"));
 			usr["u2u_models"].push(parseInt(id));
 			fs.writeFileSync("users/" + userId + "/purchased_u2u_models.json", JSON.stringify(usr));
-			fs.writeFileSync("models/" + id + "/metadata.json", JSON.stringify(model))
+			fs.writeFileSync("models/" + id + "/metadata.json", JSON.stringify(model));
 			res.status(200).json({
 				"attrs_for_current_user": meta
 			});

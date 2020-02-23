@@ -64,7 +64,7 @@ function stats(req, res) {
 				"used": memory.heapUsed,
 				"total": memory.heapTotal
 			}
-		})
+		});
 	}
 }
 

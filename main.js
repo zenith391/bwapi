@@ -108,7 +108,7 @@ validAuthToken = function(req, res, bodyCheck) {
 		});
 		return [false];
 	}
-	return [true, userId];
+	return [true, userId, authToken];
 }
 
 datePart = function(num) {

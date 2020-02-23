@@ -75,15 +75,15 @@ module.exports.run = function(app) {
 		console.log("event stream")
 		let socket = req.socket;
 		let _end = socket.end; // will be overriden later
-		socket.setKeepAlive(true, 0x7FFFFFFF);
+		socket.setKeepAlive(true, Number.MAX_SAFE_INTEGER);
 		socket.setNoDelay(true);
 		socket.on("readable", function () {
 			console.log("readable");
 			let type = toBuffer(this.read(1)).readUInt8(0);
 			if (type == 1) { // world source
 				console.log("world source");
-				let len = waitFor(this, 4).readUInt32BE(0);
-				console.log("of length " + len);
+				//let len = waitFor(this, 4).readUInt32BE(0);
+				//console.log("of length " + len);
 				//let source = waitFor(this, len);
 			} else {
 				console.log("unknown type: " + type.toString());
@@ -100,28 +100,6 @@ module.exports.run = function(app) {
 		socket.destroy = function() {
 			console.log("intercepted attempt to destroy socket");
 		};
-
-		/*
-		let event = JSON.parse(req.body["event_json_str"]);
-		if (mpWorlds[req.params.wid] == undefined) {
-			res.status(404).json({
-				"error": 404,
-				"error_msg": "World have no rooms"
-			});
-			return;
-		}
-		let room = mpWorlds[req.params.wid][parseInt(req.params.id)];
-		if (room == undefined) {
-			res.status(404).json({
-				"error": 404,
-				"error_msg": "No such room"
-			});
-			return;
-		}
-		pushEvent(room, event);
-		res.status(200).json({
-			"event": event
-		});*/
 	});
 
 	app.get("/api/v2/worlds/:wid/rooms/:id/events", function(req, res) {

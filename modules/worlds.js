@@ -15,7 +15,7 @@ processUserWorld = function(meta) {
 		meta["description"] = fs.readFileSync("worlds/" + meta["id"] + "/description.txt", {"encoding": "utf8"});
 	}
 	if (user["account_type"]) {
-		meta["author_account_type"] = user["account_type"]
+		meta["author_account_type"] = user["account_type"];
 	}
 	return meta;
 }
@@ -352,6 +352,7 @@ function updateWorld(req, res) {
 function worldsGet(req, res, u) {
 	let page = u.query.page;
 	let categoryId = u.query.category_id;
+	let search = u.query.search;
 	let kind = u.query.kind;
 	if (kind == undefined) {
 		kind = "recent";
@@ -438,6 +439,20 @@ function worldsGet(req, res, u) {
 			if (req.params) {
 				if (req.params.user) {
 					cond = metadata["author_id"] == req.params.user;
+				}
+			}
+			if (search) {
+				if (cond == true) {
+					search = search.toString().toLowerCase();
+					if (search.startsWith("id:")) {
+						cond = (metadata["id"].toString() == search.split(":")[1]);
+					} else if (search.startsWith("madebyid:")) {
+						cond = (metadata["author_id"].toString() == search.split(":")[1]);
+					} else if (search.startsWith("madeby:")) {
+						cond = (userMetadata(metadata["author_id"])["username"].search(search.split(":")[1]) != -1);
+					} else {
+						cond = (metadata["title"].toLowerCase().search(search) != -1);
+					}
 				}
 			}
 			if (metadata["publication_status"] == 1 && cond) {

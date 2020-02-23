@@ -24,6 +24,7 @@ module.exports.run = function(app) {
 				let feed = feeds["news_feed"][i];
 				feed["follow_target_id"] = parseInt(id);
 				feed["follow_target_username"] = meta["username"];
+				feed["follow_target_profile_image_url"] = meta["profile_image_url"];
 				if (feed["timestamp"]) {
 					let d = new Date(feed["timestamp"]);
 					if (d.getTime() > lastDate.getTime()) {
@@ -59,6 +60,11 @@ module.exports.run = function(app) {
 			}).map(function(v) {
 				return v.name;
 			});
+			let id = req.params["id"];
+			if (!fs.existsSync("users/"+id)) {
+				res.status(404);
+				return;
+			}
 			for (i=0; i < files.length; i++) {
 				let file = files[i];
 				//newsFeed.push(fs.readFileSync("conf/news_articles/" + file, {"encoding": "utf8"}));

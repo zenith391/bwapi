@@ -17,6 +17,7 @@ socialUser = function(id, date) {
 		"user_status": metadata["user_status"],
 		"user_blocksworld_premium": metadata["user_status"],
 		"started_following_at": date,
+		"profile_image_url": metadata["profile_image_url"],
 		"relationship": 2
 	}
 }
@@ -50,7 +51,7 @@ function save_current_user_profile_world(req, res) {
 		return;
 	}
 	let userId = valid[1];
-	console.log("User with token " + authToken + " uploading his profile world.");
+	console.log("User " + userId + " uploading his profile world.");
 	if (!fs.existsSync("users/"+userId+"/profile_world")) {
 		fs.mkdirSync("users/"+userId+"/profile_world");
 		fs.copyFileSync("conf/default_profile_world.txt", "users/"+userId+"/profile_world/source.json");
@@ -92,7 +93,7 @@ function current_user_profile_world(req, res) {
 		return;
 	}
 	let userId = valid[1];
-	console.log("User with token " + authToken + " downloading his profile world.");
+	console.log("User " + userId + " downloading his profile world.");
 	if (!fs.existsSync("users/"+userId+"/profile_world")) {
 		fs.mkdirSync("users/"+userId+"/profile_world");
 		fs.copyFileSync("conf/default_profile_world.txt", "users/"+userId+"/profile_world/source.json");
@@ -124,7 +125,7 @@ function current_user_worlds(req, res) {
 		return;
 	}
 	let userId = valid[1];
-	console.log("User with token " + authToken + " downloading his worlds.");
+	console.log("User " + userId + " downloading his worlds.");
 	let user = JSON.parse(fs.readFileSync("users/"+userId+"/metadata.json"));
 	user.worlds = [];
 	for (i in user["_SERVER_worlds"]) {
@@ -169,13 +170,13 @@ function follow(req, res) {
 		});
 		return;
 	}
-	user["attrs_for_follow_users"][targetId] = dateString();
-	target["attrs_for_follow_users"][userId] = dateString();
+	user["attrs_for_follow_users"]["u"+targetId] = dateString();
+	target["attrs_for_follow_users"]["u"+userId] = dateString();
 	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err) {
-		if (err) throw err;
+		if (err) console.error(err);
 		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err) {
-			if (err) throw err;
-			res.status(200);
+			if (err) console.error(err);
+			res.status(200).end();
 		});
 	});
 }
@@ -197,8 +198,8 @@ function unfollow(req, res) {
 		});
 		return;
 	}
-	user["attrs_for_follow_users"][targetId] = undefined;
-	target["attrs_for_follow_users"][userId] = undefined;
+	user["attrs_for_follow_users"]["u"+targetId] = undefined;
+	target["attrs_for_follow_users"]["u"+userId] = undefined;
 	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err) {
 		if (err) throw err;
 		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err) {
@@ -232,10 +233,10 @@ module.exports.run = function(app) {
 			return;
 		}
 		let json = JSON.parse(fs.readFileSync("users/"+id+"/followed_users.json"))["attrs_for_follow_users"];
-		let out = {};
+		let out = [];
 		for (i in json) {
 			if (json[i] != undefined)
-				out.push(socialUser(i, json[i]));
+				out.push(socialUser(i.substring(1), json[i]));
 		}
 		res.status(200).json({
 			"attrs_for_follow_users": out
@@ -252,12 +253,12 @@ module.exports.run = function(app) {
 		if (!valid[0]) {
 			return;
 		}
-		let out = {};
+		let out = [];
 		if (valid[1] == id) {
 			let json = JSON.parse(fs.readFileSync("users/"+id+"/followed_users.json"))["attrs_for_follow_users"];
 			for (i in json) {
 				if (json[i] != undefined)
-					out.push(socialUser(i, json[i]));
+					out.push(socialUser(i.substring(1), json[i]));
 			}
 		}
 		res.status(200).json({
@@ -265,7 +266,27 @@ module.exports.run = function(app) {
 		});
 	});
 
+	app.post("/api/v1/current_user/collected_payouts", function(req, res) {
+		let valid = validAuthToken(req, res, false);
+		if (!valid[0]) {
+			return;
+		}
+		let userId = valid[1];
+		let pending = fs.readFileSync("users/"+userId+"/pending_payouts.json");
+		let payouts = JSON.parse(req.body["payouts"]);
+		
+		fs.writeFile("users/"+userId+"/pending_payouts.json", JSON.stringify(pending), function(err) {
+			if (err) throw err;
+		});
+	});
+
 	app.get("/api/v1/current_user/pending_payouts", function(req, res) {
+		let valid = validAuthToken(req, res, false);
+		if (!valid[0]) {
+			return;
+		}
+		let userId = valid[1];
+		let pending = fs.readFileSync("users/"+userId+"/pending_payouts.json");
 		res.status(200).json({
 			"pending_payouts": []
 		})

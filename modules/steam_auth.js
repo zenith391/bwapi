@@ -34,7 +34,10 @@ function steam_current_user(req, res, u) {
 		let authToken = require("uuid/v4")();
 		let worldTemplates = [];
 		if (!fs.existsSync("users/"+userId+"/world_ratings.json")) {
-			fs.writeFileSync("users/"+userId+"/world_ratings.json", "{\"ratings\": { }}");
+			fs.writeFileSync("users/"+userId+"/world_ratings.json", "{\"ratings\": {}}");
+		}
+		if (!fs.existsSync("users/"+userId+"/pending_payouts.json")) {
+			fs.writeFileSync("users/"+userId+"/pending_payouts.json", "{\"pending_payouts\": {}}");
 		}
 		if (!fs.existsSync("users/"+userId+"/model_ratings.json")) {
 			fs.writeFileSync("users/"+userId+"/model_ratings.json", "{\"ratings\": {}}");
@@ -93,8 +96,8 @@ function create_steam_user(req, res) {
 			"_SERVER_worlds": []
 		}
 		fs.writeFileSync("users/"+newId+"/metadata.json", JSON.stringify(userInfo));
-		fs.writeFileSync("users/"+newId+"/followed_users.json", "{\"attrs_for_follow_users\": []}");
-		fs.writeFileSync("users/"+newId+"/followers.json", "{\"attrs_for_follow_users\": []}");
+		fs.writeFileSync("users/"+newId+"/followed_users.json", "{\"attrs_for_follow_users\": {}}");
+		fs.writeFileSync("users/"+newId+"/followers.json", "{\"attrs_for_follow_users\": {}}");
 		fs.writeFileSync("users/"+newId+"/liked_worlds.json", "{\"worlds\": []}");
 		fs.writeFileSync("users/"+newId+"/played_worlds.json", "{\"worlds\": []}");
 		fs.writeFileSync("users/"+newId+"/world_ratings.json", "{\"ratings\": {}}");
