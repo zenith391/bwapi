@@ -445,7 +445,7 @@ function worldsGet(req, res, u) {
 				if (cond == true) {
 					search = search.toString().toLowerCase();
 					if (search.startsWith("id:")) {
-						cond = (metadata["id"].toString() == search.split(":")[1]);
+						cond = (world["id"].toString() == search.split(":")[1]);
 					} else if (search.startsWith("madebyid:")) {
 						cond = (metadata["author_id"].toString() == search.split(":")[1]);
 					} else if (search.startsWith("madeby:")) {
