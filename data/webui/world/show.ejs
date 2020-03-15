@@ -1,0 +1,12 @@
+<div class="card mt-3 bg-white shadow" style="width:400px">
+	<img class="card-img-top" src="<%- world.image_urls_for_sizes['440x440'] %>" :alt="world.title">
+	<div class="card-body">
+		<h4 class="card-title"><%- world.title %></h4>
+		<p class="card-text">
+			<%- world.description %><br/>
+			<b><%- world.play_count %> plays</b><br/>
+			<p>Play by launching Blocksworld, going into Play and searching
+			<code>id:<%- world.id %></code></p>
+		</p>
+	</div>
+</div>

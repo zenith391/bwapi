@@ -368,11 +368,11 @@ function worldsGet(req, res, u) {
 				let json = JSON.parse(fs.readFileSync("worlds/"+fileName+"/metadata.json"));
 				let rate = json["average_star_rating"];
 				if (rate == 0) {
-					rate = 3;
+					rate = 1;
 				}
 				return {
 					name: fileName,
-					time: parseInt(json["play_count"]) * rate
+					time: parseInt(json["play_count"]) * (rate-1)
 				}
 			});
 		} else if (kind == "most_popular") { // Popular
@@ -380,11 +380,11 @@ function worldsGet(req, res, u) {
 				let json = JSON.parse(fs.readFileSync("worlds/"+fileName+"/metadata.json"));
 				let rate = json["average_star_rating"];
 				if (rate == 0) {
-					rate = 3;
+					rate = 1; // unrated worlds can't appear on Popular
 				}
 				return {
 					name: fileName,
-					time: new Date(json["first_published_at"]).getTime() + ((parseInt(json["play_count"]) * 29000000) * rate)
+					time: new Date(json["first_published_at"]).getTime() + (parseInt(json["play_count"]) * 5000000 * (rate-1))
 				}
 			});
 		} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
@@ -392,11 +392,11 @@ function worldsGet(req, res, u) {
 				let json = JSON.parse(fs.readFileSync("worlds/"+fileName+"/metadata.json"));
 				let rate = json["average_star_rating"];
 				if (rate == 0) {
-					rate = 3;
+					rate = 1;
 				}
 				return {
 					name: fileName,
-					time: new Date(json["first_published_at"]).getTime() + ((parseInt(json["play_count"]) * 290000000) * rate)
+					time: new Date(json["first_published_at"]).getTime() + ((parseInt(json["play_count"]) * 29000000) * (rate-1))
 				}
 			});
 		} else { // "recent" and "unmoderated"
@@ -431,18 +431,18 @@ function worldsGet(req, res, u) {
 			}
 			let metadata = null;
 			try {
-				metadata = JSON.parse(fs.readFileSync("worlds/"+files[i]+"/metadata.json"));
+				metadata = fullWorldSync(files[i], true)
 			} catch (e) {
 				metadata = null;
 			}
-			let cond = true;
+			let cond = metadata["publication_status"] == 1;
 			if (req.params) {
 				if (req.params.user) {
 					cond = metadata["author_id"] == req.params.user;
 				}
 			}
 			if (search) {
-				if (cond == true) {
+				if (cond === true) {
 					search = search.toString().toLowerCase();
 					if (search.startsWith("id:")) {
 						cond = (world["id"].toString() == search.split(":")[1]);

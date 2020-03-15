@@ -1,6 +1,7 @@
 const https = require("https");
 const fs = require("fs");
 const multiparty = require("multiparty");
+const bodyParser = require("body-parser");
 
 HOST = "https://bwsecondary.ddns.net:8080";
 ROOT_NAME = __dirname;
@@ -36,12 +37,16 @@ console.log = function(obj) {
 	_log("[ " + dateStr + " | LOG   ] " + obj.toString());
 }
 
-console.debug = function(obj) {
+console.debug = function(obj, userId) {
 	let dateStr = new Date().toLocaleTimeString();
 	if (typeof(obj) == "object") {
 		_log(obj)
 	} else {
-		_log("[ " + dateStr + " | DEBUG ] " + obj.toString());
+		if (userId === undefined) {
+			_log("[ " + dateStr + " | DEBUG ] " + obj.toString());
+		} else {
+			_log("[ " + dateStr + " | User " + userId + " | DEBUG ] " + obj.toString());
+		}
 	}
 }
 
@@ -135,12 +140,18 @@ dateString = function(date) {
 	return currDateStr;
 }
 
-app.use(require("compression")())
+app.use(require("compression")());
 
 app.use(function(req, res, next) {
-	console.debug(req.method + " " + req.url);
+	let authToken = getAuthToken(req);
+	let userId = undefined;
+
+	if (authToken !== undefined) {
+		userId = authTokens[authToken];
+	}
+	console.debug(req.method + " " + req.url, userId);
 	res.set("Server", "BWAPI 1.0 / Express 4 / NodeJS");
-	res.set("Access-Control-Allow-Origin", "*"); // it's a public API :/
+	res.set("Access-Control-Allow-Origin", "*"); // it's a public API
 	next();
 });
 
@@ -153,9 +164,11 @@ app.use(function(req, res, next) {
 				req.files = files;
 				next();
 			});
+		} else if (req.headers["content-type"].indexOf("application/json") != -1) {
+			bodyParser.json({"limit":"50mb"})(req, res, next);
 		} else if (req.headers["content-type"].indexOf("application/x-www-form-urlencoded") != -1) {
 			req.files = {};
-			express.urlencoded({"extended":false, "limit": "50mb"})(req, res, next)
+			bodyParser.urlencoded({"extended":false, "limit": "50mb"})(req, res, next);
 		} else {
 			next();
 		}

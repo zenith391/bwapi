@@ -56,6 +56,20 @@ function home(req, res) {
 	}
 }
 
+function bc(req, res) {
+	fs.readdir("worlds", function(err, files) {
+		let worlds = [];
+		for (i in files) {
+			let world = fullWorldSync(files[i], true);
+			if (world.description.match("#buildchallenge1")) {
+				worlds.push(world);
+			}
+		}
+		res.locals.worlds = worlds;
+		res.render("bc");
+	});
+}
+
 function stats(req, res) {
 	if (req.session.user) {
 		let memory = process.memoryUsage();
@@ -88,6 +102,7 @@ module.exports.run = function(app) {
 	app.get("/webui/", home);
 	app.get("/webui/home", home);
 	app.get("/webui/server_stats", stats);
+	app.get("/webui/submissions", bc);
 
 	app.get("/webui/logout", function(req, res) {
 		req.session.destroy(function() {

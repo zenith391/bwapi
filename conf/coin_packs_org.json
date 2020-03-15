@@ -1,0 +1,52 @@
+{
+	"coin_packs": [
+		{
+			"id": 1,
+			"itc_id": "bw_currencypack_prod_1",
+			"currency": 100,
+			"internal_identifier": "currencypack_1",
+			"steam_iap_id": 100,
+			"steam_iap_dollar_price": 0.99
+		},
+		{
+			"id": 2,
+			"itc_id": "bw_currencypack_prod_3",
+			"currency": 700,
+			"internal_identifier": "currencypack_3",
+			"steam_iap_id": 700,
+			"steam_iap_dollar_price": 3.99
+		},
+		{
+			"id": 3,
+			"itc_id": "bw_currencypack_prod_2",
+			"currency": 300,
+			"internal_identifier": "currencypack_2",
+			"steam_iap_id": 300,
+			"steam_iap_dollar_price": 1.99
+		},
+		{
+			"id": 4,
+			"itc_id": "bw_currencypack_prod_4",
+			"currency": 1100,
+			"internal_identifier": "currencypack_4",
+			"steam_iap_id": 1100,
+			"steam_iap_dollar_price": 5.99
+		},
+		{
+			"id": 5,
+			"itc_id": "bw_currencypack_prod_5",
+			"currency": 2000,
+			"internal_identifier": "currencypack_5",
+			"steam_iap_id": 2000,
+			"steam_iap_dollar_price": 9.99
+		},
+		{
+			"id": 6,
+			"itc_id": "bw_currencypack_prod_6",
+			"currency": 6000,
+			"internal_identifier": "currencypack_6",
+			"steam_iap_id": 6000,
+			"steam_iap_dollar_price": 24.99
+		}
+	]
+}

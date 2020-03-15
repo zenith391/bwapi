@@ -1,0 +1,7 @@
+<%- include("header", {title: "Build challenge submissions"}) %>
+	<div class="container mb-5">
+		<% worlds.forEach(function(world) { %>
+			<%- include("world/show", {world: world}) %>
+		<% }); %>
+	</div>
+<%- include("footer") %>

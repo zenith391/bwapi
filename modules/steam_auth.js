@@ -92,8 +92,10 @@ function create_steam_user(req, res) {
 			"id": parseInt(newId),
 			"username": persona,
 			"user_status": newUserStatus, // see Util.cs in Blocksworld source code for info about user_status
+			"account_type": "user",
 			"blocksworld_premium": 0,
-			"_SERVER_worlds": []
+			"_SERVER_worlds": [],
+			"_SERVER_models": []
 		}
 		fs.writeFileSync("users/"+newId+"/metadata.json", JSON.stringify(userInfo));
 		fs.writeFileSync("users/"+newId+"/followed_users.json", "{\"attrs_for_follow_users\": {}}");
