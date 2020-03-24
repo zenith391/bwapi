@@ -61,7 +61,7 @@ function bc(req, res) {
 		let worlds = [];
 		for (i in files) {
 			let world = fullWorldSync(files[i], true);
-			if (world.description.match("#buildchallenge1")) {
+			if (world.description.match("#buildchallenge3")) {
 				worlds.push(world);
 			}
 		}

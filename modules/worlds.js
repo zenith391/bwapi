@@ -6,16 +6,24 @@ MAX_WORLD_LIMIT = 100;
 
 // Functions exported to global //
 processUserWorld = function(meta) {
-	let user = userMetadata(meta["author_id"].toString());
-	meta["author_username"] = user.username;
-	meta["author_profile_image_url"] = user["profile_image_url"];
-	meta["author_status"] = user["user_status"];
-	meta["author_blocksworld_premium"] = (user["blocksworld_premium"] != 0);
-	if (meta["is_blog_post"] == true) {
-		meta["description"] = fs.readFileSync("worlds/" + meta["id"] + "/description.txt", {"encoding": "utf8"});
-	}
-	if (user["account_type"]) {
-		meta["author_account_type"] = user["account_type"];
+	if (meta["author_id"] == 0) {
+		meta["author_username"] = "Corrupted";
+		meta["author_profile_image_url"] = "corrupted";
+		meta["author_status"] = 0;
+		meta["author_blocksworld_premium"] = false;
+		meta["author_account_type"] = "user"
+	} else {
+		let user = userMetadata(meta["author_id"].toString());
+		meta["author_username"] = user.username;
+		meta["author_profile_image_url"] = user["profile_image_url"];
+		meta["author_status"] = user["user_status"];
+		meta["author_blocksworld_premium"] = (user["blocksworld_premium"] != 0);
+		if (meta["is_blog_post"] == true) {
+			meta["description"] = fs.readFileSync("worlds/" + meta["id"] + "/description.txt", {"encoding": "utf8"});
+		}
+		if (user["account_type"]) {
+			meta["author_account_type"] = user["account_type"];
+		}
 	}
 	return meta;
 }
@@ -363,6 +371,39 @@ function worldsGet(req, res, u) {
 		page = Math.max(0,parseInt(page)-1);
 	}
 	fs.readdir("worlds", function(err, files) {
+		for (i in files) {
+			let file = files[i];
+			try {
+				let json = JSON.parse(fs.readFileSync("worlds/"+file+"/metadata.json"));
+			} catch (e) {
+				// try to recover world
+				let currDateStr = dateString();
+				fs.writeFileSync("worlds/"+file+"/metadata.json", JSON.stringify({
+					"title": "",
+					"average_star_rating": 0,
+					"description": "",
+					"has_win_condition": false,
+					"category_ids": [],
+					"author_id": 0, // TODO
+					"app_version": "1.47.0",
+					"publication_status": 5,
+					"likes_count": 0,
+					"play_count": 0,
+					"pay_to_play_cost": 0,
+					"image_urls_for_sizes": {
+						"440x440": HOST + "/images/"+file+".png",
+						"512x384": HOST + "/images/"+file+".png",
+						"220x220": HOST + "/images/"+file+".png",
+						"1024x768": HOST + "/images/"+file+".png"
+					},
+					"created_at": currDateStr,
+					"first_published_at": currDateStr,
+					"updated_at": currDateStr
+				}))
+			}
+		}
+	});
+	fs.readdir("worlds", function(err, files) {
 		if (kind == "arcade") { // Hall of Fame
 			files = files.map(function (fileName) {
 				let json = JSON.parse(fs.readFileSync("worlds/"+fileName+"/metadata.json"));
@@ -384,7 +425,7 @@ function worldsGet(req, res, u) {
 				}
 				return {
 					name: fileName,
-					time: new Date(json["first_published_at"]).getTime() + (parseInt(json["play_count"]) * 5000000 * (rate-1))
+					time: new Date(json["first_published_at"]).getTime() + (parseInt(json["play_count"]) * 20000000 * (rate-1))
 				}
 			});
 		} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
@@ -423,6 +464,7 @@ function worldsGet(req, res, u) {
 		let obj = [];
 		let publishedWorlds = [];
 		for (i in files) {
+			try {
 			let world = {
 				id: files[i]
 			}
@@ -433,6 +475,7 @@ function worldsGet(req, res, u) {
 			try {
 				metadata = fullWorldSync(files[i], true)
 			} catch (e) {
+				console.error("Error parsing metadata:" + e.toString())
 				metadata = null;
 			}
 			let cond = metadata["publication_status"] == 1;
@@ -464,6 +507,10 @@ function worldsGet(req, res, u) {
 				}
 				world = processUserWorld(world);
 				publishedWorlds.push(world);
+			}
+			} catch (e) {
+				console.error("Error sorting world " + files[i]);
+				console.error(e);
 			}
 		}
 		let start = Math.min(publishedWorlds.length, 24*page);

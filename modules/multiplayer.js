@@ -1,6 +1,7 @@
 let mpWorlds = {};
 const express = require("express");
 const url = require("url");
+const fs = require("fs");
 
 let createRoom = function(wid) {
 	let room = {
@@ -36,6 +37,7 @@ function createGroup(req, res) {
 		return;
 	}
 	let userId = valid[1];
+	let userMeta = userMetadata(userId);
 
 	if (!name) {
 		res.status(400).json({
@@ -48,7 +50,7 @@ function createGroup(req, res) {
 		if (err != null)
 			console.log(err);
 		let newId = data;
-		console.log("Creating group \"" + name + "\" with id " + newId)
+		console.log("Creating group \"" + name + "\" with id " + newId);
 		fs.writeFileSync("conf/new_account_id.txt", (parseInt(newId)+1).toString());
 		fs.mkdirSync("users/"+newId);
 		let newUserStatus = 0;
@@ -64,10 +66,11 @@ function createGroup(req, res) {
 			"account_type": "group",
 			"blocksworld_premium": 0,
 			"owner_id": userId,
-			"_SERVER_worlds": []
+			"members": [userId],
+			"_SERVER_worlds": [],
+			"description": "A BWMulti group."
 		}
 		fs.writeFileSync("users/"+newId+"/metadata.json", JSON.stringify(userInfo));
-		fs.writeFileSync("users/"+newId+"/followed_users.json", "{\"attrs_for_follow_users\": {}}");
 		fs.writeFileSync("users/"+newId+"/followers.json", "{\"attrs_for_follow_users\": {}}");
 		fs.writeFileSync("users/"+newId+"/news_feed.json", JSON.stringify({
 			"news_feed": [
@@ -77,10 +80,64 @@ function createGroup(req, res) {
 				}
 			]
 		}));
+		userMeta["_SERVER_groups"].push(parseInt(""+newId));
+		fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(userMeta));
 		res.status(200).json({
 			"group": userInfo
 		});
 	});
+}
+
+function transferWorld(req, res) {
+	let query = require("url").parse(req.url, true).query;
+	let worldId = req.params.wid;
+	let target = req.params.target;
+
+	let valid = validAuthToken(req, res, false);
+	if (!valid[0]) {
+		return;
+	}
+	let userId = valid[1];
+	let userMeta = userMetadata(userId);
+
+	fullWorld(function(err, world) {
+		if (world["author_id"] != userId) {
+			res.status(500).json({
+				"error": 500,
+				"error_msg": "You are not owning the world."
+			})
+		} else {
+			let targetMeta = userMetadata(target);
+			targetMeta["_SERVER_worlds"].push(worldId);
+			fs.writeFile("users/"+target+"/metadata.json", JSON.stringify(targetMeta), function(err) {
+				if (err) {
+					res.status(500);
+					throw err;
+				}
+				world["author_id"] = target;
+				fs.writeFile("worlds/"+worldId+"/metadata.json", JSON.stringify(world), function(err) {
+					if (err) {
+						res.status(500);
+						throw err;
+					}
+					for (i in userMeta["_SERVER_worlds"]) {
+						if (userMeta["_SERVER_worlds"][i] == worldId) {
+							userMeta["_SERVER_worlds"].splice(i, 1);
+						}
+					}
+					fs.writeFile("users/"+userId+"/metadata.json", JSON.stringify(userMeta), function(err) {
+						if (err) {
+							res.status(500);
+							throw err;
+						}
+						res.status(200).json({
+							"world": processUserWorld(world)
+						});
+					});
+				});
+			});
+		}
+	}, worldId, false);
 }
 
 function roomEventStream(req, res) {
@@ -97,7 +154,7 @@ function roomEventStream(req, res) {
 
 	console.log("event stream");
 	let socket = req.socket;
-	let _end = socket.end; // will be overriden later
+	let _end = socket.end;
 	socket.setKeepAlive(true, Number.MAX_SAFE_INTEGER);
 	socket.setNoDelay(true);
 
@@ -183,6 +240,18 @@ module.exports.run = function(app) {
 		}
 	});
 
+	app.get("/api/v2/current_user/groups", function (req, res) {
+		let valid = validAuthToken(req, res, false);
+		if (!valid[0]) {
+			return;
+		}
+		let userId = valid[1];
+		let userMeta = userMetadata(userId);
+		res.status(200).json({
+			"groups": userMeta["_SERVER_groups"]
+		});
+	});
+
 	app.get("/api/v2/worlds/:id/rooms/join_build", function (req, res) {
 		let wid = req.params["id"];
 		if (mpWorlds[wid] == undefined) {
@@ -199,5 +268,6 @@ module.exports.run = function(app) {
 
 	// Rooms events
 	app.get("/api/v2/worlds/:wid/rooms/:id/event_stream", roomEventStream);
+	app.get("/api/v2/worlds/:wid/transfer_to/:target", transferWorld);
 	app.get("/api/v2/groups/create", createGroup);
 };

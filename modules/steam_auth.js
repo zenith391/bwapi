@@ -2,13 +2,6 @@ const express = require("express");
 const url = require("url");
 const fs = require("fs");
 
-/* Secure auth (without Steam Auth Ticket you can't access without being Linden):
-
-1. Client generate key pair
-2. Client sends its public key to server
-
-*/
-
 function steam_current_user(req, res, u) {
 	let steam_id = u.query.steam_id
 	let auth_ticket = u.query.steam_auth_ticket
@@ -27,6 +20,11 @@ function steam_current_user(req, res, u) {
 		if (!user["account_type"]) {
 			user["account_type"] = "user";
 			console.log("Adding 'account_type' to user " + userId);
+			updated = true;
+		}
+		if (!user["_SERVER_groups"]) {
+			user["_SERVER_groups"] = [];
+			console.log("Adding '_SERVER_groups' to user " + userId);
 			updated = true;
 		}
 		if (updated)
@@ -55,6 +53,7 @@ function steam_current_user(req, res, u) {
 			user["world_templates"] = worldTemplates;
 			user["_SERVER_worlds"] = undefined;
 			user["_SERVER_models"] = undefined;
+			user["_SERVER_groups"] = undefined;
 			user["api_v2_supported"] = true;
 			authTokens[authToken] = userId;
 			res.status(200).json(user);

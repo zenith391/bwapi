@@ -717,6 +717,17 @@
 		"440x440": "https://bwsecondary.ddns.net:8080/images/categories/world_template_submit.png",
 		"220x220": "https://bwsecondary.ddns.net:8080/images/categories/world_template_submit.png"
 		}
+	},
+	{
+		"id": 55,
+		"hidden": true,
+		"index": 4,
+		"name": "Tutorials",
+		"default_tab": "Popular",
+		"image_urls_for_sizes": {
+		"440x440": "https://bwsecondary.ddns.net:8080/images/categories/world_template_submit.png",
+		"220x220": "https://bwsecondary.ddns.net:8080/images/categories/world_template_submit.png"
+		}
 	}
 	]
 }

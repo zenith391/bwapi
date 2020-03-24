@@ -22,6 +22,17 @@ socialUser = function(id, date) {
 	}
 }
 
+addPayout = function(id, payout) {
+	let nextId = 0;
+	let payouts = fs.readFileSync("users/"+id+"/pending_payouts.json");
+	for (i in payouts["pending_payouts"]) {
+		nextId = Math.max(nextId, i+1);
+	}
+	payout["ref_id"] = nextId;
+	payouts["pending_payouts"].push(payout);
+	fs.writeFileSync("users/"+id+"/pending_payouts.json", JSON.stringify(payouts));
+}
+
 // Module code //
 function basic_info(req, res) {
 	let userId = req.params.id
@@ -41,6 +52,16 @@ function basic_info(req, res) {
 		"account_type": metadata["account_type"],
 		"blocksworld_premium": metadata.blocksworld_premium,
 		"profile_image_url": metadata.profile_image_url
+	}
+	if (metadata["account_type"] == "group") {
+		json["worlds_ids"] = metadata["_SERVER_worlds"];
+		json["owner_id"] = metadata["owner_id"];
+		let members = [];
+		for (i in metadata["members"]) {
+			members.push(userMetadata(metadata["members"][i]).username);
+		}
+		json["members_usernames"] = members;
+		json["members_ids"] = metadata["members"];
 	}
 	res.status(200).json(json);
 }
@@ -153,6 +174,40 @@ function current_user_worlds(req, res) {
 	res.status(200).json(user);
 }
 
+function current_user_worlds_for_teleport(req, res) {
+	let is_published = url.parse(req.url, true).query.is_published
+	let valid = validAuthToken(req, res, false);
+	if (!valid[0]) {
+		return;
+	}
+	let userId = valid[1];
+	let user = userMetadata(userId);
+	let worlds = [];
+	for (i in user["_SERVER_worlds"]) {
+		let id = user["_SERVER_worlds"][i];
+		try {
+			let w = fullWorldSync(id, true);
+			if (is_published == "yes") {
+				if (w.publication_status == 1) {
+					worlds.push(w);
+				}
+			} else {
+				worlds.push(w);
+			}
+		} catch (e) {
+			console.debug(e);
+			console.error("could not retrieve wolrds for user " + userId + "!");
+			res.status(200).json({
+				"error": 404,
+				"error_msg": "Could not load your worlds."
+			});
+		}
+	}
+	res.status(200).json({
+		"worlds": worlds
+	});
+}
+
 function follow(req, res) {
 	let valid = validAuthToken(req, res, false);
 	if (!valid[0]) {
@@ -220,7 +275,7 @@ module.exports.run = function(app) {
 	}
 
 	app.get("/api/v1/current_user/worlds", current_user_worlds);
-	app.get("/api/v1/current_user/worlds_for_teleport", current_user_worlds);
+	app.get("/api/v1/current_user/worlds_for_teleport", current_user_worlds_for_teleport);
 	app.get("/api/v1/current_user/profile_world", current_user_profile_world);
 	app.put("/api/v1/current_user/profile_world", save_current_user_profile_world);
 	app.post("/api/v1/user/:id/follow_activity", follow);
@@ -272,11 +327,27 @@ module.exports.run = function(app) {
 			return;
 		}
 		let userId = valid[1];
+		let userMeta = userMetadata(userId);
 		let pending = fs.readFileSync("users/"+userId+"/pending_payouts.json");
 		let payouts = JSON.parse(req.body["payouts"]);
-		
-		fs.writeFile("users/"+userId+"/pending_payouts.json", JSON.stringify(pending), function(err) {
+		for (k in payouts) {
+			let payout = payouts[k];
+			for (i in pending["pending_payouts"]) {
+				let pendingPayout = pending["pending_payouts"][i];
+				if (pendingPayout["ref_id"] == payout["ref_id"]) {
+					userMeta["coins"] = userMeta["coins"] + pendingPayout.coins;
+					pending["pending_payouts"].splice(i, 1);
+				}
+			}
+		}
+		fs.writeFile("users/"+userId+"/metadata.json", JSON.stringify(pending), function(err) {
 			if (err) throw err;
+			fs.writeFile("users/"+userId+"/pending_payouts.json", JSON.stringify(pending), function(err) {
+				if (err) throw err;
+				res.status(200).json({
+					"attrs_for_current_user": userMeta
+				});
+			});
 		});
 	});
 
@@ -288,7 +359,7 @@ module.exports.run = function(app) {
 		let userId = valid[1];
 		let pending = fs.readFileSync("users/"+userId+"/pending_payouts.json");
 		res.status(200).json({
-			"pending_payouts": []
+			"pending_payouts": pending["pending_payouts"]
 		})
 	});
 
