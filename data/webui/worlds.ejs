@@ -1,7 +1,6 @@
-<%- include("header", {title: "Build challenge submissions"}) %>
+<%- include("header", {title: "Worlds"}) %>
 	<div class="container mb-5">
 		<% worlds.forEach(function(world) { %>
-			<% world.bc = true %>
 			<%- include("world/show", {world: world}) %>
 		<% }); %>
 	</div>

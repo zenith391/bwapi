@@ -5,8 +5,10 @@
 		<p class="card-text">
 			<%- world.description %><br/>
 			<b><%- world.play_count %> plays</b><br/>
+			<% if (world.bc) { %>
 			<p>Play by launching Blocksworld, going into Play and searching
-			<code>id:<%- world.id %></code></p>
+			<code>id:<%- world.id %></code></p> 
+			<% } %>
 		</p>
 	</div>
 </div>

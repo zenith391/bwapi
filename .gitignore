@@ -4,8 +4,8 @@ conf/news_articles
 conf/world_templates
 conf/new_account_id.txt
 conf/new_model_id.txt
-conf/new_world_id.txt
 conf/gifts.json
+conf/new_world_id.txt
 cert/
 worlds/
 models/
@@ -13,9 +13,14 @@ images/
 users/
 usersSteamLinks/
 usersWoolLinks/
+latest.log
+
+# private tools
+list_world_by_user.js
 
 # private module
 modules/bwwool.js
+modules/update.js
 
 # Node
 node_modules/

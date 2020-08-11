@@ -2,6 +2,7 @@
   "name": "bwapi",
   "version": "1.0.0",
   "description": "Blocksworld API server host software.",
+  "repository": "https://github.com/zenith391/bwapi",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,10 +15,9 @@
     "compression": "^1.7.4",
     "ejs": "^3.0.1",
     "express": "^4.17.1",
-    "express-graphql": "^0.9.0",
     "express-session": "^1.17.0",
-    "graphql": "^14.5.8",
     "multiparty": "^4.2.1",
+    "serverline": "^1.5.0",
     "uuid": "^3.3.3"
   }
 }

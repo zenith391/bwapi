@@ -2,7 +2,7 @@ const fs = require("fs");
 const express = require("express");
 const url = require("url");
 
-MAX_WORLD_LIMIT = 100;
+MAX_WORLD_LIMIT = 200;
 
 // Functions exported to global //
 processUserWorld = function(meta) {
@@ -17,7 +17,8 @@ processUserWorld = function(meta) {
 		meta["author_username"] = user.username;
 		meta["author_profile_image_url"] = user["profile_image_url"];
 		meta["author_status"] = user["user_status"];
-		meta["author_blocksworld_premium"] = (user["blocksworld_premium"] != 0);
+		//meta["author_blocksworld_premium"] = (user["blocksworld_premium"] != 0);
+		meta["author_blocksworld_premium"] = false; // nobody has Premium here, since nobody pays
 		if (meta["is_blog_post"] == true) {
 			meta["description"] = fs.readFileSync("worlds/" + meta["id"] + "/description.txt", {"encoding": "utf8"});
 		}
@@ -28,9 +29,9 @@ processUserWorld = function(meta) {
 	return meta;
 }
 
-fullWorld = function(callback, id, source) {
+fullWorld = function(id, source, callback) {
 	if (!fs.existsSync("worlds/" + id)) {
-		callback(null);
+		callback(new Error("World not found."));
 		return;
 	}
 	fs.readFile("worlds/" + id + "/metadata.json", function(err, data) {
@@ -40,8 +41,14 @@ fullWorld = function(callback, id, source) {
 			let metadata = JSON.parse(data);
 			metadata["id"] = parseInt(id);
 			if (source) {
-				fs.readFileSync("worlds/" + id + "/source.json", function(e, d) {
-					metadata["source_json_str"] = d;
+				fs.readFile("worlds/" + id + "/source.json", function(e, d) {
+					metadata["source_json_str"] = d.toString();
+					if (!metadata["publication_status"]) {
+						metadata["publication_status"] = 5;
+					}
+					if (!metadata["title"]) {
+						metadata["title"] = "";
+					}
 					callback(null, metadata);
 				});
 			} else {
@@ -69,12 +76,83 @@ fullWorldSync = function(id, noSource) {
 	return world;
 }
 
+let allWorldsCache = {};
+let allWorldsCacheValid = false;
+worldCache = function(callback) {
+	if (!allWorldsCacheValid) {
+		console.debug("Populating world cache..");
+		fs.readdir("worlds", function(err, files) {
+			if (err) callback(err, null);
+
+			for (i in files) {
+				let file = files[i];
+				try {
+					let json = JSON.parse(fs.readFileSync("worlds/"+file+"/metadata.json"));
+					json["id"] = parseInt(file);
+					try {
+						json = processUserWorld(json);
+					} catch (e) {
+						console.error("Error parsing metadata:");
+						console.error(e);
+					}
+					allWorldsCache[json["id"]] = json;
+				} catch (e) {
+					// try to recover world
+					console.error("Had to recover world " + file + "!");
+					let currDateStr = dateString();
+					fs.writeFileSync("worlds/"+file+"/metadata.json", JSON.stringify({
+						"title": "",
+						"average_star_rating": 0,
+						"description": "",
+						"has_win_condition": false,
+						"category_ids": [],
+						"author_id": 0, // TODO
+						"app_version": "1.47.0",
+						"publication_status": 5,
+						"likes_count": 0,
+						"play_count": 0,
+						"pay_to_play_cost": 0,
+						"image_urls_for_sizes": {
+							"440x440": HOST + "/images/"+file+".png",
+							"512x384": HOST + "/images/"+file+".png",
+							"220x220": HOST + "/images/"+file+".png",
+							"1024x768": HOST + "/images/"+file+".png"
+						},
+						"created_at": currDateStr,
+						"first_published_at": currDateStr,
+						"updated_at": currDateStr
+					}))
+				}
+			}
+			console.debug(files.length + " worlds found.");
+			callback(null, allWorldsCache);
+		})
+		allWorldsCacheValid = true;
+	} else {
+		callback(null, allWorldsCache);
+	}
+}
+
+isWorldCacheValid = function() {
+	return allWorldsCacheValid;
+}
+
+invalidateWorldCache = function() {
+	allWorldsCache = {};
+	allWorldsCacheValid = false;
+}
+
 // Module code //
 function world(req, res) {
 	let id = req.params["id"];
 	if (fs.existsSync("worlds/" + id)) {
-		res.status(200).json({
-			"world": fullWorldSync(id)
+		fullWorld(id, true, function(err, world) {
+			if (err) {
+				throw err;
+			}
+			res.status(200).json({
+				"world": processUserWorld(world)
+			})
 		});
 	} else {
 		res.status(404).json({
@@ -119,7 +197,9 @@ function deleteWorld(req, res) {
 				}
 			}
 			fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(usr));
-			res.status(200).json({});
+			res.status(200).json({
+				"success": true
+			});
 		}
 	}
 }
@@ -127,9 +207,14 @@ function deleteWorld(req, res) {
 function worldBasicInfo(req, res) {
 	let id = req.params["id"];
 	if (fs.existsSync("worlds/" + id)) {
-		res.status(200).json(
-			fullWorldSync(id, true)
-		);
+		fullWorld(id, false, function(err, world) {
+			if (err) {
+				throw err;
+			}
+			res.status(200).json({
+				world
+			});
+		});
 	} else {
 		res.status(404).json({
 			"error": 404,
@@ -141,6 +226,7 @@ function worldBasicInfo(req, res) {
 function publicationStatus(req, res) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
+		console.log("missing auth token");
 		res.status(400).json({
 			"error": 400,
 			"error_msg": "Missing auth token"
@@ -155,6 +241,7 @@ function publicationStatus(req, res) {
 		return;
 	}
 	if (req.body == undefined || req.body == null) {
+		console.log("no body");
 		res.status(403).json({
 			"error": "no body"
 		});
@@ -214,6 +301,7 @@ function createWorld(req, res) {
 	}
 	let user = userMetadata(userId);
 	if (user["_SERVER_worlds"].length > MAX_WORLD_LIMIT) {
+		console.log(user["username"] + " has too many worlds.");
 		res.status(400).json({
 			"error": 400,
 			"error_msg": "Too many worlds created."
@@ -230,10 +318,10 @@ function createWorld(req, res) {
 		});
 		let currDateStr = dateString();
 		let metadata = {
-			"title": req.body["title"][0],
-			"description": req.body["description"][0],
-			"has_win_condition": req.body["has_win_condition"][0],
-			"category_ids": JSON.parse(req.body["category_ids_json_str"][0]),
+			"title": value(req.body, "title"),
+			"description": value(req.body, "description"),
+			"has_win_condition": value(req.body, "has_win_condition") == "true",
+			"category_ids": JSON.parse(value(req.body, "category_ids_json_str")),
 			"author_id": parseInt(userId),
 			"publication_status": 5,
 			"app_version": req.headers["bw-app-version"],
@@ -251,10 +339,11 @@ function createWorld(req, res) {
 			"first_published_at": currDateStr,
 			"updated_at": currDateStr
 		};
-		let source = req.body["source_json_str"];
+		let source = value(req.body, "source_json_str");
 
 		fs.mkdirSync("worlds/"+newId)
 		fs.writeFileSync("worlds/"+newId+"/metadata.json", JSON.stringify(metadata));
+		allWorldsCache[newId] = metadata;
 		fs.writeFileSync("worlds/"+newId+"/source.json", source);
 		let usr = userMetadata(userId)
 		usr["_SERVER_worlds"].push(newId);
@@ -262,6 +351,7 @@ function createWorld(req, res) {
 		if (req.files["screenshot_image"]) {
 			fs.copyFileSync(req.files["screenshot_image"][0].path, "images/"+newId+".png");
 		}
+		console.log("World \"" + metadata.title + "\" created!")
 		res.status(200).json({
 			"world": fullWorldSync(newId)
 		});
@@ -286,11 +376,24 @@ function updateWorld(req, res) {
 	}
 	let id = req.params["id"];
 	if (fs.existsSync("worlds/" + id) && req.body != null) {
-		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
+		let metadata = fullWorldSync(id, true)
+		let owning = false;
 		if (metadata["author_id"] == userId) {
-			console.debug(req.files);
+			owning = true;
+		} else if (metadata["author_account_type"] == "group") {
+			let groupMeta = userMetadata(metadata["author_id"])
+			for (k in groupMeta["members"]) {
+				if (groupMeta["members"][k] == userId) {
+					owning = true;
+					break;
+				}
+			}
+		}
+		if (owning) {
 			if (req.body["source_json_str"]) {
-				fs.writeFileSync("worlds/"+id+"/source.json", req.body["source_json_str"]);
+				fs.writeFileSync("worlds/"+id+"/source.tmp.json", req.body["source_json_str"]);
+				fs.copyFileSync("worlds/"+id+"/source.tmp.json", "worlds/"+id+"/source.json");
+				fs.unlinkSync("worlds/"+id+"/source.tmp.json");
 			}
 			if (req.body["has_win_condition"]) {
 				let v = req.body["has_win_condition"]
@@ -331,7 +434,7 @@ function updateWorld(req, res) {
 			if (metadata["publication_status"] == 1) {
 				let feed = {
 					"type": 202,
-					"timestamp": metadata["first_published_at"],
+					"timestamp": dateString(),
 					"world_id": parseInt(id),
 					"world_image_urls_for_sizes": metadata["image_urls_for_sizes"],
 					"world_title": metadata["title"]
@@ -339,13 +442,11 @@ function updateWorld(req, res) {
 				addFeed(userId, feed);
 			}
 			metadata["updated_at"] = dateString();
-			let metaStr = JSON.stringify(metadata)
-			fs.writeFile("worlds/"+id+"/metadata.json", metaStr, function(err) {
-				if (err != null)
-					console.log("file error for world update: " + err);
-				res.status(200).json({
-					"world": fullWorldSync(id)
-				});
+			let metaStr = JSON.stringify(metadata);
+			allWorldsCache[id] = metadata;
+			fs.writeFileSync("worlds/"+id+"/metadata.json", metaStr);
+			res.status(200).json({
+				"world": fullWorldSync(id)
 			});
 		} else {
 			res.status(403).json({
@@ -357,11 +458,13 @@ function updateWorld(req, res) {
 	}
 }
 
+let worldListCache = {};
 function worldsGet(req, res, u) {
 	let page = u.query.page;
 	let categoryId = u.query.category_id;
 	let search = u.query.search;
 	let kind = u.query.kind;
+	let sent = false;
 	if (kind == undefined) {
 		kind = "recent";
 	}
@@ -370,160 +473,179 @@ function worldsGet(req, res, u) {
 	} else {
 		page = Math.max(0,parseInt(page)-1);
 	}
-	fs.readdir("worlds", function(err, files) {
-		for (i in files) {
-			let file = files[i];
-			try {
-				let json = JSON.parse(fs.readFileSync("worlds/"+file+"/metadata.json"));
-			} catch (e) {
-				// try to recover world
-				let currDateStr = dateString();
-				fs.writeFileSync("worlds/"+file+"/metadata.json", JSON.stringify({
-					"title": "",
-					"average_star_rating": 0,
-					"description": "",
-					"has_win_condition": false,
-					"category_ids": [],
-					"author_id": 0, // TODO
-					"app_version": "1.47.0",
-					"publication_status": 5,
-					"likes_count": 0,
-					"play_count": 0,
-					"pay_to_play_cost": 0,
-					"image_urls_for_sizes": {
-						"440x440": HOST + "/images/"+file+".png",
-						"512x384": HOST + "/images/"+file+".png",
-						"220x220": HOST + "/images/"+file+".png",
-						"1024x768": HOST + "/images/"+file+".png"
-					},
-					"created_at": currDateStr,
-					"first_published_at": currDateStr,
-					"updated_at": currDateStr
-				}))
-			}
+	let cacheIndex = page + kind + categoryId + search;
+	if (req.params && req.params.user) {
+		cacheIndex += req.params.user;
+	}
+	if (worldListCache[cacheIndex]) {
+		let json = worldListCache[cacheIndex];
+		if (json["expires"] <= Date.now()) {
+			worldListCache[cacheIndex] = undefined;
+		} else {
+			res.status(200).json(json);
+			sent = true;
 		}
-	});
-	fs.readdir("worlds", function(err, files) {
-		if (kind == "arcade") { // Hall of Fame
-			files = files.map(function (fileName) {
-				let json = JSON.parse(fs.readFileSync("worlds/"+fileName+"/metadata.json"));
-				let rate = json["average_star_rating"];
-				if (rate == 0) {
-					rate = 1;
-				}
-				return {
-					name: fileName,
-					time: parseInt(json["play_count"]) * (rate-1)
-				}
-			});
-		} else if (kind == "most_popular") { // Popular
-			files = files.map(function (fileName) {
-				let json = JSON.parse(fs.readFileSync("worlds/"+fileName+"/metadata.json"));
-				let rate = json["average_star_rating"];
-				if (rate == 0) {
-					rate = 1; // unrated worlds can't appear on Popular
-				}
-				return {
-					name: fileName,
-					time: new Date(json["first_published_at"]).getTime() + (parseInt(json["play_count"]) * 20000000 * (rate-1))
-				}
-			});
-		} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
-			files = files.map(function (fileName) {
-				let json = JSON.parse(fs.readFileSync("worlds/"+fileName+"/metadata.json"));
-				let rate = json["average_star_rating"];
-				if (rate == 0) {
-					rate = 1;
-				}
-				return {
-					name: fileName,
-					time: new Date(json["first_published_at"]).getTime() + ((parseInt(json["play_count"]) * 29000000) * (rate-1))
-				}
-			});
-		} else { // "recent" and "unmoderated"
-			files = files.map(function (fileName) {
-				let json = JSON.parse(fs.readFileSync("worlds/"+fileName+"/metadata.json"));
-				let date = new Date(json["first_published_at"]);
-				if (json["first_published_at"] == undefined || isNaN(date.getTime())) {
-					date = fs.statSync("worlds/" + fileName + "/metadata.json").birthtimeMs
-				} else {
-					date = date.getTime();
-				}
-				return {
-					name: fileName,
-					time: date
-				}
-			});
-		}
-		files = files.sort(function (a, b) {
-			return b.time - a.time;
-		}).map(function(v) {
-			return v.name;
-		});
-		let json = {};
-		let obj = [];
-		let publishedWorlds = [];
-		for (i in files) {
-			try {
-			let world = {
-				id: files[i]
-			}
-			if (parseInt(files[i]) < 0) { // probably status update world
-				continue;
-			}
-			let metadata = null;
-			try {
-				metadata = fullWorldSync(files[i], true)
-			} catch (e) {
-				console.error("Error parsing metadata:" + e.toString())
-				metadata = null;
-			}
-			let cond = metadata["publication_status"] == 1;
-			if (req.params) {
-				if (req.params.user) {
-					cond = metadata["author_id"] == req.params.user;
+	}
+	if (!sent) {
+		/*fs.readdir("worlds", function(err, files) {
+			for (i in files) {
+				let file = files[i];
+				try {
+					let json = JSON.parse(fs.readFileSync("worlds/"+file+"/metadata.json"));
+				} catch (e) {
+					// try to recover world
+					console.error("Had to recover world " + file + "!");
+					let currDateStr = dateString();
+					fs.writeFileSync("worlds/"+file+"/metadata.json", JSON.stringify({
+						"title": "",
+						"average_star_rating": 0,
+						"description": "",
+						"has_win_condition": false,
+						"category_ids": [],
+						"author_id": 0, // TODO
+						"app_version": "1.47.0",
+						"publication_status": 5,
+						"likes_count": 0,
+						"play_count": 0,
+						"pay_to_play_cost": 0,
+						"image_urls_for_sizes": {
+							"440x440": HOST + "/images/"+file+".png",
+							"512x384": HOST + "/images/"+file+".png",
+							"220x220": HOST + "/images/"+file+".png",
+							"1024x768": HOST + "/images/"+file+".png"
+						},
+						"created_at": currDateStr,
+						"first_published_at": currDateStr,
+						"updated_at": currDateStr
+					}))
 				}
 			}
-			if (search) {
-				if (cond === true) {
-					search = search.toString().toLowerCase();
-					if (search.startsWith("id:")) {
-						cond = (world["id"].toString() == search.split(":")[1]);
-					} else if (search.startsWith("madebyid:")) {
-						cond = (metadata["author_id"].toString() == search.split(":")[1]);
-					} else if (search.startsWith("madeby:")) {
-						cond = (userMetadata(metadata["author_id"])["username"].search(search.split(":")[1]) != -1);
-					} else {
-						cond = (metadata["title"].toLowerCase().search(search) != -1);
+		});*/
+		worldCache(function(err, worlds) {
+			worlds = Object.values(worlds);
+			if (kind == "arcade") { // Hall of Fame
+				worlds = worlds.map(function (world) {
+					let rate = world["average_star_rating"];
+					if (rate == 0) {
+						rate = 1;
 					}
-				}
+					return {
+						world: world,
+						time: parseInt(world["play_count"]) * (rate-1)
+					}
+				});
+			} else if (kind == "most_popular") { // Popular
+				worlds = worlds.map(function (world) {
+					let rate = world["average_star_rating"];
+					if (rate == 0) {
+						rate = 1; // unrated worlds can't appear on Popular
+					}
+					let date = new Date(world["first_published_at"]);
+					if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
+						date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+					} else {
+						date = date.getTime();
+					}
+					return {
+						world: world,
+						time: date + (parseInt(world["play_count"]) * 20000000 * (rate-1))
+					}
+				});
+			} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
+				let featuredWorldId = 6522;
+				worlds = worlds.map(function (world) {
+					return {
+						world: world,
+						time: (world.id == featuredWorldId) ? 1 : 0
+					}
+				});
+			} else { // "recent" and "unmoderated"
+				worlds = worlds.map(function (world) {
+					let date = new Date(world["first_published_at"]);
+					if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
+						date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+					} else {
+						date = date.getTime();
+					}
+					return {
+						world: world,
+						time: date
+					}
+				});
 			}
-			if (metadata["publication_status"] == 1 && cond) {
-				for (key in metadata) {
-					world[key] = metadata[key];
-				}
-				if (categoryId != undefined && world["category_ids"].indexOf(parseInt(categoryId)) == -1) {
+			worlds = worlds.sort(function (a, b) {
+				return b.time - a.time;
+			}).map(function(v) {
+				return v.world;
+			});
+			let json = {};
+			let obj = [];
+			let publishedWorlds = [];
+			
+			for (i in worlds) {
+				try {
+				let world = worlds[i];
+				if (world.id < 0) { // status update world
 					continue;
 				}
-				world = processUserWorld(world);
-				publishedWorlds.push(world);
+				let metadata = world;
+				try {
+					//metadata = processUserWorld(world);
+				} catch (e) {
+					console.error("Error parsing metadata:");
+					console.error(e);
+					metadata = null;
+				}
+				let cond = (metadata["publication_status"] == 1);
+				if (req.params) {
+					if (req.params.user) {
+						cond = cond && (metadata["author_id"] == req.params.user);
+					}
+				}
+				if (search) {
+					if (cond === true) {
+						search = search.toString().toLowerCase();
+						if (search.startsWith("id:")) {
+							cond = (metadata["id"].toString() == search.split(":")[1]);
+						} else if (search.startsWith("madebyid:")) {
+							cond = (metadata["author_id"].toString() == search.split(":")[1]);
+						} else if (search.startsWith("madeby:")) {
+							cond = (metadata["author_username"].search(search.split(":")[1]) != -1);
+						} else {
+							cond = (metadata["title"].toLowerCase().search(search) != -1);
+						}
+					}
+				}
+				if (cond) {
+					//metadata["id"] = files[i]; // set by world cache
+					if (categoryId != undefined && metadata["category_ids"].indexOf(parseInt(categoryId)) == -1) {
+						continue;
+					}
+					metadata = metadata;
+					publishedWorlds.push(metadata);
+					if (kind == "featured") {
+						break;
+					}
+				}
+				} catch (e) {
+					console.error("Error sorting world " + worlds[i].id);
+					console.error(e);
+				}
 			}
-			} catch (e) {
-				console.error("Error sorting world " + files[i]);
-				console.error(e);
+			let start = Math.min(publishedWorlds.length, 24*page);
+			let end = Math.min(publishedWorlds.length, start+24);
+			for (i=start; i < end; i++) {
+				obj.push(publishedWorlds[i]);
 			}
-		}
-		let start = Math.min(publishedWorlds.length, 24*page);
-		let end = Math.min(publishedWorlds.length, start+24);
-		for (i=start; i < end; i++) {
-			obj.push(publishedWorlds[i]);
-		}
-		json["worlds"] = obj;
-		if (end < publishedWorlds.length) {
-			json["pagination_next_page"] = page + 2; // + 2 because it got substracted by 1 before
-		}
-		res.status(200).json(json);
-	});
+			json["worlds"] = obj;
+			if (end < publishedWorlds.length) {
+				json["pagination_next_page"] = page + 2; // + 2 because it got substracted by 1 before
+			}
+			worldListCache[cacheIndex] = json;
+			worldListCache[cacheIndex]["expires"] = Date.now() + 1000*3600; // 1 hour
+			res.status(200).json(json);
+		});
+	}
 }
 
 function playWorld(req, res) {
@@ -564,6 +686,119 @@ function playWorld(req, res) {
 	}
 }
 
+function worldLeaderboard(req, res) {
+	let id = req.params.id;
+	fullWorld(id, false, function(err, world) {
+		if (err) {
+			console.error(err);
+			return;
+		}
+		let lb = world.leaderboard;
+		if (!lb) {
+			lb = {
+				"leaderboard_type": 0,
+				"records": [], // all time
+				"periodic_records": [] // weekly
+			};
+			world.leaderboard = lb;
+			fs.writeFile("worlds/" + id + "/metadata.json", JSON.stringify(world), function(err) {
+				if (err) {
+					throw err;
+				}
+			});
+		}
+
+		let meta = userMetadata(world["author_id"]);
+		let periodicRecords = [];
+		lb["author_id"] = world["author_id"];
+		lb["author_play_count"] = world["play_count"];
+		lb["author_username"] = meta["username"];
+		lb["author_status"] = meta["user_status"];
+		lb["records"].sort(function (a, b) {
+			return a["best_time_ms"] - b["best_time_ms"];
+		});
+		for (k in lb["records"]) {
+			let record = lb["records"][k];
+			if (record["user_id"] == lb["author_id"]) {
+				lb["author_best_time_ms"] = record["best_time_ms"];
+			}
+			let umeta = userMetadata(record["user_id"]);
+			record["user_username"] = umeta["username"];
+			record["user_profile_image_url"] = umeta["profile_image_url"];
+			record["user_status"] = umeta["user_status"];
+			record["rank"] = parseInt(k);
+			let minDate = new Date();
+			minDate.setDate(minDate.getDate() - 7);
+			if (new Date(record["timestamp"]) > minDate) {
+				periodicRecords.push(record);
+			}
+		}
+		periodicRecords.sort(function (a, b) {
+			return a["best_time_ms"] - b["best_time_ms"];
+		});
+		for (k in periodicRecords) {
+			periodicRecords[k].rank = k;
+		}
+		lb["periodic_records"] = periodicRecords;
+		res.status(200).json({
+			"leaderboard": lb
+		});
+	});
+}
+
+function submitLeaderboardRecord(req, res) {
+	let valid = validAuthToken(req, res, true);
+	if (!valid[0]) {
+		return;
+	}
+	let userId = valid[1];
+	let id = req.params.id;
+	fullWorld(id, false, function(err, world) {
+		if (err) {
+			console.error(err);
+			return;
+		}
+		let lb = world.leaderboard;
+		if (!lb) {
+			lb = {
+				"leaderboard_type": 0,
+				"records": [], // all time
+				"periodic_records": [] // weekly
+			};
+			world.leaderboard = lb;
+		}
+		let improved = true;
+		for (k in lb["records"]) {
+			let record = lb["records"][k];
+			if (record["user_id"] == userId) {
+				if (parseInt(record["best_time_ms"]) < parseInt(req.body["time_ms"])) {
+					improved = false;
+				} else {
+					lb["records"].splice(k, 1);
+				}
+				break;
+			}
+		}
+		if (improved) {
+			lb["records"].push({
+				"user_id": userId,
+				"best_time_ms": parseInt(req.body["time_ms"]), // TODO: check req.body["digest"]
+				"timestamp": new Date().getTime(),
+				"play_count": 1
+			});
+		}
+		fs.writeFile("worlds/" + id + "/metadata.json", JSON.stringify(world), function(err) {
+			if (err) {
+				throw err;
+			}
+		});
+		res.status(200).json({
+			"leaderboard": lb,
+			"time_improved": improved
+		});
+	});
+}
+
 module.exports.run = function(app) {
 	if (!fs.existsSync("worlds")) {
 		fs.mkdirSync("worlds");
@@ -580,6 +815,8 @@ module.exports.run = function(app) {
 	app.put("/api/v1/worlds/:id", updateWorld);
 	app.post("/api/v1/worlds/:id/plays", playWorld);
 	app.get("/api/v1/worlds/:id/source_for_teleport", world);
+	app.get("/api/v1/world_leaderboards/:id", worldLeaderboard);
+	app.post("/api/v1/world_leaderboards/:id/plays", submitLeaderboardRecord);
 
 	app.put("/api/v1/worlds/:id/published_status", express.urlencoded({"extended":false}), publicationStatus);
 	app.get("/api/v1/worlds", function(req, res) {
@@ -590,7 +827,7 @@ module.exports.run = function(app) {
 	})
 
 	app.get("/api/v1/current_user/world_star_rating/:id", function(req, res) {
-		let valid = validAuthToken(req, res, true);
+		let valid = validAuthToken(req, res, false);
 		if (!valid[0]) {
 			return;
 		}

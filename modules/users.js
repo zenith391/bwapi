@@ -24,11 +24,14 @@ socialUser = function(id, date) {
 
 addPayout = function(id, payout) {
 	let nextId = 0;
-	let payouts = fs.readFileSync("users/"+id+"/pending_payouts.json");
+	let payouts = JSON.parse(fs.readFileSync("users/"+id+"/pending_payouts.json"));
 	for (i in payouts["pending_payouts"]) {
 		nextId = Math.max(nextId, i+1);
 	}
-	payout["ref_id"] = nextId;
+	if (!Array.isArray(payouts["pending_payouts"])) {
+		payouts["pending_payouts"] = [];
+	}
+	payout["ref_id"] = nextId+1;
 	payouts["pending_payouts"].push(payout);
 	fs.writeFileSync("users/"+id+"/pending_payouts.json", JSON.stringify(payouts));
 }
@@ -51,7 +54,8 @@ function basic_info(req, res) {
 		"user_status": metadata.user_status,
 		"account_type": metadata["account_type"],
 		"blocksworld_premium": metadata.blocksworld_premium,
-		"profile_image_url": metadata.profile_image_url
+		"profile_image_url": metadata.profile_image_url,
+		"coins": metadata.coins
 	}
 	if (metadata["account_type"] == "group") {
 		json["worlds_ids"] = metadata["_SERVER_worlds"];
@@ -162,7 +166,7 @@ function current_user_worlds(req, res) {
 			}
 		} catch (e) {
 			console.debug(e);
-			console.error("could not retrieve wolrds for user " + userId + "!");
+			console.error("could not retrieve worlds for user " + userId + "!");
 			res.status(200).json({
 				"error": 404,
 				"error_msg": "Could not load your worlds."
@@ -171,11 +175,11 @@ function current_user_worlds(req, res) {
 	}
 	user["_SERVER_worlds"] = undefined;
 	user["_SERVER_models"] = undefined;
+	user["_SERVER_groups"] = undefined;
 	res.status(200).json(user);
 }
 
 function current_user_worlds_for_teleport(req, res) {
-	let is_published = url.parse(req.url, true).query.is_published
 	let valid = validAuthToken(req, res, false);
 	if (!valid[0]) {
 		return;
@@ -186,17 +190,17 @@ function current_user_worlds_for_teleport(req, res) {
 	for (i in user["_SERVER_worlds"]) {
 		let id = user["_SERVER_worlds"][i];
 		try {
-			let w = fullWorldSync(id, true);
-			if (is_published == "yes") {
-				if (w.publication_status == 1) {
-					worlds.push(w);
-				}
-			} else {
-				worlds.push(w);
+			let world = fullWorldSync(id, true);
+			if (!world["image_urls_for_sizes"]["440x440"]) {
+				world["image_urls_for_sizes"]["440x440"] = "test";
 			}
+			if (!world["image_urls_for_sizes"]["220x220"]) {
+				world["image_urls_for_sizes"]["220x220"] = "test";
+			}
+			worlds.push(world);
 		} catch (e) {
 			console.debug(e);
-			console.error("could not retrieve wolrds for user " + userId + "!");
+			console.error("could not retrieve worlds for user " + userId + "!");
 			res.status(200).json({
 				"error": 404,
 				"error_msg": "Could not load your worlds."
@@ -231,7 +235,7 @@ function follow(req, res) {
 		if (err) console.error(err);
 		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err) {
 			if (err) console.error(err);
-			res.status(200).end();
+			res.status(200).json({"ok":true});
 		});
 	});
 }
@@ -259,7 +263,7 @@ function unfollow(req, res) {
 		if (err) throw err;
 		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err) {
 			if (err) throw err;
-			res.status(200);
+			res.status(200).json({"ok":true});
 		});
 	});
 }
@@ -287,11 +291,15 @@ module.exports.run = function(app) {
 			res.status(404);
 			return;
 		}
-		let json = JSON.parse(fs.readFileSync("users/"+id+"/followed_users.json"))["attrs_for_follow_users"];
 		let out = [];
-		for (i in json) {
-			if (json[i] != undefined)
-				out.push(socialUser(i.substring(1), json[i]));
+		try {
+			let json = JSON.parse(fs.readFileSync("users/"+id+"/followed_users.json"))["attrs_for_follow_users"];
+			for (i in json) {
+				if (json[i] != undefined)
+					out.push(socialUser(i.substring(1), json[i]));
+			}
+		} catch (e) {
+			console.error(e);
 		}
 		res.status(200).json({
 			"attrs_for_follow_users": out
@@ -310,7 +318,7 @@ module.exports.run = function(app) {
 		}
 		let out = [];
 		if (valid[1] == id) {
-			let json = JSON.parse(fs.readFileSync("users/"+id+"/followed_users.json"))["attrs_for_follow_users"];
+			let json = JSON.parse(fs.readFileSync("users/"+id+"/followers.json"))["attrs_for_follow_users"];
 			for (i in json) {
 				if (json[i] != undefined)
 					out.push(socialUser(i.substring(1), json[i]));
@@ -328,19 +336,19 @@ module.exports.run = function(app) {
 		}
 		let userId = valid[1];
 		let userMeta = userMetadata(userId);
-		let pending = fs.readFileSync("users/"+userId+"/pending_payouts.json");
-		let payouts = JSON.parse(req.body["payouts"]);
+		let pending = JSON.parse(fs.readFileSync("users/"+userId+"/pending_payouts.json"));
+		let payouts = req.body["payouts"];
 		for (k in payouts) {
 			let payout = payouts[k];
 			for (i in pending["pending_payouts"]) {
 				let pendingPayout = pending["pending_payouts"][i];
 				if (pendingPayout["ref_id"] == payout["ref_id"]) {
-					userMeta["coins"] = userMeta["coins"] + pendingPayout.coins;
+					userMeta["coins"] = userMeta["coins"] + pendingPayout.coin_grants;
 					pending["pending_payouts"].splice(i, 1);
 				}
 			}
 		}
-		fs.writeFile("users/"+userId+"/metadata.json", JSON.stringify(pending), function(err) {
+		fs.writeFile("users/"+userId+"/metadata.json", JSON.stringify(userMeta), function(err) {
 			if (err) throw err;
 			fs.writeFile("users/"+userId+"/pending_payouts.json", JSON.stringify(pending), function(err) {
 				if (err) throw err;
@@ -357,7 +365,7 @@ module.exports.run = function(app) {
 			return;
 		}
 		let userId = valid[1];
-		let pending = fs.readFileSync("users/"+userId+"/pending_payouts.json");
+		let pending = JSON.parse(fs.readFileSync("users/"+userId+"/pending_payouts.json"));
 		res.status(200).json({
 			"pending_payouts": pending["pending_payouts"]
 		})

@@ -70,6 +70,25 @@ function bc(req, res) {
 	});
 }
 
+function newWorlds(req, res) {
+	fs.readdir("worlds", function(err, files) {
+		let worlds = [];
+		let j = 0;
+		for (i in files) {
+			let world = fullWorldSync(files[i], true);
+			if (world["publication_status"] == 1) {
+				worlds.push(world);
+				j++;
+			}
+			if (j == 10) {
+				break;
+			}
+		}
+		res.locals.worlds = worlds;
+		res.render("worlds");
+	});
+}
+
 function stats(req, res) {
 	if (req.session.user) {
 		let memory = process.memoryUsage();
@@ -80,6 +99,16 @@ function stats(req, res) {
 			}
 		});
 	}
+}
+
+function metrics(req, res) {
+	let worlds = fs.readdirSync("worlds");
+	let models = fs.readdirSync("models");
+	let players = fs.readdirSync("users");
+	res.locals.worlds = worlds.length;
+	res.locals.models = models.length;
+	res.locals.players = players.length - 2; // minus user_list.js and owner_of.js
+	res.render("metrics");
 }
 
 module.exports.run = function(app) {
@@ -102,7 +131,9 @@ module.exports.run = function(app) {
 	app.get("/webui/", home);
 	app.get("/webui/home", home);
 	app.get("/webui/server_stats", stats);
+	app.get("/webui/server_metrics", metrics);
 	app.get("/webui/submissions", bc);
+	app.get("/webui/worlds", newWorlds);
 
 	app.get("/webui/logout", function(req, res) {
 		req.session.destroy(function() {

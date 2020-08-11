@@ -35,10 +35,13 @@ function steam_current_user(req, res, u) {
 			fs.writeFileSync("users/"+userId+"/world_ratings.json", "{\"ratings\": {}}");
 		}
 		if (!fs.existsSync("users/"+userId+"/pending_payouts.json")) {
-			fs.writeFileSync("users/"+userId+"/pending_payouts.json", "{\"pending_payouts\": {}}");
+			fs.writeFileSync("users/"+userId+"/pending_payouts.json", "{\"pending_payouts\": []}");
 		}
 		if (!fs.existsSync("users/"+userId+"/model_ratings.json")) {
 			fs.writeFileSync("users/"+userId+"/model_ratings.json", "{\"ratings\": {}}");
+		}
+		if (!fs.existsSync("users/" + userId + "/friends.json")) {
+			fs.writeFileSync("users/" + userId + "/friends.json", "{\"friends\": {}}");
 		}
 		fs.readdir("conf/world_templates", function(err, files) {
 			for (j in files) {
@@ -56,9 +59,11 @@ function steam_current_user(req, res, u) {
 			user["_SERVER_groups"] = undefined;
 			user["api_v2_supported"] = true;
 			authTokens[authToken] = userId;
+			console.log("Steam login done!");
 			res.status(200).json(user);
 		});
 	} else {
+		console.log("no such user");
 		res.status(404).json({
 			"error": 404,
 			"error_msg": "no steam user with id " + steam_id
@@ -94,7 +99,8 @@ function create_steam_user(req, res) {
 			"account_type": "user",
 			"blocksworld_premium": 0,
 			"_SERVER_worlds": [],
-			"_SERVER_models": []
+			"_SERVER_models": [],
+			"_SERVER_groups": []
 		}
 		fs.writeFileSync("users/"+newId+"/metadata.json", JSON.stringify(userInfo));
 		fs.writeFileSync("users/"+newId+"/followed_users.json", "{\"attrs_for_follow_users\": {}}");
@@ -103,6 +109,7 @@ function create_steam_user(req, res) {
 		fs.writeFileSync("users/"+newId+"/played_worlds.json", "{\"worlds\": []}");
 		fs.writeFileSync("users/"+newId+"/world_ratings.json", "{\"ratings\": {}}");
 		fs.writeFileSync("users/"+newId+"/model_ratings.json", "{\"ratings\": {}}");
+		fs.writeFileSync("users/"+userId+"/pending_payouts.json", "{\"pending_payouts\": []}");
 		fs.writeFileSync("users/"+newId+"/news_feed.json", JSON.stringify({
 			"news_feed": [
 				{

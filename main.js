@@ -2,8 +2,10 @@ const https = require("https");
 const fs = require("fs");
 const multiparty = require("multiparty");
 const bodyParser = require("body-parser");
+const util = require("util");
+const serverline = require("serverline");
 
-HOST = "https://bwsecondary.ddns.net:8080";
+HOST = "https://bwsecondary.ddns.net:8080"; // you *MUST* change this to the address of your server (otherwise some things like thumbnails won't work) !
 ROOT_NAME = __dirname;
 EARLY_ACCESS = true; // is this server early access? (used for some status identifiers)
 
@@ -26,21 +28,79 @@ const fileOptions = {
 
 const express = require("express");
 const app = express();
-const port = 8080
+const port = 8080;
+const logFilePath = "latest.log";
 
-let _log = console.log
-let _warn = console.warn
-let _error = console.error
+fs.writeFileSync(logFilePath, ""); // be sure log file is empty
+
+serverline.init()
+serverline.setPrompt("> ");
+serverline.on("line", function(line) {
+	if (line == "cache clear") {
+		console.log("Clearing world cache..");
+		invalidateWorldCache();
+		console.log("Done!");
+	} else if (line == "cache peek") {
+		if (!isWorldCacheValid()) {
+			console.log("Cache hasn't been filled yet!");
+		} else {
+			console.debug("Peeking cache..");
+			worldCache(function(err, worlds) {
+				console.log("Done: " + util.inspect(worlds, {"colors": true}));
+			});
+		}
+	} else if (line == "cache fill") {
+		if (isWorldCacheValid()) {
+			console.log("Cache is already filled, clear the cache first!");
+		} else {
+			console.debug("Filling cache..");
+			worldCache(function(err, worlds) {
+				console.debug("Done");
+			});
+		}
+	} else if (line == "cache") {
+		console.log("Usage: cache [clear|peek]");
+	} else {
+		console.log("Commands:");
+		console.log("- cache [clear|peek]")
+	}
+});
+
+serverline.on("SIGINT", function(line) {
+	process.exit(0);
+})
+
+function createLogFunction(original) {
+	return function(obj) {
+		original(obj);
+		fs.appendFile(logFilePath, obj.toString() + "\n", function (err) {
+			if (err) {
+				throw err;
+			}
+		});
+	}
+}
+
+let _log = createLogFunction(console.log);
+let _warn = createLogFunction(console.warn);
+let _error = createLogFunction(console.error);
 
 console.log = function(obj) {
 	let dateStr = new Date().toLocaleTimeString();
+	if (typeof(obj) == "object") {
+		obj = util.inspect(obj, {
+			"colors": true
+		});
+	}
 	_log("[ " + dateStr + " | LOG   ] " + obj.toString());
 }
 
 console.debug = function(obj, userId) {
 	let dateStr = new Date().toLocaleTimeString();
 	if (typeof(obj) == "object") {
-		_log(obj)
+		obj = util.inspect(obj, {
+			"colors": true
+		});
 	} else {
 		if (userId === undefined) {
 			_log("[ " + dateStr + " | DEBUG ] " + obj.toString());
@@ -150,10 +210,19 @@ app.use(function(req, res, next) {
 		userId = authTokens[authToken];
 	}
 	console.debug(req.method + " " + req.url, userId);
-	res.set("Server", "BWAPI 1.0 / Express 4 / NodeJS");
-	res.set("Access-Control-Allow-Origin", "*"); // it's a public API
-	next();
+	res.set("Server", "BWAPI 1.0");
+	res.set("Access-Control-Allow-Origin", "*"); // it's a public AP
+	try {
+		next();
+	} catch (e) {
+		console.error("Request failed (" + req.url + ")");
+		console.error("Error name: " + e.name);
+		console.error("Error message: " + e.message);
+		console.error(e.stack);
+	}
 });
+
+app.disable("x-powered-by");
 
 app.use(function(req, res, next) {
 	if (req.headers["content-type"] != undefined) {
@@ -239,4 +308,5 @@ app.all("*", function(req, res) {
 
 httpsServer = https.createServer(options, app);
 httpsServer.listen(port);
-console.log("The BW API server is ready!");
+console.log("The server is ready!");
+console.log("Note: If you want the server to be publicly accessible (outside your house), be sure to port-forward port 8080 (there are many tutorials on internet)")

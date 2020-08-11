@@ -48,6 +48,7 @@ module.exports.run = function(app) {
 			return;
 		}
 		let userId = valid[1];
+		let meta = userMetadata(userId);
 		let newsFeed = [];
 		fs.readdir("conf/news_articles", function(err, files) {
 			files = files.map(function (fileName) {
@@ -60,8 +61,7 @@ module.exports.run = function(app) {
 			}).map(function(v) {
 				return v.name;
 			});
-			let id = req.params["id"];
-			if (!fs.existsSync("users/"+id)) {
+			if (!fs.existsSync("users/"+userId)) {
 				res.status(404);
 				return;
 			}
@@ -74,7 +74,11 @@ module.exports.run = function(app) {
 			}
 			let feeds = JSON.parse(fs.readFileSync("users/"+userId+"/news_feed.json"));
 			for (i in feeds["news_feed"]) {
-				newsFeed.push(JSON.stringify(feeds["news_feed"][i]));
+				let feed = feeds["news_feed"][i];
+				feed["follow_target_id"] = userId;
+				feed["follow_target_username"] = meta["username"];
+				feed["follow_target_profile_image_url"] = meta["profile_image_url"];
+				newsFeed.push(JSON.stringify(feed));
 			}
 			res.status(200).json({
 				"news_feed": newsFeed

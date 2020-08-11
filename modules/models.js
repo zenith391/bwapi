@@ -181,7 +181,7 @@ function modelsGet(req, res) {
 		if (kind == "best_sellers") {
 			files = files.map(function (fileName) {
 				let json = JSON.parse(fs.readFileSync("models/"+fileName+"/metadata.json"));
-				let sales = parseInt(json["sales_count"]);
+				let sales = parseInt(json["popularity_count"]);
 				if (sales == undefined) {
 					sales = 0;
 				}
@@ -257,6 +257,9 @@ function purchaseModel(req, res) {
 			if (!model["sales_count"]) {
 				model["sales_count"] = 0;
 			}
+			if (!model["popularity_count"]) {
+				model["popularity_count"] = model["sales_count"];
+			}
 			model["sales_count"] = model["sales_count"] + 1;
 			fs.writeFileSync("users/" + userId + "/metadata.json", JSON.stringify(meta));
 			fs.writeFileSync("users/" + model["author_id"] + "/metadata.json", JSON.stringify(meta2));
@@ -264,7 +267,10 @@ function purchaseModel(req, res) {
 				fs.writeFileSync("users/" + userId + "/purchased_u2u_models.json", "{\"u2u_models\":[]}");
 			}
 			let usr = JSON.parse(fs.readFileSync("users/" + userId + "/purchased_u2u_models.json"));
-			usr["u2u_models"].push(parseInt(id));
+			if (!usr["u2u_models"].includes(parseInt(id))) {
+				usr["u2u_models"].push(parseInt(id));
+				model["popularity_count"] = model["popularity_count"] + 1;
+			}
 			fs.writeFileSync("users/" + userId + "/purchased_u2u_models.json", JSON.stringify(usr));
 			fs.writeFileSync("models/" + id + "/metadata.json", JSON.stringify(model));
 			res.status(200).json({

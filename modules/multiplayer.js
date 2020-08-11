@@ -23,13 +23,14 @@ let formatRoom = function(room) {
 let pushEvent = function(room, submitterSocket, event) {
 	for (socket in room.sockets) {
 		if (socket == submitterSocket) continue;
-		socket.write(parseInt(event.id));
-		socket.write(event.buffer);
+		console.log("send to " + socket);
+		//socket.write(parseInt(event.id));
+		//socket.write(event.buffer);
 	}
 }
 
 function createGroup(req, res) {
-	let query = require("url").parse(req.url, true).query
+	let query = url.parse(req.url, true).query
 	let name = query["name"];
 
 	let valid = validAuthToken(req, res, false);
@@ -46,50 +47,65 @@ function createGroup(req, res) {
 		})
 	}
 
-	fs.readFile("conf/new_account_id.txt", function(err, data) {
-		if (err != null)
-			console.log(err);
-		let newId = data;
-		console.log("Creating group \"" + name + "\" with id " + newId);
-		fs.writeFileSync("conf/new_account_id.txt", (parseInt(newId)+1).toString());
-		fs.mkdirSync("users/"+newId);
-		let newUserStatus = 0;
-		if (EARLY_ACCESS)
-			newUserStatus += 4; // add "early access" flag
-		let userInfo = {
-			"coins": 0,
-			"is_username_blocked": false,
-			"profile_image_url": "https://i.pinimg.com/736x/51/8c/1b/518c1be02f6ed77d67ac471e6e4412a6--black-letter-letter-g.jpg",
-			"id": parseInt(newId),
-			"username": name,
-			"user_status": newUserStatus, // see Util.cs in Blocksworld source code for info about user_status
-			"account_type": "group",
-			"blocksworld_premium": 0,
-			"owner_id": userId,
-			"members": [userId],
-			"_SERVER_worlds": [],
-			"description": "A BWMulti group."
-		}
-		fs.writeFileSync("users/"+newId+"/metadata.json", JSON.stringify(userInfo));
-		fs.writeFileSync("users/"+newId+"/followers.json", "{\"attrs_for_follow_users\": {}}");
-		fs.writeFileSync("users/"+newId+"/news_feed.json", JSON.stringify({
-			"news_feed": [
-				{
-					"type": 101,
-					"timestamp": dateString()
-				}
-			]
-		}));
-		userMeta["_SERVER_groups"].push(parseInt(""+newId));
-		fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(userMeta));
-		res.status(200).json({
-			"group": userInfo
+	if (userMeta.coins > 50 && userMeta["_SERVER_groups"].length < 10) {
+		fs.readFile("conf/new_account_id.txt", function(err, data) {
+			if (err != null)
+				console.log(err);
+			let newId = data;
+			console.log("Creating group \"" + name + "\" with id " + newId);
+			fs.writeFileSync("conf/new_account_id.txt", (parseInt(newId)+1).toString());
+			fs.mkdirSync("users/"+newId);
+			let newUserStatus = 0;
+			if (EARLY_ACCESS)
+				newUserStatus += 4; // add "early access" flag
+			let userInfo = {
+				"coins": 0,
+				"is_username_blocked": false,
+				"profile_image_url": "https://i.pinimg.com/736x/51/8c/1b/518c1be02f6ed77d67ac471e6e4412a6--black-letter-letter-g.jpg",
+				"id": parseInt(newId),
+				"username": name,
+				"user_status": newUserStatus, // see Util.cs in Blocksworld source code for info about user_status
+				"account_type": "group",
+				"blocksworld_premium": 0,
+				"owner_id": userId,
+				"members": [userId],
+				"_SERVER_worlds": [],
+				"description": "A BWMulti group.",
+				"invite_policy": "open_for_all"
+			}
+			fs.writeFileSync("users/"+newId+"/metadata.json", JSON.stringify(userInfo));
+			fs.writeFileSync("users/"+newId+"/followers.json", "{\"attrs_for_follow_users\": {}}");
+			fs.writeFileSync("users/"+newId+"/news_feed.json", JSON.stringify({
+				"news_feed": [
+					{
+						"type": 101,
+						"timestamp": dateString()
+					}
+				]
+			}));
+			userMeta["_SERVER_groups"].push(parseInt(""+newId));
+			fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(userMeta));
+			res.status(200).json({
+				"group": userInfo
+			});
 		});
-	});
+	} else if (userMeta.coins < 50) {
+		res.status(500).json({
+			"error": 500,
+			"error_message": "not_enough_coins"
+		});
+	} else {
+		res.stauts(500).json({
+			"error": 500,
+			"error_message": "too_many_groups"
+		})
+	}
 }
 
+
+
 function transferWorld(req, res) {
-	let query = require("url").parse(req.url, true).query;
+	let query = url.parse(req.url, true).query;
 	let worldId = req.params.wid;
 	let target = req.params.target;
 
@@ -158,6 +174,8 @@ function roomEventStream(req, res) {
 	socket.setKeepAlive(true, Number.MAX_SAFE_INTEGER);
 	socket.setNoDelay(true);
 
+	room.sockets.push(socket);
+
 	let commandBuf = {
 		"command": -1,
 		"length": -1,
@@ -181,11 +199,11 @@ function roomEventStream(req, res) {
 			if (type == 1) { // world source
 				let buf = Buffer.alloc(commandBuf.length);
 				data.copy(buf, 0, 0, data.length);
-				pushEvent(room, socket, {
+				/*pushEvent(room, socket, {
 					"id": type,
 					"length": commandBuf.length,
 					"buffer": data
-				});
+				});*/
 			} else {
 				console.log("unknown type: " + type.toString());
 			}
@@ -197,12 +215,11 @@ function roomEventStream(req, res) {
 	socket.on("end", function() {
 		let room = mpWorlds[worldId][roomId];
 		for (i in room.sockets) {
-			if (room.sockets[i] == id) {
+			if (room.sockets[i] == socket) {
 				room.sockets.splice(i, 1);
 			}
 		}
-		_end();
-		console.error("CLOSED!");
+		//_end();
 	});
 
 	socket.end = function() {};
@@ -247,8 +264,14 @@ module.exports.run = function(app) {
 		}
 		let userId = valid[1];
 		let userMeta = userMetadata(userId);
+		let groups = userMeta["_SERVER_groups"];
+		for (k in groups) {
+			let group = groups[k];
+			if (group["owner_id"])
+				group["owner_username"] = userMetadata(group["owner_id"]).username;
+		}
 		res.status(200).json({
-			"groups": userMeta["_SERVER_groups"]
+			"groups": groups
 		});
 	});
 
