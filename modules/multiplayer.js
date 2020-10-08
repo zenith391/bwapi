@@ -199,11 +199,7 @@ function roomEventStream(req, res) {
 			if (type == 1) { // world source
 				let buf = Buffer.alloc(commandBuf.length);
 				data.copy(buf, 0, 0, data.length);
-				/*pushEvent(room, socket, {
-					"id": type,
-					"length": commandBuf.length,
-					"buffer": data
-				});*/
+				
 			} else {
 				console.log("unknown type: " + type.toString());
 			}

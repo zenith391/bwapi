@@ -78,8 +78,13 @@ fullWorldSync = function(id, noSource) {
 
 let allWorldsCache = {};
 let allWorldsCacheValid = false;
+let allWorldsCacheLoading = false;
 worldCache = function(callback) {
 	if (!allWorldsCacheValid) {
+		if (allWorldsCacheLoading) {
+			console.log("Tried loading world cache at the same time!");
+		}
+		allWorldsCacheLoading = true;
 		console.debug("Populating world cache..");
 		fs.readdir("worlds", function(err, files) {
 			if (err) callback(err, null);
@@ -128,6 +133,7 @@ worldCache = function(callback) {
 			callback(null, allWorldsCache);
 		})
 		allWorldsCacheValid = true;
+		allWorldsCacheLoading = false;
 	} else {
 		callback(null, allWorldsCache);
 	}
@@ -190,13 +196,16 @@ function deleteWorld(req, res) {
 				console.err("Failed to delete images/"+id+".png")
 			}
 			fs.rmdirSync("worlds/"+id);
-			let usr = userMetadata(userId)
+			let usr = userMetadata(userId);
 			for (i in usr["_SERVER_worlds"]) {
 				if (usr["_SERVER_worlds"][i] == id) {
 					usr["_SERVER_worlds"].splice(i, 1);
 				}
 			}
 			fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(usr));
+			if (allWorldsCacheValid) {
+				delete allWorldsCache[id];
+			}
 			res.status(200).json({
 				"success": true
 			});
@@ -211,9 +220,7 @@ function worldBasicInfo(req, res) {
 			if (err) {
 				throw err;
 			}
-			res.status(200).json({
-				world
-			});
+			res.status(200).json(processUserWorld(world));
 		});
 	} else {
 		res.status(404).json({
@@ -267,6 +274,7 @@ function publicationStatus(req, res) {
 			} else {
 				metadata["publication_status"] = 5;
 			}
+			allWorldsCache[id] = metadata;
 			fs.writeFileSync("worlds/"+id+"/metadata.json", JSON.stringify(metadata));
 			res.status(200).json(fullWorldSync(id));
 		} else {
@@ -294,6 +302,7 @@ function createWorld(req, res) {
 		return;
 	}
 	if (req.body == undefined || req.body == null) {
+		console.log("no body, body = " + req.body);
 		res.status(403).json({
 			"error": "no body"
 		});
@@ -537,7 +546,7 @@ function worldsGet(req, res, u) {
 			} else if (kind == "most_popular") { // Popular
 				worlds = worlds.map(function (world) {
 					let rate = world["average_star_rating"];
-					if (rate == 0) {
+					if (rate == 0 || typeof rate != "number") {
 						rate = 1; // unrated worlds can't appear on Popular
 					}
 					let date = new Date(world["first_published_at"]);
@@ -548,11 +557,11 @@ function worldsGet(req, res, u) {
 					}
 					return {
 						world: world,
-						time: date + (parseInt(world["play_count"]) * 20000000 * (rate-1))
+						time: date + (parseInt(world["play_count"]) * 10000000 * (rate-1))
 					}
 				});
 			} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
-				let featuredWorldId = 6522;
+				let featuredWorldId = 9018;
 				worlds = worlds.map(function (world) {
 					return {
 						world: world,
@@ -753,11 +762,12 @@ function submitLeaderboardRecord(req, res) {
 	}
 	let userId = valid[1];
 	let id = req.params.id;
-	fullWorld(id, false, function(err, world) {
+	fs.readFile("worlds/"+id+"/metadata.json", function(err, data) {
 		if (err) {
 			console.error(err);
 			return;
 		}
+		let world = JSON.parse(data);
 		let lb = world.leaderboard;
 		if (!lb) {
 			lb = {
@@ -787,6 +797,7 @@ function submitLeaderboardRecord(req, res) {
 				"play_count": 1
 			});
 		}
+		allWorldsCache[id] = world;
 		fs.writeFile("worlds/" + id + "/metadata.json", JSON.stringify(world), function(err) {
 			if (err) {
 				throw err;

@@ -2,11 +2,14 @@ const express = require("express");
 const url = require("url");
 const fs = require("fs");
 
+let dayLogins = 0;
+let dayLoginsDate;
+
 function steam_current_user(req, res, u) {
 	let steam_id = u.query.steam_id
 	let auth_ticket = u.query.steam_auth_ticket
 
-	console.log(steam_id + " is logging in..")
+	console.log(steam_id + " is logging in..");
 	if (fs.existsSync("usersSteamLinks/" + steam_id + ".txt")) {
 		let userId = fs.readFileSync("usersSteamLinks/"+steam_id+".txt",
 			{"encoding": "utf8"})
@@ -59,8 +62,23 @@ function steam_current_user(req, res, u) {
 			user["_SERVER_groups"] = undefined;
 			user["api_v2_supported"] = true;
 			authTokens[authToken] = userId;
-			console.log("Steam login done!");
+
+			let date = new Date();
+			let line = date.toLocaleDateString("en-US");
+			let csv = fs.readFileSync("active_players.csv").toString();
+			let lines = csv.split("\n");
+			let lastLine = lines[lines.length-1].split(",");
+			if (lastLine[0] == line) {
+				dayLogins = parseInt(lastLine[1]) + 1;
+				lines[lines.length-1] = line + "," + dayLogins;
+				fs.writeFileSync("active_players.csv", lines.join("\n"));
+			} else {
+				dayLogins = 1; // we changed day
+				fs.appendFileSync("active_players.csv", "\n" + line + "," + dayLogins);
+			}
+
 			res.status(200).json(user);
+			console.log("Steam login done!");
 		});
 	} else {
 		console.log("no such user");
@@ -70,6 +88,20 @@ function steam_current_user(req, res, u) {
 		});
 	}
 } 
+
+function steam_set_username(req, res) {
+	let valid = validAuthToken(req, res, true);
+	if (!valid[0]) {
+		return;
+	}
+	let userId = valid[1];
+	let nickname = req.body["steam_nickname"];
+	let userMeta = userMetadata(userId);
+	console.log("Changed name of " + userMeta["username"] + " (" + userId + ") to " + nickname);
+	userMeta["username"] = nickname;
+	fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(userMeta));
+	res.status(200).json(userMeta);
+}
 
 function create_steam_user(req, res) {
 	let steamId = req.body["steam_id"];
@@ -109,7 +141,7 @@ function create_steam_user(req, res) {
 		fs.writeFileSync("users/"+newId+"/played_worlds.json", "{\"worlds\": []}");
 		fs.writeFileSync("users/"+newId+"/world_ratings.json", "{\"ratings\": {}}");
 		fs.writeFileSync("users/"+newId+"/model_ratings.json", "{\"ratings\": {}}");
-		fs.writeFileSync("users/"+userId+"/pending_payouts.json", "{\"pending_payouts\": []}");
+		fs.writeFileSync("users/"+newId+"/pending_payouts.json", "{\"pending_payouts\": []}");
 		fs.writeFileSync("users/"+newId+"/news_feed.json", JSON.stringify({
 			"news_feed": [
 				{
@@ -133,11 +165,14 @@ module.exports.run = function(app) {
 		console.log("Created folder \"usersSteamLinks\"");
 	}
 
+	dayLoginsDate = new Date();
+
 	app.get("/api/v1/steam_current_user", function(req, res) {
 		steam_current_user(req, res, url.parse(req.url, true))
 	});
 	app.get("/api/v1/steam_current_user/locale", function(req, res) {
 		res.status(404).json({"error":404}).end();
 	});
-	app.post("/api/v1/steam_users", express.urlencoded({"extended":false}), create_steam_user)
+	app.post("/api/v1/steam_current_user/username", express.urlencoded({"extended":false}), steam_set_username);
+	app.post("/api/v1/steam_users", express.urlencoded({"extended":false}), create_steam_user);
 }

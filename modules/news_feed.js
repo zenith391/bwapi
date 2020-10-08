@@ -50,39 +50,23 @@ module.exports.run = function(app) {
 		let userId = valid[1];
 		let meta = userMetadata(userId);
 		let newsFeed = [];
-		fs.readdir("conf/news_articles", function(err, files) {
-			files = files.map(function (fileName) {
-				return {
-					name: fileName,
-					time: fs.statSync("conf/news_articles/" + fileName).mtimeMs
-				}
-			}).sort(function (a, b) {
-				return b.time - a.time;
-			}).map(function(v) {
-				return v.name;
-			});
-			if (!fs.existsSync("users/"+userId)) {
-				res.status(404);
-				return;
-			}
-			for (i=0; i < files.length; i++) {
-				let file = files[i];
-				//newsFeed.push(fs.readFileSync("conf/news_articles/" + file, {"encoding": "utf8"}));
-			}
-			if (!fs.existsSync("users/" + userId + "/news_feed.json")) {
-				fs.writeFileSync("users/" + userId + "/news_feed.json", "{\"news_feed\":[]}");
-			}
-			let feeds = JSON.parse(fs.readFileSync("users/"+userId+"/news_feed.json"));
-			for (i in feeds["news_feed"]) {
-				let feed = feeds["news_feed"][i];
-				feed["follow_target_id"] = userId;
-				feed["follow_target_username"] = meta["username"];
-				feed["follow_target_profile_image_url"] = meta["profile_image_url"];
-				newsFeed.push(JSON.stringify(feed));
-			}
-			res.status(200).json({
-				"news_feed": newsFeed
-			});
+		if (!fs.existsSync("users/"+userId)) {
+			res.status(404);
+			return;
+		}
+		if (!fs.existsSync("users/" + userId + "/news_feed.json")) {
+			fs.writeFileSync("users/" + userId + "/news_feed.json", "{\"news_feed\":[]}");
+		}
+		let feeds = JSON.parse(fs.readFileSync("users/"+userId+"/news_feed.json"));
+		for (i in feeds["news_feed"]) {
+			let feed = feeds["news_feed"][i];
+			feed["follow_target_id"] = userId;
+			feed["follow_target_username"] = meta["username"];
+			feed["follow_target_profile_image_url"] = meta["profile_image_url"];
+			newsFeed.push(JSON.stringify(feed));
+		}
+		res.status(200).json({
+			"news_feed": newsFeed
 		});
 	});
 };

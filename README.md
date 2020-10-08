@@ -6,7 +6,7 @@ The most complex part is doing setup for HTTPS:
 - You must have a certificate, you can get one for free from [Let's Encrypt](https://letsencrypt.org)
 - You will need to create a directory called `cert` that will contain:
   - `fullchain.pem`: The full chain of your certificate
-  - `privkey.key`: The private key of your certificate (it probably doesn't originally end in `.key`)
+  - `privkey.pem`: The private key of your certificate
 
 ### Configure
 To configure the server, check the [README.md](https://github.com/zenith391/bwapi/tree/master/conf/README.md) in the `conf` folder.

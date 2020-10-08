@@ -16,6 +16,54 @@ fullModelSync = function(id, noSource) {
 	return model;
 }
 
+let allModelsCache = {};
+let allModelsCacheValid = false;
+let allModelsCacheLoading = false;
+modelCache = function(callback) {
+	if (!allModelsCacheValid) {
+		if (allModelsCacheLoading) {
+			console.log("Tried loading model cache at the same time!");
+		}
+		allModelsCacheLoading = true;
+		console.debug("Populating model cache..");
+		fs.readdir("models", function(err, files) {
+			if (err) callback(err, null);
+
+			for (i in files) {
+				let file = files[i];
+				try {
+					let json = JSON.parse(fs.readFileSync("models/"+file+"/metadata.json"));
+					json["id"] = parseInt(file);
+					try {
+						json = processUserWorld(json);
+					} catch (e) {
+						console.error("Error parsing metadata:");
+						console.error(e);
+					}
+					allModelsCache[json["id"]] = json;
+				} catch (e) {
+					console.error("Invalid model " + file + "!");
+				}
+			}
+			console.debug(files.length + " models found.");
+			allModelsCacheValid = true;
+			allModelsCacheLoading = false;
+			callback(null, allModelsCache);
+		});
+	} else {
+		callback(null, allModelsCache);
+	}
+}
+
+isWorldCacheValid = function() {
+	return allModelsCacheValid;
+}
+
+invalidateWorldCache = function() {
+	allModelsCache = {};
+	allModelsCacheValid = false;
+}
+
 function createModel(req, res) {
 	let valid = validAuthToken(req, res, true);
 	if (!valid[0]) {
@@ -43,6 +91,7 @@ function createModel(req, res) {
 			"author_id": parseInt(userId),
 			"publication_status": 0, // not published
 			"sales_count": 0,
+			"popularity_count": 0,
 			"image_urls_for_sizes": {
 				"768x768": HOST + "/images/models/"+newId+".png"
 			},
@@ -75,6 +124,7 @@ function createModel(req, res) {
 			fs.copyFileSync(req.files["imageSD"][0].path, "images/models/"+newId+".png");
 			fs.copyFileSync(req.files["iconSD"][0].path, "images/models/"+newId+"_icon.png");
 		}
+		allModelsCache[newId] = metadata;
 		res.status(200).json({
 			"user_model": fullModelSync(newId)
 		});
@@ -145,6 +195,7 @@ function updateModel(req, res) {
 				metadata["publication_status"] = 0; // unpublished
 			}
 			metadata["updated_at"] = dateString();
+			allModelsCache[id] = metadata;
 
 			let metaStr = JSON.stringify(metadata);
 			fs.writeFile("models/"+id+"/metadata.json", metaStr, function(err) {
@@ -177,28 +228,36 @@ function modelsGet(req, res) {
 	} else {
 		page = Math.max(0,page-1);
 	}
-	fs.readdir("models", function(err, files) {
+	modelCache(function(err, models) {
+		models = Object.values(models);
 		if (kind == "best_sellers") {
-			files = files.map(function (fileName) {
-				let json = JSON.parse(fs.readFileSync("models/"+fileName+"/metadata.json"));
-				let sales = parseInt(json["popularity_count"]);
-				if (sales == undefined) {
+			models = models.map(function (model) {
+				let sales = parseInt(model["popularity_count"]);
+				let date = fs.statSync("models/"+model.id+"/metadata.json").birthtimeMs;
+				if (model["first_published_at"]) {
+					date = new Date(model["first_published_at"]).getTime();
+				}
+				if (sales == undefined || isNaN(sales)) {
 					sales = 0;
 				}
 				return {
-					name: fileName,
-					time: fs.statSync("models/"+fileName).birthtimeMs + sales * 290000000
+					name: model,
+					time: date + sales * 290000000
 				}
 			});
 		} else {
-			files = files.map(function (fileName) {
+			models = models.map(function (model) {
+				let date = fs.statSync("models/"+model.id+"/metadata.json").birthtimeMs;
+				if (model["first_published_at"]) {
+					date = new Date(model["first_published_at"]).getTime();
+				}
 				return {
-					name: fileName,
-					time: fs.statSync("models/"+fileName).birthtimeMs
+					name: model,
+					time: date
 				}
 			});
 		}
-		files = files.sort(function (a, b) {
+		models = models.sort(function (a, b) {
 			return b.time - a.time;
 		}).map(function(v) {
 			return v.name;
@@ -206,9 +265,8 @@ function modelsGet(req, res) {
 		let json = {};
 		let obj = [];
 		let publishedModels = [];
-		for (i in files) {
+		for (metadata of models) {
 			let model = {}
-			let metadata = JSON.parse(fs.readFileSync("models/"+files[i]+"/metadata.json"));
 			let cond = true;
 			if (req.params) {
 				if (req.params.user) {
@@ -352,6 +410,7 @@ module.exports.run = function(app) {
 						usr["_SERVER_models"].splice(i, 1);
 					}
 				}
+				delete allModelsCache[id];
 				fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(usr));
 				res.status(200).json({});
 			}
@@ -391,7 +450,10 @@ module.exports.run = function(app) {
 		}
 		let usr = JSON.parse(fs.readFileSync("users/" + userId + "/purchased_u2u_models.json"));
 		for (i in usr["u2u_models"]) {
-			list[i] = fullModelSync(usr["u2u_models"][i]);
+			let modelId = usr["u2u_models"][i];
+			if (fs.existsSync("models/" + modelId + "/metadata.json")) {
+				list.push(fullModelSync(usr["u2u_models"][i]));
+			}
 		}
 		res.status(200).json({
 			"u2u_models": list

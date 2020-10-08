@@ -24,3 +24,4 @@ modules/update.js
 
 # Node
 node_modules/
+conf/gifts.json

@@ -8,9 +8,14 @@ const serverline = require("serverline");
 HOST = "https://bwsecondary.ddns.net:8080"; // you *MUST* change this to the address of your server (otherwise some things like thumbnails won't work) !
 ROOT_NAME = __dirname;
 EARLY_ACCESS = true; // is this server early access? (used for some status identifiers)
+VERSION = "0.9.0";
 
 authTokens = {};
-capabilities = {}; // for modded
+capabilities = {
+	"bwapi": {
+		"version": VERSION
+	}
+}; // for modded
 
 if (!fs.existsSync("cert")) {
 	console.error("Missing 'cert' directory. Please refer to the 'README.md' for more details on how to setup.");
@@ -18,7 +23,7 @@ if (!fs.existsSync("cert")) {
 }
 
 const options = {
-	key: fs.readFileSync("cert/privkey.key"),
+	key: fs.readFileSync("cert/privkey.pem"),
 	cert: fs.readFileSync("cert/fullchain.pem")
 }
 
@@ -33,8 +38,9 @@ const logFilePath = "latest.log";
 
 fs.writeFileSync(logFilePath, ""); // be sure log file is empty
 
-serverline.init()
+serverline.init();
 serverline.setPrompt("> ");
+serverline.setCompletion(["cache", "exit"]);
 serverline.on("line", function(line) {
 	if (line == "cache clear") {
 		console.log("Clearing world cache..");
@@ -60,9 +66,12 @@ serverline.on("line", function(line) {
 		}
 	} else if (line == "cache") {
 		console.log("Usage: cache [clear|peek]");
+	} else if (line == "exit") {
+		process.exit();
 	} else {
 		console.log("Commands:");
 		console.log("- cache [clear|peek]")
+		console.log("- exit");
 	}
 });
 
@@ -91,6 +100,8 @@ console.log = function(obj) {
 		obj = util.inspect(obj, {
 			"colors": true
 		});
+	} else if (obj === undefined) {
+		obj = "undefined";
 	}
 	_log("[ " + dateStr + " | LOG   ] " + obj.toString());
 }
@@ -101,12 +112,13 @@ console.debug = function(obj, userId) {
 		obj = util.inspect(obj, {
 			"colors": true
 		});
+	} else if (obj === undefined) {
+		obj = "undefined";
+	}
+	if (userId === undefined) {
+		_log("[ " + dateStr + " | DEBUG ] " + obj.toString());
 	} else {
-		if (userId === undefined) {
-			_log("[ " + dateStr + " | DEBUG ] " + obj.toString());
-		} else {
-			_log("[ " + dateStr + " | User " + userId + " | DEBUG ] " + obj.toString());
-		}
+		_log("[ " + dateStr + " | User " + userId + " | DEBUG ] " + obj.toString());
 	}
 }
 
@@ -211,7 +223,7 @@ app.use(function(req, res, next) {
 	}
 	console.debug(req.method + " " + req.url, userId);
 	res.set("Server", "BWAPI 1.0");
-	res.set("Access-Control-Allow-Origin", "*"); // it's a public AP
+	res.set("Access-Control-Allow-Origin", "*"); // it's a public API
 	try {
 		next();
 	} catch (e) {
@@ -228,7 +240,11 @@ app.use(function(req, res, next) {
 	if (req.headers["content-type"] != undefined) {
 		if (req.headers["content-type"].indexOf("multipart/form-data") != -1) {
 			let form = new multiparty.Form();
+			form.maxFieldsSize = 1024*1024*16; // 16 MiB
 			form.parse(req, function(err, fields, files) {
+				if (err) {
+					console.error(err);
+				}
 				req.body = fields;
 				req.files = files;
 				next();
@@ -279,6 +295,12 @@ app.get("/api/v1/users/:id/liked_worlds", function(req, res) {
 	let id = req.params["id"];
 	if (!fs.existsSync("users/"+id)) {
 		res.status(404);
+		return;
+	}
+	if (!fs.existsSync("users/"+id+"/liked_worlds.json")) {
+		res.status(200).json({
+			"worlds": []
+		});
 		return;
 	}
 	res.status(200).sendFile("users/"+id+"/liked_worlds.json", fileOptions);

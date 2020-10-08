@@ -1,6 +1,7 @@
 const session = require("express-session");
 const fs = require("fs");
 const bcrypt = require("bcrypt");
+const url = require("url");
 
 let conf = {}
 
@@ -57,7 +58,7 @@ function home(req, res) {
 }
 
 function bc(req, res) {
-	fs.readdir("worlds", function(err, files) {
+	/*fs.readdir("worlds", function(err, files) {
 		let worlds = [];
 		for (i in files) {
 			let world = fullWorldSync(files[i], true);
@@ -67,24 +68,59 @@ function bc(req, res) {
 		}
 		res.locals.worlds = worlds;
 		res.render("bc");
-	});
+	});*/
 }
 
 function newWorlds(req, res) {
-	fs.readdir("worlds", function(err, files) {
-		let worlds = [];
-		let j = 0;
-		for (i in files) {
-			let world = fullWorldSync(files[i], true);
-			if (world["publication_status"] == 1) {
-				worlds.push(world);
-				j++;
+	let u = url.parse(req.url, true);
+	worldCache(function (err, worlds) {
+		worlds = Object.values(worlds);
+		worlds = worlds.map(function (world) {
+			let date = new Date(world["first_published_at"]);
+			if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
+				date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+			} else {
+				date = date.getTime();
 			}
-			if (j == 10) {
-				break;
+			return {
+				world: world,
+				time: date
+			};
+		}).sort(function (a, b) {
+			return b.time - a.time;
+		}).map(function(v) {
+			return v.world;
+		});
+
+		let publishedWorlds = [];
+			
+		for (i in worlds) {
+			let world = worlds[i];
+			if (world.id < 0) { // status update world
+				continue;
+			}
+			if (world["publication_status"] == 1) {
+				publishedWorlds.push(world);
 			}
 		}
-		res.locals.worlds = worlds;
+
+
+		let page = u.query.page;
+		if (page == null || page == undefined || page < 1) {
+			page = 1;
+		}
+		page--;
+		let start = Math.min(publishedWorlds.length, 24*page);
+		let end = Math.min(publishedWorlds.length, start+24);
+		let totalPages = Math.ceil(publishedWorlds.length/24);
+		let finalPage = [];
+		for (let i=start; i < end; i++) {
+			finalPage.push(publishedWorlds[i]);
+		}
+
+		res.locals.worlds = finalPage;
+		res.locals.totalPages = totalPages;
+		res.locals.activePage = page;
 		res.render("worlds");
 	});
 }

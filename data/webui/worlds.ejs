@@ -1,7 +1,25 @@
 <%- include("header", {title: "Worlds"}) %>
-	<div class="container mb-5">
-		<% worlds.forEach(function(world) { %>
-			<%- include("world/show", {world: world}) %>
-		<% }); %>
+	<div class="container-fluid mb-5">
+		<ul class="mt-3 pagination justify-content-center">
+			<li class="page-item <%- (activePage==0)?"disabled":"" %>"><a class="page-link" href="worlds?page=<%- Math.max(1, activePage) %>"><<</a></li>
+			<% for (let i = Math.max(activePage-5, 0); i < Math.min(totalPages, activePage+5); i++) { %>
+				 <% var classes = (i == activePage) ? "page-item active" : "page-item"; %>
+			     <%- "<li class=\"" + classes + "\"><a class=\"page-link\" href=\"worlds?page=" + (i+1) + "\">" + (i+1) + "</a></li>" %>
+			<% } %>
+			<li class="page-item"><a class="page-link" href="worlds?page=<%- activePage+2 %>">>></a></li>
+		</ul>
+		<div class="row">
+			<% worlds.forEach(function(world) { %>
+				<%- include("world/show", {world: world}) %>
+			<% }); %>
+		</div>
+		<ul class="pagination justify-content-center">
+			<li class="page-item <%- (activePage==0)?"disabled":"" %>"><a class="page-link" href="worlds?page=<%- Math.max(1, activePage) %>"><<</a></li>
+			<% for (let i = Math.max(activePage-5, 0); i < Math.min(totalPages, activePage+5); i++) { %>
+				 <% var classes = (i == activePage) ? "page-item active" : "page-item"; %>
+			     <%- "<li class=\"" + classes + "\"><a class=\"page-link\" href=\"worlds?page=" + (i+1) + "\">" + (i+1) + "</a></li>" %>
+			<% } %>
+			<li class="page-item"><a class="page-link" href="worlds?page=<%- activePage+2 %>">>></a></li>
+		</ul>
 	</div>
 <%- include("footer") %>
