@@ -1,3 +1,21 @@
+/**
+	bwapi - Blocksworld API server reimplementation
+    Copyright (C) 2020 zenith391
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+**/
+
 const https = require("https");
 const fs = require("fs");
 const multiparty = require("multiparty");
@@ -137,6 +155,7 @@ console.error = function(obj) {
 	_error("[ " + dateStr + " | ERROR ] " + obj.toString());
 }
 
+// Get the auth token from a request object
 getAuthToken = function(req) {
 	let authToken = undefined;
 	if (req.headers["bw-auth-token"] != undefined) {
@@ -145,6 +164,7 @@ getAuthToken = function(req) {
 	return authToken;
 }
 
+// just internally used helper functions
 value2 = function(v) {
 	if (typeof(v) == "object") {
 		return v[0];
@@ -188,6 +208,7 @@ validAuthToken = function(req, res, bodyCheck) {
 	return [true, userId, authToken];
 }
 
+// Date formatting to Blocksworld's bizarre date format
 datePart = function(num) {
 	let str = num.toString();
 	if (str.length < 2) {
@@ -222,7 +243,7 @@ app.use(function(req, res, next) {
 		userId = authTokens[authToken];
 	}
 	console.debug(req.method + " " + req.url, userId);
-	res.set("Server", "BWAPI 1.0");
+	res.set("Server", "bwapi");
 	res.set("Access-Control-Allow-Origin", "*"); // it's a public API
 	try {
 		next();

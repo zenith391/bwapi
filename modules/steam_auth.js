@@ -1,3 +1,21 @@
+/**
+	bwapi - Blocksworld API server reimplementation
+    Copyright (C) 2020 zenith391
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+**/
+
 const express = require("express");
 const url = require("url");
 const fs = require("fs");
@@ -9,7 +27,7 @@ function steam_current_user(req, res, u) {
 	let steam_id = u.query.steam_id
 	let auth_ticket = u.query.steam_auth_ticket
 
-	console.log(steam_id + " is logging in..");
+	console.log(steam_id + " is logging in (steam)..");
 	if (fs.existsSync("usersSteamLinks/" + steam_id + ".txt")) {
 		let userId = fs.readFileSync("usersSteamLinks/"+steam_id+".txt",
 			{"encoding": "utf8"})

@@ -16,3 +16,7 @@ Now to launch the server you **MUST** have NodeJS installed, when it is installe
 open the terminal (`cmd.exe` in Start Menu for Windows).
 Then do `cd path/to/your/instance` and press Enter.  
 Now type `launch.bat` on Windows or `./launch` on Linux and then press Enter.
+
+### License
+
+`bwapi` is under [GPLv3 license](https://github.com/zenith391/bwapi/tree/master/conf/LICENSE)

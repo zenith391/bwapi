@@ -4,7 +4,7 @@ Serverbound: Client -> Server
 Clientbound: Server -> Client
 
 ## Clientbound
-### `/api/v2/sync/recv_data`
+### `/api/v2/sync/recv_data` (POST)
 This is sent from the server to the client (the client must also host a sync endpoint).
 
 ```json
@@ -13,16 +13,21 @@ This is sent from the server to the client (the client must also host a sync end
 	"type": "world", // or "model"
 	"metadata": "world metadata in JSON",
 	"source": "world source compressed with WSON then with raw deflate",
-	"image": "world's thumbnail"
+	"image": "world's thumbnail",
+	"imageIcon": "model's icon"
 }
 ```
 The `source` *string* is encoded to WSON and is then compressed using raw deflate level 9, this has up to 4500% efficiency on large world, `metadata` is so small that it would have a much lower compression efficiency.  
 This command is used for:
 - Sending newly created worlds/models
 - Sending updated worlds/models
-- Syncing worlds/models after a `REQUEST_SYNC_DATA`
+- Syncing worlds/models after a `/api/sync/v1/request`
 
-## `/api/sync/v1/recv_misc`
+`image` is equals to `false` if there is no image.
+
+`imageIcon` is `null` if it is not a model.
+
+## `/api/sync/v1/recv_misc` (POST)
 ```json
 {
 	"id": 123,
@@ -44,14 +49,10 @@ When a profile is edited, not all files/image need to be resent.
 
 ## Serverbound
 
-### `/api/sync/v1/start`
-```json
-{
-	"geo": {
-		"region": "East Europe",
-		"country": "France"
-	}
-}
+### `/api/sync/v1/start` (GET)
+Example url:
+```
+https://someserver.com/api/sync/v1/start?version=1
 ```
 
 Example response:
@@ -92,18 +93,13 @@ Example response:
 This response has a list of all worlds IDs in its `worlds` array, all models IDs in `models` array and all users IDs in `users`.
 `images` and its categories contain the name of the images (they are always numerical, hence why its a number).  
 
-### `/api/sync/v1/request`
+### `/api/sync/v1/request` (POST)
 POST query:
 ```json
 {
 	"worlds": [2, 7, 8, 132],
 	"models": [3, 99, 45, 67],
-	"users": [1, 2, 45, 57, 80],
-	"images": {
-		"models": [3, 99, 45, 67],
-		"users": [1, 2, 45, 57, 80],
-		"worlds": [2, 7, 8, 132]
-	}
+	"users": [1, 2, 45, 57, 80]
 }
 ```
 This endpoint has a list of all worlds IDs in its `worlds` array.  
