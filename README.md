@@ -1,6 +1,6 @@
 # Blocksworld API server
 ## Setup
-### Ubuntu
+### Ubuntu / Debian
 
 Clone this repository or use the Download ZIP button inside Code button on GitHub.  
 Then, install Node.JS and npm (node's package manager):
@@ -19,8 +19,7 @@ The most complex part is doing setup for HTTPS:
 To configure the server, check the [README.md](https://github.com/zenith391/bwapi/blob/master/conf/README.md) in the `conf` folder.
 
 ## Launching
-Now to launch the server you **MUST** have NodeJS installed, when it is installed, you just have to
-open the terminal (`cmd.exe` in Start Menu for Windows).
+Now to launch the server you **MUST** have NodeJS installed (refer to Setup steps), when it is installed, you just have to open the terminal (`cmd.exe` in Start Menu for Windows).
 Then do `cd path/to/your/instance` and press Enter.  
 Now type `launch.bat` on Windows or `./launch` on Linux and then press Enter.
 
