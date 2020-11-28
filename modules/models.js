@@ -143,6 +143,20 @@ function createModel(req, res) {
 			fs.copyFileSync(req.files["iconSD"][0].path, "images/models/"+newId+"_icon.png");
 		}
 		allModelsCache[newId] = metadata;
+
+		let date = new Date();
+		let line = date.toLocaleDateString("en-US");
+		let csv = fs.readFileSync("total_models.csv").toString();
+		let lines = csv.split("\n");
+		let lastLine = lines[lines.length-1].split(",");
+		const totalWorlds = fs.readdirSync("models").length;
+		if (lastLine[0] == line) {
+			lines[lines.length-1] = line + "," + totalWorlds;
+			fs.writeFileSync("total_models.csv", lines.join("\n"));
+		} else {
+			fs.appendFileSync("total_models.csv", "\n" + line + "," + totalWorlds);
+		}
+
 		res.status(200).json({
 			"user_model": fullModelSync(newId)
 		});
@@ -329,7 +343,15 @@ function purchaseModel(req, res) {
 		let meta = userMetadata(userId);
 		if ((meta["coins"] - price) > 0) {
 			meta["coins"] = meta["coins"] - price;
-			meta2["coins"] = meta2["coins"] + price;
+			addPayout(model["author_id"], {
+				"payout_type": "coins",
+				"coin_grants": price,
+				"title": "Sales!",
+				"msg2": "Sold 1 copy!",
+				"msg1": "You earned " + price + " coins",
+				"has_gold_border": true
+			})
+			//meta2["coins"] = meta2["coins"] + price;
 			if (!model["sales_count"]) {
 				model["sales_count"] = 0;
 			}
@@ -338,7 +360,7 @@ function purchaseModel(req, res) {
 			}
 			model["sales_count"] = model["sales_count"] + 1;
 			fs.writeFileSync("users/" + userId + "/metadata.json", JSON.stringify(meta));
-			fs.writeFileSync("users/" + model["author_id"] + "/metadata.json", JSON.stringify(meta2));
+			//fs.writeFileSync("users/" + model["author_id"] + "/metadata.json", JSON.stringify(meta2));
 			if (!fs.existsSync("users/" + userId + "/purchased_u2u_models.json")) {
 				fs.writeFileSync("users/" + userId + "/purchased_u2u_models.json", "{\"u2u_models\":[]}");
 			}

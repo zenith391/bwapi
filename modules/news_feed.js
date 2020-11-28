@@ -23,6 +23,7 @@ addFeed = function(userId, feed) {
 		fs.writeFileSync("users/" + userId + "/news_feed.json", "{\"news_feed\":[]}");
 	}
 	let newsFeed = JSON.parse(fs.readFileSync("users/"+userId+"/news_feed.json"));
+	feed["timestamp"] = dateString();
 	newsFeed["news_feed"].unshift(feed);
 	fs.writeFileSync("users/"+userId+"/news_feed.json", JSON.stringify(newsFeed));
 }
@@ -66,23 +67,42 @@ module.exports.run = function(app) {
 			return;
 		}
 		let userId = valid[1];
-		let meta = userMetadata(userId);
 		let newsFeed = [];
-		if (!fs.existsSync("users/"+userId)) {
-			res.status(404);
-			return;
+		let followedUsers = [];
+
+		if (!fs.existsSync("users/" + userId + "/followed_users.json")) {
+			fs.writeFileSync("users/" + userId + "/followed_users.json", "{\"attrs_for_follow_users\":{}}");
 		}
-		if (!fs.existsSync("users/" + userId + "/news_feed.json")) {
-			fs.writeFileSync("users/" + userId + "/news_feed.json", "{\"news_feed\":[]}");
+		let json = JSON.parse(fs.readFileSync("users/"+userId+"/followed_users.json"))["attrs_for_follow_users"];
+		for (i in json) {
+			if (json[i] != undefined) {
+				followedUsers.push(i.substring(1));
+			}
 		}
-		let feeds = JSON.parse(fs.readFileSync("users/"+userId+"/news_feed.json"));
-		for (i in feeds["news_feed"]) {
-			let feed = feeds["news_feed"][i];
-			feed["follow_target_id"] = userId;
-			feed["follow_target_username"] = meta["username"];
-			feed["follow_target_profile_image_url"] = meta["profile_image_url"];
-			newsFeed.push(JSON.stringify(feed));
+		followedUsers.push(userId);
+
+		for (id of followedUsers) {
+			let metadata = userMetadata(id);
+			if (!fs.existsSync("users/" + id + "/news_feed.json")) {
+				fs.writeFileSync("users/" + id + "/news_feed.json", "{\"news_feed\":[]}");
+			}
+			let feeds = JSON.parse(fs.readFileSync("users/"+id+"/news_feed.json"));
+			for (i in feeds["news_feed"]) {
+				let feed = feeds["news_feed"][i];
+				feed["follow_target_id"] = id;
+				feed["follow_target_username"] = metadata["username"];
+				feed["follow_target_profile_image_url"] = metadata["profile_image_url"];
+				newsFeed.push(JSON.stringify(feed));
+			}
 		}
+
+		newsFeed.sort(function(a, b) {
+			var dateA = new Date(JSON.parse(a).timestamp);
+			var dateB = new Date(JSON.parse(b).timestamp);
+			if (isNaN(dateA.getTime())) dateA = new Date(0);
+			if (isNaN(dateB.getTime())) dateB = new Date(0);
+			return dateA.getTime() < dateB.getTime() ? 1 : -1;
+		});
 		res.status(200).json({
 			"news_feed": newsFeed
 		});

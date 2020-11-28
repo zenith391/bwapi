@@ -1,11 +1,99 @@
 <%- include("header", {title: "Home"}) %>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+	<script src="https://d3js.org/d3-dsv.v2.min.js"></script>
+	<script src="https://d3js.org/d3-fetch.v2.min.js"></script>
 	<div class="container">
-		<h4>- Uhm, what are the metrics of Blocksworld 2 today ?</h4>
-		<h4>- Well, today Blocksworld 2 has:<br/>
+		<h5>- Uhm, what are the metrics of Blocksworld 2 today ?</h5>
+		- Well, today Blocksworld 2 has:<br/>
         <b><%= worlds %></b> worlds,<br/>
         <b><%= models %></b> models,<br/>
         and <b><%= players %></b> players !<br/></b><br/>
         Yes, that's a lot isn't it?
-		</h4>
+        <p><b>Note: All data collected is 100% anonymous (it just counts a total, not who logged in / created a world or model).</b></p>
+		<h3>Line chart representing the number of logins per day</h3>
+		<canvas id="activityChart" width="200" height="120" aria-label="User Logins Chart" role="img"></canvas>
+		<a href="server_metrics/active_players.csv">Download CSV file</a>
+		<h3>Line chart representing the total number of worlds, models and players</h3>
+		<canvas id="worldsChart" width="200" height="120" aria-label="Total Worlds Chart" role="img"></canvas>
+		<a href="server_metrics/total_worlds.csv">Download worlds CSV file</a><br/>
+		<a href="server_metrics/total_models.csv">Download models CSV file</a><br/>
+		<a href="server_metrics/total_players.csv">Download players CSV file</a>
+		<script>
+			d3.csv("/webui/server_metrics/active_players.csv").then(function(data) {
+				var ctx = document.getElementById("activityChart").getContext("2d");
+				var labels = [];
+				var values = [];
+				for (piece of data) {
+					labels.push(piece.Date);
+					values.push(piece.Players);
+				}
+
+				var activityChart = new Chart(ctx, {
+					type: "line",
+					data: {
+						labels: labels,
+						datasets: [{
+							label: "Logins",
+							backgroundColor: "rgb(255, 99, 132)",
+							borderColor: "rgb(255, 99, 132)",
+							data: values
+						}]
+					},
+					options: {
+
+					}
+				});
+			});
+
+			d3.csv("/webui/server_metrics/total_worlds.csv").then(function(worldData) {
+				d3.csv("/webui/server_metrics/total_models.csv").then(function(modelData) {
+					d3.csv("/webui/server_metrics/total_players.csv").then(function(playerData) {
+						var ctx = document.getElementById("worldsChart").getContext("2d");
+
+						var labels = [];
+						var worldValues = [];
+						var modelValues = [];
+						var playerValues = [];
+
+						for (piece of worldData) {
+							labels.push(piece.Date);
+							worldValues.push(piece.Worlds);
+						}
+						for (piece of modelData) {
+							modelValues.push(piece.Models);
+						}
+						for (piece of playerData) {
+							playerValues.push(piece.Players);
+						}
+
+						var worldsChart = new Chart(ctx, {
+							type: "line",
+							data: {
+								labels: labels,
+								datasets: [{
+									label: "Worlds",
+									backgroundColor: "rgb(255, 99, 132)",
+									borderColor: "rgb(255, 99, 132)",
+									data: worldValues
+								},
+								{
+									label: "Models",
+									backgroundColor: "rgb(99, 255, 132)",
+									borderColor: "rgb(99, 255, 132)",
+									data: modelValues
+								},
+								{
+									label: "Players",
+									backgroundColor: "rgb(99, 132, 255)",
+									borderColor: "rgb(99, 132, 255)",
+									data: playerValues
+								}]
+							},
+							options: {}
+						});
+					});
+				});
+			});
+		</script>
 	</div>
 <%- include("footer") %>

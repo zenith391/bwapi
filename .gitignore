@@ -23,8 +23,6 @@ list_world_by_user.js
 
 # private module
 modules/bwwool.js
-modules/update.js
-modules/launcher_auth.js
 
 # Node
 node_modules/

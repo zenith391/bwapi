@@ -19,10 +19,9 @@
 const fs = require("fs");
 const express = require("express");
 const url = require("url");
+let featuredWorldId = 1;
 
-MAX_WORLD_LIMIT = 200;
-
-// Functions exported to global //
+// Functions exported to global
 processUserWorld = function(meta) {
 	if (meta["author_id"] == 0) {
 		meta["author_username"] = "Corrupted";
@@ -58,6 +57,7 @@ fullWorld = function(id, source, callback) {
 		} else {
 			let metadata = JSON.parse(data);
 			metadata["id"] = parseInt(id);
+			if (!metadata["required_mods"]) metadata["required_mods"] = [];
 			if (source) {
 				fs.readFile("worlds/" + id + "/source.json", function(e, d) {
 					metadata["source_json_str"] = d.toString();
@@ -87,7 +87,8 @@ fullWorldSync = function(id, noSource) {
 	for (key in metadata) {
 		world[key] = metadata[key];
 	}
-	if (noSource == undefined || noSource == null) {
+	if (!world["required_mods"]) world["required_mods"] = [];
+	if (noSource === undefined || noSource == null) {
 		world["source_json_str"] = fs.readFileSync("worlds/"+id+"/source.json",{"encoding":"utf8"});
 	}
 	world = processUserWorld(world);
@@ -112,6 +113,7 @@ worldCache = function(callback) {
 				try {
 					let json = JSON.parse(fs.readFileSync("worlds/"+file+"/metadata.json"));
 					json["id"] = parseInt(file);
+					if (!json["required_mods"]) json["required_mods"] = [];
 					try {
 						json = processUserWorld(json);
 					} catch (e) {
@@ -174,6 +176,7 @@ function world(req, res) {
 			if (err) {
 				throw err;
 			}
+			world["number_of_raters"] = undefined;
 			res.status(200).json({
 				"world": processUserWorld(world)
 			})
@@ -344,11 +347,18 @@ function createWorld(req, res) {
 				console.log(err);
 		});
 		let currDateStr = dateString();
+		let requiredMods = value(req.body, "required_mods_json_str");
+		if (!requiredMods) {
+			requiredMods = [];
+		} else {
+			requiredMods = JSON.parse(requiredMods);
+		}
 		let metadata = {
 			"title": value(req.body, "title"),
 			"description": value(req.body, "description"),
 			"has_win_condition": value(req.body, "has_win_condition") == "true",
 			"category_ids": JSON.parse(value(req.body, "category_ids_json_str")),
+			"required_mods": requiredMods,
 			"author_id": parseInt(userId),
 			"publication_status": 5,
 			"app_version": req.headers["bw-app-version"],
@@ -378,7 +388,21 @@ function createWorld(req, res) {
 		if (req.files["screenshot_image"]) {
 			fs.copyFileSync(req.files["screenshot_image"][0].path, "images/"+newId+".png");
 		}
-		console.log("World \"" + metadata.title + "\" created!")
+		console.log("World \"" + metadata.title + "\" created!");
+
+		let date = new Date();
+		let line = date.toLocaleDateString("en-US");
+		let csv = fs.readFileSync("total_worlds.csv").toString();
+		let lines = csv.split("\n");
+		let lastLine = lines[lines.length-1].split(",");
+		const totalWorlds = fs.readdirSync("worlds").length;
+		if (lastLine[0] == line) {
+			lines[lines.length-1] = line + "," + totalWorlds;
+			fs.writeFileSync("total_worlds.csv", lines.join("\n"));
+		} else {
+			fs.appendFileSync("total_worlds.csv", "\n" + line + "," + totalWorlds);
+		}
+
 		res.status(200).json({
 			"world": fullWorldSync(newId)
 		});
@@ -436,6 +460,13 @@ function updateWorld(req, res) {
 				}
 				metadata.title = v;
 			}
+			if (req.body["required_mods_json_str"]) {
+				let v = req.body["required_mods_json_str"]
+				if (typeof(v) === "object") {
+					v = v[0]
+				}
+				metadata["required_mods"] = JSON.parse(v);
+			}
 			if (req.body["description"]) {
 				let v = req.body["description"]
 				if (typeof(v) === "object") {
@@ -491,7 +522,6 @@ function worldsGet(req, res, u) {
 	let categoryId = u.query.category_id;
 	let search = u.query.search;
 	let kind = u.query.kind;
-	let sent = false;
 	if (kind == undefined) {
 		kind = "recent";
 	}
@@ -510,169 +540,151 @@ function worldsGet(req, res, u) {
 			worldListCache[cacheIndex] = undefined;
 		} else {
 			res.status(200).json(json);
-			sent = true;
+			return;
 		}
 	}
-	if (!sent) {
-		/*fs.readdir("worlds", function(err, files) {
-			for (i in files) {
-				let file = files[i];
-				try {
-					let json = JSON.parse(fs.readFileSync("worlds/"+file+"/metadata.json"));
-				} catch (e) {
-					// try to recover world
-					console.error("Had to recover world " + file + "!");
-					let currDateStr = dateString();
-					fs.writeFileSync("worlds/"+file+"/metadata.json", JSON.stringify({
-						"title": "",
-						"average_star_rating": 0,
-						"description": "",
-						"has_win_condition": false,
-						"category_ids": [],
-						"author_id": 0, // TODO
-						"app_version": "1.47.0",
-						"publication_status": 5,
-						"likes_count": 0,
-						"play_count": 0,
-						"pay_to_play_cost": 0,
-						"image_urls_for_sizes": {
-							"440x440": HOST + "/images/"+file+".png",
-							"512x384": HOST + "/images/"+file+".png",
-							"220x220": HOST + "/images/"+file+".png",
-							"1024x768": HOST + "/images/"+file+".png"
-						},
-						"created_at": currDateStr,
-						"first_published_at": currDateStr,
-						"updated_at": currDateStr
-					}))
+
+	worldCache(function(err, worlds) {
+		worlds = Object.values(worlds);
+		if (kind == "arcade") { // Hall of Fame
+			worlds = worlds.map(function (world) {
+				let rate = world["average_star_rating"];
+				if (rate == 0) {
+					rate = 1;
+				}
+				return {
+					world: world,
+					time: parseInt(world["play_count"]) * (rate-1)
+				}
+			});
+		} else if (kind == "most_popular") { // Popular
+			worlds = worlds.map(function (world) {
+				let rate = world["average_star_rating"];
+				if (rate == 0 || typeof rate != "number") {
+					rate = 1; // unrated worlds can't appear on Popular
+				}
+				let date = new Date(world["first_published_at"]);
+				if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
+					date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+				} else {
+					date = date.getTime();
+				}
+				return {
+					world: world,
+					time: date + (parseInt(world["play_count"]) * 10000000 * (rate-1))
+				}
+			});
+		} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
+			worlds = worlds.map(function (world) {
+				return {
+					world: world,
+					time: (world.id == featuredWorldId) ? 1 : 0
+				}
+			});
+		} else { // "recent" and "unmoderated"
+			worlds = worlds.map(function (world) {
+				let date = new Date(world["first_published_at"]);
+				if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
+					date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+				} else {
+					date = date.getTime();
+				}
+				return {
+					world: world,
+					time: date
+				}
+			});
+		}
+		worlds = worlds.sort(function (a, b) {
+			return b.time - a.time;
+		}).map(function(v) {
+			return v.world;
+		});
+		let json = {};
+		let obj = [];
+		let publishedWorlds = [];
+
+		let searchType = "none";
+		let searchArgument = null;
+		if (search) {
+			search = search.toString().toLowerCase();
+			if (search.startsWith("id:")) {
+				searchType = "id";
+				searchArgument = search.split(":")[1];
+			} else if (search.startsWith("madebyid:")) {
+				searchType = "madebyid";
+				searchArgument = search.split(":")[1];
+			} else if (search.startsWith("madeby:")) {
+				searchType = "madeby";
+				searchArgument = search.split(":")[1];
+			} else {
+				searchType = "title";
+			}
+		}
+		
+		for (i in worlds) {
+			try {
+			let world = worlds[i];
+			if (world.id < 0) { // status update world
+				continue;
+			}
+			let metadata = world;
+			try {
+				//metadata = processUserWorld(world);
+			} catch (e) {
+				console.error("Error parsing metadata:");
+				console.error(e);
+				metadata = null;
+			}
+			let cond = (metadata["publication_status"] == 1);
+			if (req.params) {
+				if (req.params.user) {
+					cond = cond && (metadata["author_id"] == req.params.user);
 				}
 			}
-		});*/
-		worldCache(function(err, worlds) {
-			worlds = Object.values(worlds);
-			if (kind == "arcade") { // Hall of Fame
-				worlds = worlds.map(function (world) {
-					let rate = world["average_star_rating"];
-					if (rate == 0) {
-						rate = 1;
-					}
-					return {
-						world: world,
-						time: parseInt(world["play_count"]) * (rate-1)
-					}
-				});
-			} else if (kind == "most_popular") { // Popular
-				worlds = worlds.map(function (world) {
-					let rate = world["average_star_rating"];
-					if (rate == 0 || typeof rate != "number") {
-						rate = 1; // unrated worlds can't appear on Popular
-					}
-					let date = new Date(world["first_published_at"]);
-					if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
-						date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+			if (search) {
+				if (cond === true) {
+					if (searchType === "id") {
+						cond = (metadata["id"].toString() == searchArgument);
+					} else if (searchType === "madebyid") {
+						cond = (metadata["author_id"].toString() == searchArgument);
+					} else if (searchType === "madeby") {
+						cond = (metadata["author_username"].search(searchArguments) != -1);
 					} else {
-						date = date.getTime();
+						cond = (metadata["title"].toLowerCase().search(search) != -1);
 					}
-					return {
-						world: world,
-						time: date + (parseInt(world["play_count"]) * 10000000 * (rate-1))
-					}
-				});
-			} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
-				let featuredWorldId = 9971;
-				worlds = worlds.map(function (world) {
-					return {
-						world: world,
-						time: (world.id == featuredWorldId) ? 1 : 0
-					}
-				});
-			} else { // "recent" and "unmoderated"
-				worlds = worlds.map(function (world) {
-					let date = new Date(world["first_published_at"]);
-					if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
-						date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
-					} else {
-						date = date.getTime();
-					}
-					return {
-						world: world,
-						time: date
-					}
-				});
+				}
 			}
-			worlds = worlds.sort(function (a, b) {
-				return b.time - a.time;
-			}).map(function(v) {
-				return v.world;
-			});
-			let json = {};
-			let obj = [];
-			let publishedWorlds = [];
-			
-			for (i in worlds) {
-				try {
-				let world = worlds[i];
-				if (world.id < 0) { // status update world
+			if (cond) {
+				if (categoryId !== undefined && metadata["category_ids"].indexOf(parseInt(categoryId)) == -1) {
 					continue;
 				}
-				let metadata = world;
-				try {
-					//metadata = processUserWorld(world);
-				} catch (e) {
-					console.error("Error parsing metadata:");
-					console.error(e);
-					metadata = null;
-				}
-				let cond = (metadata["publication_status"] == 1);
-				if (req.params) {
-					if (req.params.user) {
-						cond = cond && (metadata["author_id"] == req.params.user);
-					}
-				}
-				if (search) {
-					if (cond === true) {
-						search = search.toString().toLowerCase();
-						if (search.startsWith("id:")) {
-							cond = (metadata["id"].toString() == search.split(":")[1]);
-						} else if (search.startsWith("madebyid:")) {
-							cond = (metadata["author_id"].toString() == search.split(":")[1]);
-						} else if (search.startsWith("madeby:")) {
-							cond = (metadata["author_username"].search(search.split(":")[1]) != -1);
-						} else {
-							cond = (metadata["title"].toLowerCase().search(search) != -1);
-						}
-					}
-				}
-				if (cond) {
-					//metadata["id"] = files[i]; // set by world cache
-					if (categoryId != undefined && metadata["category_ids"].indexOf(parseInt(categoryId)) == -1) {
-						continue;
-					}
-					metadata = metadata;
-					publishedWorlds.push(metadata);
-					if (kind == "featured") {
-						break;
-					}
-				}
-				} catch (e) {
-					console.error("Error sorting world " + worlds[i].id);
-					console.error(e);
+				metadata["has_win_condition"] = undefined;
+				//metadata["required_mods"] = undefined;
+				metadata["number_of_raters"] = undefined;
+				publishedWorlds.push(metadata);
+				if (kind == "featured") {
+					break;
 				}
 			}
-			let start = Math.min(publishedWorlds.length, 24*page);
-			let end = Math.min(publishedWorlds.length, start+24);
-			for (i=start; i < end; i++) {
-				obj.push(publishedWorlds[i]);
+			} catch (e) {
+				console.error("Error sorting world " + worlds[i].id);
+				console.error(e);
 			}
-			json["worlds"] = obj;
-			if (end < publishedWorlds.length) {
-				json["pagination_next_page"] = page + 2; // + 2 because it got substracted by 1 before
-			}
-			worldListCache[cacheIndex] = json;
-			worldListCache[cacheIndex]["expires"] = Date.now() + 1000*3600; // 1 hour
-			res.status(200).json(json);
-		});
-	}
+		}
+		let start = Math.min(publishedWorlds.length, 24*page);
+		let end = Math.min(publishedWorlds.length, start+24);
+		for (i=start; i < end; i++) {
+			obj.push(publishedWorlds[i]);
+		}
+		json["worlds"] = obj;
+		if (end < publishedWorlds.length) {
+			json["pagination_next_page"] = page + 2; // + 2 because it got substracted by 1 before
+		}
+		worldListCache[cacheIndex] = json;
+		worldListCache[cacheIndex]["expires"] = Date.now() + 1000*3600; // 1 hour
+		res.status(200).json(json);
+	});
 }
 
 function playWorld(req, res) {
@@ -837,6 +849,8 @@ module.exports.run = function(app) {
 		fs.writeFileSync("conf/new_world_id.txt", "1")
 		console.log("Created file \"conf/new_world_id.txt\"");
 	}
+	featuredWorldId = fs.readFileSync("conf/featured_world.txt", {"encoding": "utf8"});
+
 	app.delete("/api/v1/worlds/:id", deleteWorld);
 	app.get("/api/v1/worlds/:id/basic_info", worldBasicInfo);
 	app.get("/api/v1/worlds/:id", world);
@@ -887,29 +901,41 @@ module.exports.run = function(app) {
 		let userId = valid[1];
 		let id = parseInt(req.params.id);
 		let stars = parseInt(req.body.stars);
+
+		if (id === undefined) {
+			res.status(400).json({
+				"error": 400,
+				"error_msg": "missing \"id\" POST data"
+			});
+		}
+		if (stars === undefined) {
+			res.status(400).json({
+				"error": 400,
+				"error_msg": "missing \"stars\" POST data"
+			});
+		}
 		if (fs.existsSync("worlds/" + id)) {
 			let ratings = JSON.parse(fs.readFileSync("users/" + userId + "/world_ratings.json"));
 			let meta = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
+			if (!meta["number_of_raters"]) {
+				meta["number_of_raters"] = 0;
+			}
 			if (ratings.ratings[id]) {
-				// remove the rating from the average
-				// Expressions (n=average, a=old average, b=user rating):
-				// n=(a+b)/2
-				// a=n*2-b
-				meta["average_star_rating"] = (meta["average_star_rating"] * 2) - ratings.ratings[id];
+				meta["average_star_rating"] = (meta["average_star_rating"] * meta["number_of_raters"] - ratings.ratings[id]) / (meta["number_of_raters"]-1);
+				meta["number_of_raters"] -= 1;
 			}
 			if (meta["average_star_rating"] == 0) {
 				meta["average_star_rating"] = stars;
 			}
-			meta["average_star_rating"] = (meta["average_star_rating"] + stars) / 2;
+			meta["average_star_rating"] = (meta["average_star_rating"] * meta["number_of_raters"] + stars) / (meta["number_of_raters"]+1);
+			meta["number_of_raters"] += 1;
 			fs.writeFileSync("worlds/"+id+"/metadata.json", JSON.stringify(meta));
 			ratings.ratings[id] = stars;
 			fs.writeFileSync("users/" + userId + "/world_ratings.json", JSON.stringify(ratings));
-			let json = {
-				"average_star_rating": fullWorldSync(id, true)
-			}
-			if (ratings.ratings[id]) {
-				json["star_rating"] = ratings.ratings[id];
-			}
+			const json = {
+				"average_star_rating": fullWorldSync(id, true),
+				"star_rating": stars,
+			};
 			res.status(200).json(json);
 		} else {
 			res.status(404).json({

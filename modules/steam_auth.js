@@ -142,7 +142,7 @@ function create_steam_user(req, res) {
 			"ios_link_available": false,
 			"ios_link_initiated": false,
 			"is_username_blocked": false,
-			"profile_image_url": "https://cdn.discordapp.com/attachments/645634229136261120/645660160769130498/octoberthinking.png",
+			"profile_image_url": HOST + "/images/categories/default_pfp.png",
 			"id": parseInt(newId),
 			"username": persona,
 			"user_status": newUserStatus, // see Util.cs in Blocksworld source code for info about user_status
@@ -168,6 +168,18 @@ function create_steam_user(req, res) {
 				}
 			]
 		}));
+		let date = new Date();
+		let line = date.toLocaleDateString("en-US");
+		let csv = fs.readFileSync("total_players.csv").toString();
+		let lines = csv.split("\n");
+		let lastLine = lines[lines.length-1].split(",");
+		const totalWorlds = fs.readdirSync("users").length-2+3;
+		if (lastLine[0] == line) {
+			lines[lines.length-1] = line + "," + totalWorlds;
+			fs.writeFileSync("total_players.csv", lines.join("\n"));
+		} else {
+			fs.appendFileSync("total_players.csv", "\n" + line + "," + totalWorlds);
+		}
 		steam_current_user(req,res,{
 			"query": {
 				"steam_id": steamId,

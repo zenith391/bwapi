@@ -49,6 +49,19 @@ When a profile is edited, not all files/image need to be resent.
 
 ## Serverbound
 
+First, a mix of performance and load balancing is achieved client-side. That is the client SHOULD measure the RTT (round-trip-time) of a ping (using `/api/v2/ping`) of every server it knows, then it SHOULD add a +/- 50ms random value to ping time OR have a 10% chance of not using the best choice, and then another 10% choice of not using the second choice and so on.  
+Finally it SHOULD pick the best choice (+ the 10% chance described above).
+
+*This system has been made so that the client can benefit from more performance with a lowered ping, but load balancing was also taken into consideration in order to not always have the same servers used and be overused.*
+
+### `/api/v2/ping` (GET)
+Always responds with:
+```json
+{
+	"ok": true
+}
+```
+
 ### `/api/sync/v1/start` (GET)
 Example url:
 ```

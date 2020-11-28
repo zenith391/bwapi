@@ -161,7 +161,7 @@ function metrics(req, res) {
 	let players = fs.readdirSync("users");
 	res.locals.worlds = worlds.length;
 	res.locals.models = models.length;
-	res.locals.players = players.length - 2; // minus user_list.js and owner_of.js
+	res.locals.players = players.length - 2 + 3; // minus user_list.js and owner_of.js
 	res.render("metrics");
 }
 
@@ -186,6 +186,20 @@ module.exports.run = function(app) {
 	app.get("/webui/home", home);
 	app.get("/webui/server_stats", stats);
 	app.get("/webui/server_metrics", metrics);
+
+	app.get("/webui/server_metrics/active_players.csv", function(req, res) {
+		res.status(200).sendFile(ROOT_NAME + "/active_players.csv");
+	});
+	app.get("/webui/server_metrics/total_worlds.csv", function(req, res) {
+		res.status(200).sendFile(ROOT_NAME + "/total_worlds.csv");
+	});
+	app.get("/webui/server_metrics/total_models.csv", function(req, res) {
+		res.status(200).sendFile(ROOT_NAME + "/total_models.csv");
+	});
+	app.get("/webui/server_metrics/total_players.csv", function(req, res) {
+		res.status(200).sendFile(ROOT_NAME + "/total_players.csv");
+	});
+
 	app.get("/webui/submissions", bc);
 	app.get("/webui/worlds", newWorlds);
 

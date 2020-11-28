@@ -1,6 +1,13 @@
 # Blocksworld API server
 ## Setup
-To setup the server, just clone (download) this repository and, in the console, execute `npm install` (Node.JS) in server's folder..
+### Ubuntu
+
+Clone this repository or use the Download ZIP button inside Code button on GitHub.  
+Then, install Node.JS and npm (node's package manager):
+```sh
+sudo apt-get install node npm
+npm install
+```
 
 The most complex part is doing setup for HTTPS:
 - You must have a certificate, you can get one for free from [Let's Encrypt](https://letsencrypt.org)
@@ -9,7 +16,7 @@ The most complex part is doing setup for HTTPS:
   - `privkey.pem`: The private key of your certificate
 
 ### Configure
-To configure the server, check the [README.md](https://github.com/zenith391/bwapi/tree/master/conf/README.md) in the `conf` folder.
+To configure the server, check the [README.md](https://github.com/zenith391/bwapi/blob/master/conf/README.md) in the `conf` folder.
 
 ## Launching
 Now to launch the server you **MUST** have NodeJS installed, when it is installed, you just have to
@@ -19,4 +26,4 @@ Now type `launch.bat` on Windows or `./launch` on Linux and then press Enter.
 
 ### License
 
-`bwapi` is under [GPLv3 license](https://github.com/zenith391/bwapi/tree/master/conf/LICENSE)
+`bwapi` is under [GPLv3 license](https://github.com/zenith391/bwapi/tree/master/LICENSE)

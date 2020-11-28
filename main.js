@@ -26,7 +26,9 @@ const serverline = require("serverline");
 HOST = "https://bwsecondary.ddns.net:8080"; // you *MUST* change this to the address of your server (otherwise some things like thumbnails won't work) !
 ROOT_NAME = __dirname;
 EARLY_ACCESS = true; // is this server early access? (used for some status identifiers)
-VERSION = "0.9.0";
+VERSION = "0.9.1";
+// how many worlds each player can have
+MAX_WORLD_LIMIT = 200;
 
 authTokens = {};
 capabilities = {
