@@ -174,6 +174,10 @@ module.exports.run = function(app) {
 		app.set("views", ROOT_NAME + "/data/webui");
 	}
 
+	if (!fs.existsSync("conf/plugins")) {
+		fs.mkdirSync("conf/plugins");
+	}
+
 	if (!fs.existsSync("conf/plugins/webui.json")) {
 		fs.writeFileSync("conf/plugins/webui.json", JSON.stringify({
 			"secret": "change this with the cookie secret",

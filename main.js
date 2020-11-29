@@ -17,6 +17,7 @@
 **/
 
 const https = require("https");
+const http = require("http");
 const fs = require("fs");
 const multiparty = require("multiparty");
 const bodyParser = require("body-parser");
@@ -37,14 +38,20 @@ capabilities = {
 	}
 }; // for modded
 
+let useHttps = true;
+
 if (!fs.existsSync("cert")) {
 	console.error("Missing 'cert' directory. Please refer to the 'README.md' for more details on how to setup.");
-	return;
+	console.error("Launching bwapi in http mode");
+	useHttps = false;
 }
 
-const options = {
-	key: fs.readFileSync("cert/privkey.pem"),
-	cert: fs.readFileSync("cert/fullchain.pem")
+let options = {};
+if (useHttps) {
+	options = {
+		key: fs.readFileSync("cert/privkey.pem"),
+		cert: fs.readFileSync("cert/fullchain.pem")
+	};
 }
 
 const fileOptions = {
@@ -351,7 +358,13 @@ app.all("*", function(req, res) {
 	res.status(403).send("Forbidden");
 });
 
-httpsServer = https.createServer(options, app);
-httpsServer.listen(port);
+if (useHttps) {
+	httpsServer = https.createServer(options, app);
+	httpsServer.listen(port);
+} else {
+	// still named httpsServer for compatibility purposes
+	httpsServer = http.createServer(options, app);
+	httpsServer.listen(port);
+}
 console.log("The server is ready!");
 console.log("Note: If you want the server to be publicly accessible (outside your house), be sure to port-forward port 8080 (there are many tutorials on internet)")
