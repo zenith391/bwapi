@@ -395,5 +395,20 @@ module.exports.run = function(app) {
 		});
 	});
 
+	app.get("/api/v1/users/:id/liked_worlds", function(req, res) {
+		let id = req.params["id"];
+		if (!fs.existsSync("users/"+id)) {
+			res.status(404);
+			return;
+		}
+		if (!fs.existsSync("users/"+id+"/liked_worlds.json")) {
+			res.status(200).json({
+				"worlds": []
+			});
+			return;
+		}
+		res.status(200).sendFile("users/"+id+"/liked_worlds.json", fileOptions);
+	});
+
 	app.get("/api/v1/users/:id/basic_info", basic_info);
 }

@@ -19,9 +19,13 @@
 const fs = require("fs");
 const express = require("express");
 const url = require("url");
+
+// The world ID of the currently featured world
 let featuredWorldId = 1;
 
-// Functions exported to global
+// Utility Functions //
+
+// Retrieve author (author_username, etc.) data and store it in metadata.
 processUserWorld = function(meta) {
 	if (meta["author_id"] == 0) {
 		meta["author_username"] = "Corrupted";
@@ -36,9 +40,6 @@ processUserWorld = function(meta) {
 		meta["author_status"] = user["user_status"];
 		//meta["author_blocksworld_premium"] = (user["blocksworld_premium"] != 0);
 		meta["author_blocksworld_premium"] = false; // nobody has Premium here, since nobody pays
-		if (meta["is_blog_post"] == true) {
-			meta["description"] = fs.readFileSync("worlds/" + meta["id"] + "/description.txt", {"encoding": "utf8"});
-		}
 		if (user["account_type"]) {
 			meta["author_account_type"] = user["account_type"];
 		}
@@ -46,6 +47,11 @@ processUserWorld = function(meta) {
 	return meta;
 }
 
+// Asynchronous function to load a world.
+// Parameters:
+//   id: string      The ID of the world to load
+//   source: bool    Whether to also load world source (alongside metadata) in 'source_json_str'
+//   callback: func  The callback to call once the world is loaded
 fullWorld = function(id, source, callback) {
 	if (!fs.existsSync("worlds/" + id)) {
 		callback(new Error("World not found."));
@@ -76,6 +82,7 @@ fullWorld = function(id, source, callback) {
 	});
 }
 
+// Synchronous (and deprecated) version of the fullWorld(...) function
 fullWorldSync = function(id, noSource) {
 	let world = {
 		id: id.toString()
@@ -98,6 +105,8 @@ fullWorldSync = function(id, noSource) {
 let allWorldsCache = {};
 let allWorldsCacheValid = false;
 let allWorldsCacheLoading = false;
+
+// Request the world cache. Calls 'callback' function with a list of all loaded worlds.
 worldCache = function(callback) {
 	if (!allWorldsCacheValid) {
 		if (allWorldsCacheLoading) {
@@ -169,12 +178,21 @@ invalidateWorldCache = function() {
 }
 
 // Module code //
+
+// Endpoint for GET /api/v1/worlds/:id
 function world(req, res) {
 	let id = req.params["id"];
 	if (fs.existsSync("worlds/" + id)) {
 		fullWorld(id, true, function(err, world) {
 			if (err) {
 				throw err;
+			}
+			if (world.publication_status != 1) {
+				res.status(500).json({
+					"error": 500,
+					"error_msg": "The world is private!"
+				});
+				return;
 			}
 			world["number_of_raters"] = undefined;
 			res.status(200).json({
@@ -189,6 +207,25 @@ function world(req, res) {
 	}
 }
 
+// Endpoint for GET /api/v1/worlds/:id/basic_info
+function worldBasicInfo(req, res) {
+	let id = req.params["id"];
+	if (fs.existsSync("worlds/" + id)) {
+		fullWorld(id, false, function(err, world) {
+			if (err) {
+				throw err;
+			}
+			res.status(200).json(processUserWorld(world));
+		});
+	} else {
+		res.status(404).json({
+			"error": 404,
+			"error_msg": "Not Found"
+		});
+	}
+}
+
+// Endpoint for DELETE /api/v1/worlds/:id
 function deleteWorld(req, res) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
@@ -234,23 +271,7 @@ function deleteWorld(req, res) {
 	}
 }
 
-function worldBasicInfo(req, res) {
-	let id = req.params["id"];
-	if (fs.existsSync("worlds/" + id)) {
-		fullWorld(id, false, function(err, world) {
-			if (err) {
-				throw err;
-			}
-			res.status(200).json(processUserWorld(world));
-		});
-	} else {
-		res.status(404).json({
-			"error": 404,
-			"error_msg": "Not Found"
-		});
-	}
-}
-
+// Endpoint for PUT /api/v1/worlds/:id/publication_status
 function publicationStatus(req, res) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
@@ -306,6 +327,7 @@ function publicationStatus(req, res) {
 	}
 }
 
+// Endpoint for POST /api/v1/worlds
 function createWorld(req, res) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
@@ -409,6 +431,7 @@ function createWorld(req, res) {
 	});
 }
 
+// Endpoint for PUT /api/v1/worlds/:id
 function updateWorld(req, res) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
@@ -517,6 +540,7 @@ function updateWorld(req, res) {
 }
 
 let worldListCache = {};
+// Endpoint for GET /api/v1/worlds
 function worldsGet(req, res, u) {
 	let page = u.query.page;
 	let categoryId = u.query.category_id;
@@ -687,6 +711,7 @@ function worldsGet(req, res, u) {
 	});
 }
 
+// Endpoint for POST /api/v1/worlds/:id/plays
 function playWorld(req, res) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
@@ -725,6 +750,7 @@ function playWorld(req, res) {
 	}
 }
 
+// Endpoint for GET /api/v1/world_leaderboards/:id
 function worldLeaderboard(req, res) {
 	let id = req.params.id;
 	fullWorld(id, false, function(err, world) {
@@ -785,6 +811,7 @@ function worldLeaderboard(req, res) {
 	});
 }
 
+// Endpoint for POST /api/v1/world_leaderboards/:id/plays
 function submitLeaderboardRecord(req, res) {
 	let valid = validAuthToken(req, res, true);
 	if (!valid[0]) {

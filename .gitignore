@@ -16,6 +16,9 @@ usersSteamLinks/
 usersWoolLinks/
 userAccounts/
 latest.log
+total_worlds.csv
+total_models.csv
+total_players.csv
 active_players.csv
 
 # private tools

@@ -14,10 +14,15 @@
 		<canvas id="activityChart" width="200" height="120" aria-label="User Logins Chart" role="img"></canvas>
 		<a href="server_metrics/active_players.csv">Download CSV file</a>
 		<h3>Line chart representing the total number of worlds, models and players</h3>
-		<canvas id="worldsChart" width="200" height="120" aria-label="Total Worlds Chart" role="img"></canvas>
-		<a href="server_metrics/total_worlds.csv">Download worlds CSV file</a><br/>
-		<a href="server_metrics/total_models.csv">Download models CSV file</a><br/>
-		<a href="server_metrics/total_players.csv">Download players CSV file</a>
+		<canvas id="worldsChart" width="200" height="120" aria-label="Totals Chart" role="img"></canvas>
+		<a href="server_metrics/total_worlds.csv">Download total worlds CSV file</a><br/>
+		<a href="server_metrics/total_models.csv">Download total models CSV file</a><br/>
+		<a href="server_metrics/total_players.csv">Download total players CSV file</a>
+		<h3>Line chart representing daily new worlds, models and players</h3>
+		<canvas id="dailyChart" width="200" height="120" aria-label="Dailies Chart" role="img"></canvas>
+		<a href="server_metrics/total_worlds.csv">Download total worlds CSV file</a><br/>
+		<a href="server_metrics/total_models.csv">Download total models CSV file</a><br/>
+		<a href="server_metrics/total_players.csv">Download total players CSV file</a>
 		<script>
 			d3.csv("/webui/server_metrics/active_players.csv").then(function(data) {
 				var ctx = document.getElementById("activityChart").getContext("2d");
@@ -48,49 +53,108 @@
 			d3.csv("/webui/server_metrics/total_worlds.csv").then(function(worldData) {
 				d3.csv("/webui/server_metrics/total_models.csv").then(function(modelData) {
 					d3.csv("/webui/server_metrics/total_players.csv").then(function(playerData) {
-						var ctx = document.getElementById("worldsChart").getContext("2d");
+						{
+							var ctx = document.getElementById("worldsChart").getContext("2d");
 
-						var labels = [];
-						var worldValues = [];
-						var modelValues = [];
-						var playerValues = [];
+							var labels = [];
+							var worldValues = [];
+							var modelValues = [];
+							var playerValues = [];
 
-						for (piece of worldData) {
-							labels.push(piece.Date);
-							worldValues.push(piece.Worlds);
-						}
-						for (piece of modelData) {
-							modelValues.push(piece.Models);
-						}
-						for (piece of playerData) {
-							playerValues.push(piece.Players);
-						}
+							for (piece of worldData) {
+								labels.push(piece.Date);
+								worldValues.push(piece.Worlds);
+							}
+							for (piece of modelData) {
+								modelValues.push(piece.Models);
+							}
+							for (piece of playerData) {
+								playerValues.push(piece.Players);
+							}
 
-						var worldsChart = new Chart(ctx, {
-							type: "line",
-							data: {
-								labels: labels,
-								datasets: [{
-									label: "Worlds",
-									backgroundColor: "rgb(255, 99, 132)",
-									borderColor: "rgb(255, 99, 132)",
-									data: worldValues
+							var worldsChart = new Chart(ctx, {
+								type: "line",
+								data: {
+									labels: labels,
+									datasets: [{
+										label: "Worlds",
+										backgroundColor: "rgba(0, 0, 0, 0)",
+										borderColor: "rgb(255, 99, 132)",
+										data: worldValues
+									},
+									{
+										label: "Models",
+										backgroundColor: "rgba(0, 0, 0, 0)",
+										borderColor: "rgb(99, 255, 132)",
+										data: modelValues
+									},
+									{
+										label: "Players",
+										backgroundColor: "rgba(0, 0, 0, 0)",
+										borderColor: "rgb(99, 132, 255)",
+										data: playerValues
+									}]
 								},
-								{
-									label: "Models",
-									backgroundColor: "rgb(99, 255, 132)",
-									borderColor: "rgb(99, 255, 132)",
-									data: modelValues
+								options: {}
+							});
+						}
+						{
+							var ctx = document.getElementById("dailyChart").getContext("2d");
+
+							var labels = [];
+							var worldValues = [];
+							var modelValues = [];
+							var playerValues = [];
+
+							var i = 0;
+							for (piece of worldData) {
+								if (i > 0) {
+									labels.push(piece.Date);
+									worldValues.push(piece.Worlds - worldData[i-1].Worlds);
+								}
+								i += 1;
+							}
+							i = 0;
+							for (piece of modelData) {
+								if (i > 0) {
+									modelValues.push(piece.Models - modelData[i-1].Models);
+								}
+								i += 1;
+							}
+							i = 0;
+							for (piece of playerData) {
+								if (i > 0) {
+									playerValues.push(piece.Players - playerData[i-1].Players);
+								}
+								i += 1;
+							}
+
+							var dailyChart = new Chart(ctx, {
+								type: "line",
+								data: {
+									labels: labels,
+									datasets: [{
+										label: "New Worlds",
+										backgroundColor: "rgba(0, 0, 0, 0)",
+										borderColor: "rgb(255, 99, 132)",
+										data: worldValues
+									},
+									{
+										label: "New Models",
+										backgroundColor: "rgba(0, 0, 0, 0)",
+										borderColor: "rgb(99, 255, 132)",
+										data: modelValues
+									},
+									{
+										label: "New Players",
+										backgroundColor: "rgba(0, 0, 0, 0)",
+										borderColor: "rgb(99, 132, 255)",
+										data: playerValues
+									}]
 								},
-								{
-									label: "Players",
-									backgroundColor: "rgb(99, 132, 255)",
-									borderColor: "rgb(99, 132, 255)",
-									data: playerValues
-								}]
-							},
-							options: {}
-						});
+								options: {}
+							});
+						}
 					});
 				});
 			});

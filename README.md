@@ -9,7 +9,7 @@ sudo apt-get install node npm
 npm install
 ```
 
-The most complex part is doing setup for HTTPS:
+The most complex part is doing setup for HTTPS (optional):
 - You must have a certificate, you can get one for free from [Let's Encrypt](https://letsencrypt.org)
 - You will need to create a directory called `cert` that will contain:
   - `fullchain.pem`: The full chain of your certificate
@@ -25,4 +25,4 @@ Now type `launch.bat` on Windows or `./launch` on Linux and then press Enter.
 
 ### License
 
-`bwapi` is under [GPLv3 license](https://github.com/zenith391/bwapi/tree/master/LICENSE)
+**`bwapi` is under [GPLv3 license](https://github.com/zenith391/bwapi/tree/master/LICENSE). This license means all edits must be published.**
