@@ -72,7 +72,7 @@ export function run(app) {
 
 		for (const id of followedUsers) {
 			let feeds = await valid.user.getFeeds();
-			for (let feed in feeds) {
+			for (let feed of feeds) {
 				feed["follow_target_id"] = valid.user.id;
 				feed["follow_target_username"] = metadata["username"];
 				feed["follow_target_profile_image_url"] = metadata["profile_image_url"];
