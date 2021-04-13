@@ -72,6 +72,26 @@ export function run(app) {
 		await ios_current_user(req, res, url.parse(req.url, true));
 	});
 
+	app.post("/api/v1/users", async function(req, res) {
+		const gcId = req.body.game_center_player_id
+		if (gcId !== undefined) {
+			if (iosLinks[gcId] !== undefined) {
+				res.status(500);
+			} else {
+				const newUser = await User.create();
+				iosLinks[gcId] = newUser.id;
+				fs.writeFileSync("conf/ios_links.json", JSON.stringify(iosLinks))
+				await ios_current_user(req,res,{
+					"query": {
+						"game_center_player_id": gcId
+					}
+				});
+			}
+		} else {
+			res.status(500);
+		}
+	});
+
 	app.post("/api/v1/current_user/daily_reward", function(req, res) {
 		console.log(req.body);
 		// res.status(200).json({
@@ -94,6 +114,7 @@ export function run(app) {
 		let meta = await valid.user.getMetadata();
 		if (won.game_coins) meta.coins += won.game_coins;
 		if (won.game_gems)  meta.game_gems += won.game_gems;
+		meta.spinner1_unlocked = false;
 		await valid.user.setMetadata(meta);
 
 		res.status(200).json({
@@ -116,6 +137,8 @@ export function run(app) {
 	});
 
 	app.put("/api/v1/current_user/agreed-to-tos", function(req, res) {
+		let valid = validAuthToken(req, res);
+		if (valid.ok === false) return;
 		res.status(200).json({});
 	})
 }

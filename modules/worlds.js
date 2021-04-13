@@ -264,9 +264,9 @@ async function deleteWorld(req, res) {
 			}
 			fs.rmdirSync("worlds/"+id);
 			let meta = await valid.user.getMetadata();
-			for (const i in usr["_SERVER_worlds"]) {
-				if (usr["_SERVER_worlds"][i] == id) {
-					usr["_SERVER_worlds"].splice(i, 1);
+			for (const i in meta["_SERVER_worlds"]) {
+				if (meta["_SERVER_worlds"][i] == id) {
+					meta["_SERVER_worlds"].splice(i, 1);
 				}
 			}
 			await valid.user.setMetadata(meta);
@@ -459,11 +459,11 @@ async function createWorld(req, res) {
 
 // Endpoint for PUT /api/v1/worlds/:id
 async function updateWorld(req, res) {
-	const valid = validAuthToken(req, res);
+	const valid = validAuthToken(req, res, true);
 	if (valid.ok === false) return;
 	const userId = valid.user.id;
 	let id = req.params["id"];
-	if (fs.existsSync("worlds/" + id) && req.body != null) {
+	if (fs.existsSync("worlds/" + id)) {
 		let metadata = await fullWorldSync(id, true)
 		let owning = false;
 		if (metadata["author_id"] == userId) {

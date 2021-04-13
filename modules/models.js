@@ -292,7 +292,7 @@ function modelsGet(req, res) {
 		let json = {};
 		let obj = [];
 		let publishedModels = [];
-		for (metadata of models) {
+		for (const metadata of models) {
 			let model = {}
 			let cond = true;
 			if (req.params) {

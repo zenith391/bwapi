@@ -353,6 +353,9 @@ let contentCategories = JSON.stringify(JSON.parse(fs.readFileSync("conf/content_
 app.get("/api/v1/content-categories-no-ip", function(req, res) {
 	res.status(200).send(contentCategories);
 });
+app.get("/api/v1/content-categories", function(req, res) {
+	res.status(200).send(contentCategories);
+});
 
 let blocksPricings = JSON.stringify(JSON.parse(fs.readFileSync("conf/blocks_pricings.json")));
 app.get("/api/v1/block_items/pricing", function(req, res) {

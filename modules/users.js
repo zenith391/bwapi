@@ -33,7 +33,7 @@ export class User {
 			wool: 1024
 		}
 
-		const newId = await fs.promises.readFile("conf/new_account_id.txt", {"encoding": "utf8"});
+		const newId = fs.readFileSync("conf/new_account_id.txt", {"encoding": "utf8"});
 		console.log("Creating user with ID " + newId);
 		fs.writeFileSync("conf/new_account_id.txt", (parseInt(newId)+1).toString());
 		fs.mkdirSync("users/"+newId);
@@ -364,10 +364,10 @@ async function save_current_user_profile_world(req, res) {
 	}
 	let meta = JSON.parse(fs.readFileSync("users/"+userId+"/profile_world/metadata.json"));
 	if (req.body["source_json_str"]) {
-		fs.writeFileSync("users/"+userId+"/profile_world/source.json", req.body["source_json_str"]);
+		fs.writeFileSync("users/"+userId+"/profile_world/source.json", value2(req.body["source_json_str"]));
 	}
 	if (req.body["avatar_source_json_str"]) {
-		fs.writeFileSync("users/"+userId+"/profile_world/avatar_source.json", req.body["avatar_source_json_str"]);
+		fs.writeFileSync("users/"+userId+"/profile_world/avatar_source.json", value2(req.body["avatar_source_json_str"]));
 	}
 	if (req.body["profile_gender"]) {
 		meta["profile_gender"] = req.body["profile_gender"];
