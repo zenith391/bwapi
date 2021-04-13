@@ -263,13 +263,13 @@ function deleteWorld(req, res) {
 				console.err("Failed to delete images/"+id+".png")
 			}
 			fs.rmdirSync("worlds/"+id);
-			let usr = userMetadata(userId);
-			for (i in usr["_SERVER_worlds"]) {
+			let meta = await valid.user.getMetadata();
+			for (const i in usr["_SERVER_worlds"]) {
 				if (usr["_SERVER_worlds"][i] == id) {
 					usr["_SERVER_worlds"].splice(i, 1);
 				}
 			}
-			fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(usr));
+			await valid.user.setMetadata(meta);
 			if (allWorldsCacheValid) {
 				delete allWorldsCache[id];
 			}
@@ -327,7 +327,7 @@ function likeStatus(req, res) {
 	if (fs.existsSync("worlds/" + id)) {
 		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json", {"encoding": "utf8"}));
 		let hasLiked = false;
-		for (world of likedWorlds.worlds) {
+		for (const world of likedWorlds.worlds) {
 			if (world == metadata.id) {
 				hasLiked = true;
 			}
@@ -347,7 +347,7 @@ function likeStatus(req, res) {
 		} else if (req.body.action == "remove_like") {
 			if (hasLiked) {
 				metadata["likes_count"] -= 1;
-				for (i in likedWorlds.worlds) {
+				for (const i in likedWorlds.worlds) {
 					if (likedWorlds.worlds[i] == id) {
 						likedWorlds.worlds.splice(i, 1);
 					}
@@ -378,7 +378,7 @@ function createWorld(req, res) {
 	const valid = validAuthToken(req, res, true);
 	if (valid.ok === false) return;
 	const userId = valid.user.id;
-	let user = userMetadata(userId);
+	let user = await (new User(userId)).getMetadata()
 	if (user["_SERVER_worlds"].length > MAX_WORLD_LIMIT) {
 		console.log(user["username"] + " has too many worlds.");
 		res.status(400).json({
@@ -431,9 +431,8 @@ function createWorld(req, res) {
 		fs.writeFileSync("worlds/"+newId+"/metadata.json", JSON.stringify(metadata));
 		allWorldsCache[newId] = metadata;
 		fs.writeFileSync("worlds/"+newId+"/source.json", source);
-		let usr = userMetadata(userId)
-		usr["_SERVER_worlds"].push(newId);
-		fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(usr));
+		let usr = new User(userId);
+		await usr.appendOwnedWorld(newId);
 		if (req.files["screenshot_image"]) {
 			fs.copyFileSync(req.files["screenshot_image"][0].path, "images/"+newId+".png");
 		}
@@ -470,13 +469,14 @@ async function updateWorld(req, res) {
 		if (metadata["author_id"] == userId) {
 			owning = true;
 		} else if (metadata["author_account_type"] == "group") {
-			let groupMeta = userMetadata(metadata["author_id"])
-			for (k in groupMeta["members"]) {
-				if (groupMeta["members"][k] == userId) {
-					owning = true;
-					break;
-				}
-			}
+			// let groupMeta = userMetadata(metadata["author_id"])
+			// for (const k in groupMeta["members"]) {
+			// 	if (groupMeta["members"][k] == userId) {
+			// 		owning = true;
+			// 		break;
+			// 	}
+			// }
+			return;
 		}
 		if (owning) {
 			if (req.body["source_json_str"]) {
@@ -752,7 +752,7 @@ function playWorld(req, res) {
 }
 
 // Endpoint for GET /api/v1/world_leaderboards/:id
-function worldLeaderboard(req, res) {
+async function worldLeaderboard(req, res) {
 	let id = req.params.id;
 	fullWorld(id, false, function(err, world) {
 		if (err) {
@@ -774,24 +774,25 @@ function worldLeaderboard(req, res) {
 			});
 		}
 
-		let meta = userMetadata(world["author_id"]);
+		const author = new User(world.author_id);
 		let periodicRecords = [];
 		lb["author_id"] = world["author_id"];
 		lb["author_play_count"] = world["play_count"];
-		lb["author_username"] = meta["username"];
-		lb["author_status"] = meta["user_status"];
+		lb["author_username"] = await author.getUsername();
+		lb["author_status"] = await author.getStatus();
 		lb["records"].sort(function (a, b) {
 			return a["best_time_ms"] - b["best_time_ms"];
 		});
-		for (k in lb["records"]) {
+
+		for (const k in lb["records"]) {
 			let record = lb["records"][k];
 			if (record["user_id"] == lb["author_id"]) {
 				lb["author_best_time_ms"] = record["best_time_ms"];
 			}
-			let umeta = userMetadata(record["user_id"]);
-			record["user_username"] = umeta["username"];
-			record["user_profile_image_url"] = umeta["profile_image_url"];
-			record["user_status"] = umeta["user_status"];
+			const user = new User(record.user_id);
+			record["user_username"] = await user.getUsername();
+			record["user_profile_image_url"] = await user.getProfileImageURL();
+			record["user_status"] = await user.getStatus();
 			record["rank"] = parseInt(k);
 			let minDate = new Date();
 			minDate.setDate(minDate.getDate() - 7);
@@ -799,10 +800,11 @@ function worldLeaderboard(req, res) {
 				periodicRecords.push(record);
 			}
 		}
+
 		periodicRecords.sort(function (a, b) {
 			return a["best_time_ms"] - b["best_time_ms"];
 		});
-		for (k in periodicRecords) {
+		for (const k in periodicRecords) {
 			periodicRecords[k].rank = k;
 		}
 		lb["periodic_records"] = periodicRecords;
@@ -834,7 +836,7 @@ function submitLeaderboardRecord(req, res) {
 			world.leaderboard = lb;
 		}
 		let improved = true;
-		for (k in lb["records"]) {
+		for (const k in lb["records"]) {
 			let record = lb["records"][k];
 			if (record["user_id"] == userId) {
 				if (parseInt(record["best_time_ms"]) < parseInt(req.body["time_ms"])) {

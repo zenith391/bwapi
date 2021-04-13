@@ -238,10 +238,16 @@ export class User {
 		return (await this.getMetadata())["_SERVER_models"];
 	}
 
+	async appendOwnedWorld(worldId) {
+		let metadata = await this.getMetadata();
+		metadata["_SERVER_worlds"].push(worldId);
+		await this.setMetadata(metadata);
+	}
+
 	async appendOwnedModel(modelId) {
 		let metadata = await this.getMetadata();
 		metadata["_SERVER_models"].push(modelId);
-		this.setMetadata(metadata);
+		await this.setMetadata(metadata);
 	}
 
 	async getCoins() {
@@ -265,13 +271,13 @@ export class User {
 	async setCoins(newValue) {
 		let metadata = await this.getMetadata();
 		metadata.coins = newValue;
-		this.setMetadata(metadata);
+		await this.setMetadata(metadata);
 	}
 
 	async setStatus(newValue) {
 		let metadata = await this.getMetadata();
 		metadata.user_status = newValue;
-		this.setMetadata(metadata);
+		await this.setMetadata(metadata);
 	}
 
 }

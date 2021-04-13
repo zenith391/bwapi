@@ -16,20 +16,21 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
 import fs from "fs";
+import { User } from "./users.js";
 
 export function run(app) {
 	app.get("/api/v1/user/:id/recent_activity", async function(req, res) {
 		const id = req.params["id"];
 		const user = new User(id);
+
 		if (await user.exists()) {
 			const username = await user.getUsername();
 			const profileImageURL = await user.getProfileImageURL();
 
-			let feeds = await user.getFeeds();
+			const feeds = await user.getFeeds();
 			let lastDate = new Date(0);
 			let newsFeed = [];
-			for (i in feeds["news_feed"]) {
-				let feed = feeds["news_feed"][i];
+			for (let feed of feeds) {
 				feed["follow_target_id"] = parseInt(id);
 				feed["follow_target_username"] = username;
 				feed["follow_target_profile_image_url"] = profileImageURL;
@@ -70,14 +71,9 @@ export function run(app) {
 		followedUsers.push(userId);
 
 		for (const id of followedUsers) {
-			let metadata = userMetadata(id);
-			if (!fs.existsSync("users/" + id + "/news_feed.json")) {
-				fs.writeFileSync("users/" + id + "/news_feed.json", "{\"news_feed\":[]}");
-			}
-			let feeds = JSON.parse(fs.readFileSync("users/"+id+"/news_feed.json"));
-			for (i in feeds["news_feed"]) {
-				let feed = feeds["news_feed"][i];
-				feed["follow_target_id"] = id;
+			let feeds = await valid.user.getFeeds();
+			for (let feed in feeds) {
+				feed["follow_target_id"] = valid.user.id;
 				feed["follow_target_username"] = metadata["username"];
 				feed["follow_target_profile_image_url"] = metadata["profile_image_url"];
 				newsFeed.push(JSON.stringify(feed));
@@ -91,6 +87,7 @@ export function run(app) {
 			if (isNaN(dateB.getTime())) dateB = new Date(0);
 			return dateA.getTime() < dateB.getTime() ? 1 : -1;
 		});
+
 		res.status(200).json({
 			"news_feed": newsFeed
 		});
