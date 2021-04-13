@@ -480,7 +480,7 @@ async function updateWorld(req, res) {
 		}
 		if (owning) {
 			if (req.body["source_json_str"]) {
-				fs.writeFileSync("worlds/"+id+"/source.tmp.json", req.body["source_json_str"]);
+				fs.writeFileSync("worlds/"+id+"/source.tmp.json", value(req.body, "source_json_str"));
 				fs.copyFileSync("worlds/"+id+"/source.tmp.json", "worlds/"+id+"/source.json");
 				fs.unlinkSync("worlds/"+id+"/source.tmp.json");
 			}
@@ -747,7 +747,7 @@ function playWorld(req, res) {
 					console.log("file error for world update: " + err);
 			});
 		}
-		res.status(200);
+		res.status(200).json({ ok: true });
 	}
 }
 

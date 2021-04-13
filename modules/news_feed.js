@@ -74,8 +74,8 @@ export function run(app) {
 			let feeds = await valid.user.getFeeds();
 			for (let feed of feeds) {
 				feed["follow_target_id"] = valid.user.id;
-				feed["follow_target_username"] = metadata["username"];
-				feed["follow_target_profile_image_url"] = metadata["profile_image_url"];
+				feed["follow_target_username"] = await valid.user.getUsername();
+				feed["follow_target_profile_image_url"] = await valid.user.getProfileImageURL();
 				newsFeed.push(JSON.stringify(feed));
 			}
 		}

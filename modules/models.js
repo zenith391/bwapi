@@ -51,7 +51,7 @@ export function modelCache(callback) {
 		fs.readdir("models", async function(err, files) {
 			if (err) callback(err, null);
 
-			for (i in files) {
+			for (const i in files) {
 				let file = files[i];
 				try {
 					let json = JSON.parse(fs.readFileSync("models/"+file+"/metadata.json"));
