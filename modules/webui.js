@@ -15,11 +15,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
-
-const session = require("express-session");
-const fs = require("fs");
-const bcrypt = require("bcrypt");
-const url = require("url");
+import session from "express-session";
+import fs from "fs";
+import bcrypt from "bcrypt";
+import url from "url";
+import { User } from "./users.js";
 
 let conf = {}
 
@@ -155,17 +155,16 @@ function stats(req, res) {
 	}
 }
 
-function metrics(req, res) {
+async function metrics(req, res) {
 	let worlds = fs.readdirSync("worlds");
 	let models = fs.readdirSync("models");
-	let players = fs.readdirSync("users");
 	res.locals.worlds = worlds.length;
 	res.locals.models = models.length;
-	res.locals.players = players.length - 2 + 3; // minus user_list.js and owner_of.js
+	res.locals.players = await User.count();
 	res.render("metrics");
 }
 
-module.exports.run = function(app) {
+export function run(app) {
 	app.set("view engine", "ejs");
 	if (app.get("views") != ROOT_NAME + "/views") { // not default path
 		console.error("Another view module is in use, cannot init WebUI");
@@ -197,8 +196,14 @@ module.exports.run = function(app) {
 	app.get("/webui/server_stats", stats);
 	app.get("/webui/server_metrics", metrics);
 
-	app.get("/webui/server_metrics/active_players.csv", function(req, res) {
-		res.status(200).sendFile(ROOT_NAME + "/active_players.csv");
+	app.get("/webui/server_metrics/steam_active_players.csv", function(req, res) {
+		res.status(200).sendFile(ROOT_NAME + "/steam_active_players.csv");
+	});
+	app.get("/webui/server_metrics/ios_active_players.csv", function(req, res) {
+		res.status(200).sendFile(ROOT_NAME + "/ios_active_players.csv");
+	});
+	app.get("/webui/server_metrics/launcher_active_players.csv", function(req, res) {
+		res.status(200).sendFile(ROOT_NAME + "/launcher_active_players.csv");
 	});
 	app.get("/webui/server_metrics/total_worlds.csv", function(req, res) {
 		res.status(200).sendFile(ROOT_NAME + "/total_worlds.csv");

@@ -15,14 +15,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
-
-const fs = require("fs");
-const url = require("url");
+import url from "url";
 
 const latestVersion = "0.6.0";
 const latestVersionId = (0 << 16) | (6 << 8) | (0); // 0 6 0 in separate bytes
 
-module.exports.run = function(app) {
+export function run(app) {
 	app.get("/api/v2/exdilin/configuration", function(req, res) {
 		let query = url.parse(req.url, true).query;
 		let version = query.version;
@@ -32,11 +30,13 @@ module.exports.run = function(app) {
 			"latest_version_id": latestVersionId
 		});
 	});
+	
 	app.get("/api/v2/ping", function(req, res) {
 		res.status(200).json({
 			"ok": true
 		});
 	});
+
 	app.get("/api/v2/exdilin/download", function(req, res) {
 		const query = url.parse(req.url, true).query;
 		if (query.version) {
@@ -55,4 +55,4 @@ module.exports.run = function(app) {
 			})
 		}
 	})
-} 
+}

@@ -1,4 +1,5 @@
 # Private files
+v2/
 conf/plugins
 conf/news_articles
 conf/world_templates
@@ -16,6 +17,7 @@ usersSteamLinks/
 usersWoolLinks/
 userAccounts/
 latest.log
+logging.txt
 total_worlds.csv
 total_models.csv
 total_players.csv

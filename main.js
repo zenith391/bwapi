@@ -15,24 +15,41 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
+import https from "https";
+import http from "http";
+import fs from "fs";
+import multiparty from "multiparty";
+import bodyParser from "body-parser";
+import util from "util";
+import serverline from "serverline";
+import Redis from "ioredis";
+import express from "express";
+import compression from "compression";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-const https = require("https");
-const http = require("http");
-const fs = require("fs");
-const multiparty = require("multiparty");
-const bodyParser = require("body-parser");
-const util = require("util");
-const serverline = require("serverline");
+import { User } from "./modules/users.js";
+import { run } from "./modules/bwwool.js";
 
-HOST = "https://bwsecondary.ddns.net:8080"; // you *MUST* change this to the address of your server (otherwise some things like thumbnails won't work) !
-ROOT_NAME = __dirname;
-EARLY_ACCESS = true; // is this server early access? (used for some status identifiers)
-VERSION = "0.9.1";
+global.__filename = fileURLToPath(import.meta.url);
+global.__dirname = path.dirname(__filename);
+
+global.redis = new Redis({
+	host: "127.0.0.1",
+	password: "C`NkK(VyG;4N&u-gHdn,QUP`H;C{A$^e"
+});
+
+// you *MUST* change this to the address of your server (otherwise some things like thumbnails won't work) !
+global.HOST = "https://bwsecondary.ddns.net:8080";
+global.ROOT_NAME = __dirname;
+// is this server early access? (used for some status identifiers)
+global.EARLY_ACCESS = true;
+global.VERSION = "0.9.1";
 // how many worlds each player can have
-MAX_WORLD_LIMIT = 200;
+global.MAX_WORLD_LIMIT = 200;
 
-authTokens = {};
-capabilities = {
+global.authTokens = {};
+global.capabilities = {
 	"bwapi": {
 		"version": VERSION
 	}
@@ -58,7 +75,6 @@ const fileOptions = {
 	root: __dirname
 }
 
-const express = require("express");
 const app = express();
 const port = 8080;
 
@@ -170,16 +186,16 @@ console.error = function(obj) {
 // Utility Functions //
 
 // Get the auth token from a request object
-getAuthToken = function(req) {
+global.getAuthToken = function(req) {
 	let authToken = undefined;
-	if (req.headers["bw-auth-token"] != undefined) {
+	if (req.headers["bw-auth-token"] !== undefined) {
 		authToken = req.headers["bw-auth-token"];
 	}
 	return authToken;
 }
 
 // just internally used helper functions
-value2 = function(v) {
+global.value2 = function(v) {
 	if (typeof(v) == "object") {
 		return v[0];
 	} else {
@@ -188,7 +204,7 @@ value2 = function(v) {
 }
 
 // Internally used
-value = function(body, name) {
+global.value = function(body, name) {
 	let v = body[name];
 	if (typeof(v) == "object") {
 		return v[0];
@@ -198,14 +214,14 @@ value = function(body, name) {
 }
 
 // Function used to validate an user's auth token and get to whom it belongs.
-validAuthToken = function(req, res, bodyCheck) {
+global.validAuthToken = function(req, res, bodyCheck) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
 		res.status(405).json({
 			"error": 405,
 			"error_msg": "missing authentication token"
 		});
-		return [false];
+		return { ok: false };
 	}
 	let userId = authTokens[authToken];
 	if (userId == undefined) {
@@ -213,19 +229,23 @@ validAuthToken = function(req, res, bodyCheck) {
 			"error": 405,
 			"error_msg": "unauthentificated user"
 		});
-		return [false];
+		return { ok: false };
 	}
 	if (bodyCheck && (req.body == undefined || req.body == null)) {
 		res.status(403).json({
 			"error": "no body"
 		});
-		return [false];
+		return { ok: false };
 	}
-	return [true, userId, authToken];
+	return {
+		ok: true,
+		user: new User(userId),
+		authToken: authToken
+	};
 }
 
 // Helper function for Blocksworld's date formatting
-datePart = function(num) {
+function datePart(num) {
 	let str = num.toString();
 	if (str.length < 2) {
 		str = "0" + str;
@@ -234,7 +254,7 @@ datePart = function(num) {
 }
 
 // Format a 'Date' object in Blocksworld format.
-dateString = function(date) {
+global.dateString = function(date) {
 	if (date == undefined || date == null) {
 		date = new Date();
 	}
@@ -250,7 +270,7 @@ dateString = function(date) {
 	return currDateStr;
 }
 
-app.use(require("compression")());
+app.use(compression());
 
 app.use(function(req, res, next) {
 	// Log queries
@@ -261,7 +281,7 @@ app.use(function(req, res, next) {
 	}
 	console.debug(req.method + " " + req.url, userId);
 
-	res.set("Server", "bwapi");
+	res.set("Server", "Vaila");
 	res.set("Access-Control-Allow-Origin", "*"); // allows client JavaScript code to access bwapi
 	try {
 		next();
@@ -273,7 +293,7 @@ app.use(function(req, res, next) {
 	}
 });
 
-app.disable("x-powered-by"); // as recommended by ExpressJS security best practices (https://expressjs.com/en/advanced/best-practice-security.html)
+//app.disable("x-powered-by"); // as recommended by ExpressJS security best practices (https://expressjs.com/en/advanced/best-practice-security.html)
 
 app.use(function(req, res, next) {
 	if (req.headers["content-type"] != undefined) {
@@ -307,10 +327,13 @@ app.use("/images", express.static("images")); // Serve the 'images' folder
 
 // Init every modules
 let cores = fs.readdirSync("modules");
-for (i in cores) {
+for (const i in cores) {
 	let file = cores[i];
 	console.debug("Init module " + file);
-	require("./modules/" + file).run(app);
+	const userModule = await import("./modules/" + file);
+	if (userModule.run) {
+		userModule.run(app);
+	}
 }
 
 // Plain file hosting //
@@ -318,6 +341,11 @@ for (i in cores) {
 // Minify files at start of the program so they don't have to be minified each time.
 let steamRemoteConf = JSON.stringify(JSON.parse(fs.readFileSync("conf/app_remote_configuration.json")));
 app.get("/api/v1/steam-app-remote-configuration", function(req, res) {
+	res.status(200).send(steamRemoteConf);
+});
+
+// TODO: find differences between Steam and iOS remote configurations
+app.get("/api/v1/app-remote-configuration", function(req, res) {
 	res.status(200).send(steamRemoteConf);
 });
 
@@ -359,15 +387,16 @@ app.all("*", function(req, res) {
 	res.status(403).send("Forbidden");
 });
 
-if (useHttps) {
-	httpsServer = https.createServer(options, app);
-	httpsServer.listen(port);
-} else {
-	// still named httpsServer for compatibility purposes
-	httpsServer = http.createServer(options, app);
-	httpsServer.listen(port);
-}
+let server = useHttps ? https.createServer(options, app) : http.createServer(options, app);
+server.listen(port);
 
 // Program startup is done
 console.log("The server is ready!");
 console.log("Note: If you want the server to be publicly accessible (outside your house), be sure to port-forward port 8080 (there are many tutorials on internet)")
+
+// async function unitTest() {
+// 	const user = new User(1);
+// 	let coins = await user.getCoins();
+// 	console.log(coins);
+// }
+// unitTest();

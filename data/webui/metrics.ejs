@@ -12,41 +12,95 @@
         <p><b>Note: All data collected is 100% anonymous (it just counts a total, not who logged in / created a world or model).</b></p>
 		<h3>Line chart representing the number of logins per day</h3>
 		<canvas id="activityChart" width="200" height="120" aria-label="User Logins Chart" role="img"></canvas>
-		<a href="server_metrics/active_players.csv">Download CSV file</a>
+		<a href="server_metrics/active_players.csv">Download CSV file (Steam logins)</a>
+		<a href="server_metrics/active_players.csv">Download CSV file (Launcher logins)</a>
+		<a href="server_metrics/active_players.csv">Download CSV file (iOS logins)</a>
 		<h3>Line chart representing the total number of worlds, models and players</h3>
 		<canvas id="worldsChart" width="200" height="120" aria-label="Totals Chart" role="img"></canvas>
-		<a href="server_metrics/total_worlds.csv">Download total worlds CSV file</a><br/>
-		<a href="server_metrics/total_models.csv">Download total models CSV file</a><br/>
+		<a href="server_metrics/total_worlds.csv">Download total worlds CSV file</a>
+		<a href="server_metrics/total_models.csv">Download total models CSV file</a>
 		<a href="server_metrics/total_players.csv">Download total players CSV file</a>
 		<h3>Line chart representing daily new worlds, models and players</h3>
 		<canvas id="dailyChart" width="200" height="120" aria-label="Dailies Chart" role="img"></canvas>
-		<a href="server_metrics/total_worlds.csv">Download total worlds CSV file</a><br/>
-		<a href="server_metrics/total_models.csv">Download total models CSV file</a><br/>
+		<a href="server_metrics/total_worlds.csv">Download total worlds CSV file</a>
+		<a href="server_metrics/total_models.csv">Download total models CSV file</a>
 		<a href="server_metrics/total_players.csv">Download total players CSV file</a>
 		<script>
-			d3.csv("/webui/server_metrics/active_players.csv").then(function(data) {
-				var ctx = document.getElementById("activityChart").getContext("2d");
-				var labels = [];
-				var values = [];
-				for (piece of data) {
-					labels.push(piece.Date);
-					values.push(piece.Players);
-				}
+			d3.csv("/webui/server_metrics/steam_active_players.csv").then(function(steamData) {
+				d3.csv("/webui/server_metrics/ios_active_players.csv").then(function(iosData) {
+					d3.csv("/webui/server_metrics/launcher_active_players.csv").then(function(launcherData) {
+						var ctx = document.getElementById("activityChart").getContext("2d");
+						var labels = [];
+						var values = [];
+						var iosValues = [];
+						var launcherValues = [];
+						var avgValues = [];
+						var avg = steamData[0].Players;
+						for (const i in steamData) {
+							if (i == steamData.length-1) break;
+							const piece = steamData[i];
+							const avgDelta = 0.85;
+							avg = avgDelta * avg + (1 - avgDelta) * piece.Players;
+							labels.push(piece.Date);
+							avgValues.push(avg);
+							values.push(piece.Players);
+						}
 
-				var activityChart = new Chart(ctx, {
-					type: "line",
-					data: {
-						labels: labels,
-						datasets: [{
-							label: "Logins",
-							backgroundColor: "rgb(255, 99, 132)",
-							borderColor: "rgb(255, 99, 132)",
-							data: values
-						}]
-					},
-					options: {
+						let startIndex = 0;
+						while (labels[startIndex] != iosData[0].Date) {
+							startIndex += 1;
+							iosValues.push(0);
+						}
+						for (const i in iosData) {
+							if (i == iosData.length-1) break;
+							const piece = iosData[i];
+							iosValues.push(piece.Players);
+						}
 
-					}
+						startIndex = 0;
+						while (labels[startIndex] != launcherData[0].Date && startIndex < labels.len) {
+							startIndex += 1;
+							launcherValues.push(0);
+						}
+						for (const i in launcherData) {
+							if (i == launcherData.length-1) break;
+							const piece = launcherData[i];
+							launcherValues.push(piece.Players);
+						}
+
+						var activityChart = new Chart(ctx, {
+							type: "line",
+							data: {
+								labels: labels,
+								datasets: [{
+									label: "Logins (Steam)",
+									backgroundColor: "rgba(0, 0, 0, 0)",
+									borderColor: "rgb(255, 99, 132)",
+									data: values
+								},
+								{
+									label: "Logins (iOS)",
+									backgroundColor: "rgba(0, 0, 0, 0)",
+									borderColor: "rgb(132, 99, 255)",
+									data: iosValues
+								},
+								{
+									label: "Logins (Launcher)",
+									backgroundColor: "rgba(0, 0, 0, 0)",
+									borderColor: "rgb(99, 255, 132)",
+									data: launcherValues
+								}]
+								// {
+								// 	label: "Logins (smoothed)",
+								// 	borderColor: "rgb(99, 255, 132)",
+								// 	data: avgValues
+								// }]
+							},
+							options: {
+
+							}
+						});
+					});
 				});
 			});
 
@@ -61,14 +115,20 @@
 							var modelValues = [];
 							var playerValues = [];
 
-							for (piece of worldData) {
+							for (i in worldData) {
+								if (i == worldData.length-1) break;
+								const piece = worldData[i];
 								labels.push(piece.Date);
 								worldValues.push(piece.Worlds);
 							}
-							for (piece of modelData) {
+							for (i in modelData) {
+								if (i == modelData.length-1) break;
+								const piece = modelData[i];
 								modelValues.push(piece.Models);
 							}
-							for (piece of playerData) {
+							for (i in playerData) {
+								if (i == playerData.length-1) break;
+								const piece = playerData[i];
 								playerValues.push(piece.Players);
 							}
 
@@ -106,27 +166,24 @@
 							var modelValues = [];
 							var playerValues = [];
 
-							var i = 0;
-							for (piece of worldData) {
-								if (i > 0) {
+							for (i in worldData) {
+								if (i > 0 && i < worldData.length-1) {
+									const piece = worldData[i];
 									labels.push(piece.Date);
 									worldValues.push(piece.Worlds - worldData[i-1].Worlds);
 								}
-								i += 1;
 							}
-							i = 0;
-							for (piece of modelData) {
-								if (i > 0) {
+							for (i in modelData) {
+								if (i > 0 && i < modelData.length-1) {
+									const piece = modelData[i];
 									modelValues.push(piece.Models - modelData[i-1].Models);
 								}
-								i += 1;
 							}
-							i = 0;
-							for (piece of playerData) {
-								if (i > 0) {
+							for (i in playerData) {
+								if (i > 0 && i < playerData.length-1) {
+									const piece = playerData[i];
 									playerValues.push(piece.Players - playerData[i-1].Players);
 								}
-								i += 1;
 							}
 
 							var dailyChart = new Chart(ctx, {

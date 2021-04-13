@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "Blocksworld API server host software.",
   "repository": "https://github.com/zenith391/bwapi",
+  "type": "module",
   "main": "main.js",
   "scripts": {
+    "start": "node --trace-warnings --unhandled-rejections=strict main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "zenith391",
@@ -16,6 +18,7 @@
     "ejs": "^3.1.5",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
+    "ioredis": "^4.26.0",
     "multiparty": "^4.2.2",
     "serverline": "^1.5.0",
     "uuid": "^3.4.0"

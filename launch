@@ -1,2 +1,2 @@
 #!/bin/sh
-node main.js $@
+nohup node main.js $@ > logging.txt &

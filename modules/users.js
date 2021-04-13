@@ -15,20 +15,269 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
+import fs from "fs";
+import url from "url";
+import uuid from "uuid";
 
-const fs = require("fs");
-const url = require("url");
+export class User {
 
-// Functions exported to global //
-userMetadata = function(id) {
-	if (!fs.existsSync("users/"+id))
-		return null;
-	let metadata = JSON.parse(fs.readFileSync("users/"+id+"/metadata.json"));
-	return metadata;
+	constructor(id) {
+		if (isNaN(parseInt(id))) {
+			throw "Invalid user identifier";
+		}
+		this.id = parseInt(id);
+	}
+
+	static async create(username, linkType) {
+		const statusFromLinkType = {
+			wool: 1024
+		}
+
+		const newId = await fs.promises.readFile("conf/new_account_id.txt", {"encoding": "utf8"});
+		console.log("Creating user with ID " + newId);
+		fs.writeFileSync("conf/new_account_id.txt", (parseInt(newId)+1).toString());
+		fs.mkdirSync("users/"+newId);
+		let newUserStatus = statusFromLinkType[linkType];
+		if (EARLY_ACCESS)
+			newUserStatus |= 4; // add "early access" flag
+		let userInfo = {
+			"coins": 100,
+			"ios_link_available": false,
+			"ios_link_initiated": false,
+			"is_username_blocked": false,
+			"profile_image_url": HOST + "/images/categories/default_pfp.png",
+			"id": parseInt(newId),
+			"username": username,
+			"user_status": newUserStatus, // see Util.cs in Blocksworld source code for info about user_status
+			"account_type": "user",
+			"blocksworld_premium": 0,
+			"_SERVER_worlds": [],
+			"_SERVER_models": [],
+			"_SERVER_groups": []
+		}
+		fs.writeFileSync("users/"+newId+"/metadata.json", JSON.stringify(userInfo));
+		fs.writeFileSync("users/"+newId+"/followed_users.json", "{\"attrs_for_follow_users\": {}}");
+		fs.writeFileSync("users/"+newId+"/followers.json", "{\"attrs_for_follow_users\": {}}");
+		fs.writeFileSync("users/"+newId+"/liked_worlds.json", "{\"worlds\": []}");
+		fs.writeFileSync("users/"+newId+"/played_worlds.json", "{\"worlds\": []}");
+		fs.writeFileSync("users/"+newId+"/world_ratings.json", "{\"ratings\": {}}");
+		fs.writeFileSync("users/"+newId+"/model_ratings.json", "{\"ratings\": {}}");
+		fs.writeFileSync("users/"+newId+"/pending_payouts.json", "{\"pending_payouts\": []}");
+		fs.writeFileSync("users/"+newId+"/news_feed.json", JSON.stringify({
+			"news_feed": [{ "type": 101, "timestamp": dateString() }]
+		}));
+
+		let date = new Date();
+		let line = date.toLocaleDateString("en-US");
+		let csv = fs.readFileSync("total_players.csv").toString();
+		let lines = csv.split("\n");
+		let lastLine = lines[lines.length-1].split(",");
+		const totalWorlds = fs.readdirSync("users").length-2+3;
+		if (lastLine[0] == line) {
+			lines[lines.length-1] = line + "," + totalWorlds;
+			fs.writeFileSync("total_players.csv", lines.join("\n"));
+		} else {
+			fs.appendFileSync("total_players.csv", "\n" + line + "," + totalWorlds);
+		}
+
+		return new User(newId);
+	}
+
+	static async list() {
+		let users = [];
+		const listing = fs.readdirSync("users/");
+		for (const dir of listing) {
+			const id = parseInt(dir);
+			if (isNaN(id) === false) {
+				users.push(new User(id));
+			}
+		}
+		return users;
+	}
+
+	static async count() {
+		return fs.readdirSync("users/").length - 2 + 3; // minus user_list.js and owner_of.js
+	}
+
+	async addPayout(payout) {
+		let payouts = this.getPendingPayouts();
+		if (!Array.isArray(payouts)) {
+			payouts = [];
+		}
+
+		let nextId = 0;
+		for (const i in payouts) {
+			nextId = Math.max(nextId, i+1);
+		}
+		payout["ref_id"] = nextId+1;
+		payouts.push(payout);
+		this.setPendingPayouts(payouts);
+	}
+
+	async exists() {
+		//return await redis.exists("user:" + this.id);
+		return fs.existsSync("users/" + this.id);
+	}
+
+	async getMetadata() {
+		if (this._metadata === undefined) {
+			this._metadata = JSON.parse(fs.readFileSync("users/" + this.id + "/metadata.json"));
+			this._metadata.id = this.id;
+
+			if (this._metadata["game_gems"] === undefined) {
+				this._metadata["game_gems"] = 0;
+				this._metadata["agreed_to_tos"] = false;
+				this._metadata["agreed_to_u2u_tos"] = false;
+				this._metadata["spinner1_unlocked"] = true;
+				this._metadata["spinner2_unlocked"] = false;
+			}
+		}
+		return this._metadata;
+	}
+
+	async getFollowers() {
+		if (this._followers === undefined) {
+			this._followers = JSON.parse(fs.readFileSync("users/" + this.id + "/followers.json"))["attrs_for_follow_users"];
+		}
+		return this._followers;
+	}
+
+	async getPendingPayouts() {
+		if (this._pendingPayout === undefined) {
+			this._pendingPayouts = JSON.parse(fs.readFileSync("users/" + this.id + "/pending_payouts.json"))["pending_payouts"];
+		}
+		return this._pendingPayouts;
+	}
+
+	async getPurchasedModels() {
+		if (this._purchasedModels === undefined) {
+			if (!fs.existsSync("users/" + this.id + "/purchased_u2u_models.json")) {
+				fs.writeFileSync("users/" + this.id + "/purchased_u2u_models.json", "{\"u2u_models\":[]}");
+			}
+			this._purchasedModels = JSON.parse(fs.readFileSync("users/" + this.id + "/purchased_u2u_models.json"))["u2u_models"];
+		}
+		return this._purchasedModels;
+	}
+
+	async getFeeds() {
+		if (this._feeds === undefined) {
+			if (!fs.existsSync("users/" + this.id + "/news_feed.json")) {
+				fs.writeFileSync("users/" + this.id + "/news_feed.json", "{\"news_feed\":[]}");
+			}
+			this._feeds = JSON.parse(fs.readFileSync("users/" + this.id + "/news_feed.json"))["news_feed"];
+		}
+		return this._feeds;
+	}
+
+	async getLikedWorlds() {
+		if (this._likedWorlds === undefined) {
+			if (!fs.existsSync("users/" + this.id + "/liked_worlds.json")) {
+				fs.writeFileSync("users/" + this.id + "/liked_worlds.json", "{\"worlds\":[]}");
+			}
+			this._likedWorlds = JSON.parse(fs.readFileSync("users/" + this.id + "/liked_worlds.json"))["worlds"];
+		}
+		return this._likedWorlds;
+	}
+
+	async appendPurchasedModel(modelId) {
+		let purchasedModels = getPurchasedModels();
+		purchasedModels.push(modelId);
+		fs.writeFileSync("users/" + this.id + "/purchased_u2u_models.json", JSON.stringify({
+			u2u_models: purchasedModels
+		}));
+	}
+
+	async addFeed(feed) {
+		feed.timestamp = dateString();
+
+		let newsFeed = await this.getFeeds();
+		newsFeed.unshift(feed);
+		await this.setFeeds(newsFeed);
+	}
+
+	async setMetadata(newValue) {
+		this._metadata = newValue;
+		fs.writeFileSync("users/" + this.id + "/metadata.json", JSON.stringify(newValue));
+	}
+
+	async setFollowers(newValue) {
+		this._followers = newValue;
+		fs.writeFileSync("users/" + this.id + "/followers.json", JSON.stringify({
+			attrs_for_follow_users: newValue
+		}));
+	}
+
+	async setPendingPayouts(newValue) {
+		this._pendingPayouts = newValue;
+		fs.writeFileSync("users/" + this.id + "/pending_payouts.json", JSON.stringify({
+			pending_payouts: newValue
+		}));
+	}
+
+	async setFeeds(newValue) {
+		this._feeds = newValue;
+		fs.writeFileSync("users/" + this.id + "/news_feed.json", JSON.stringify({
+			news_feed: newValue
+		}));
+	}
+
+	invalidate() {
+		this._metadata = undefined;
+		this._followers = undefined;
+	}
+
+	async getProfileImageURL() {
+		return (await this.getMetadata()).profile_image_url;
+	}
+
+	async getOwnedWorlds() {
+		return (await this.getMetadata())["_SERVER_worlds"];
+	}
+
+	async getOwnedModels() {
+		return (await this.getMetadata())["_SERVER_models"];
+	}
+
+	async appendOwnedModel(modelId) {
+		let metadata = await this.getMetadata();
+		metadata["_SERVER_models"].push(modelId);
+		this.setMetadata(metadata);
+	}
+
+	async getCoins() {
+		return (await this.getMetadata()).coins;
+	}
+
+	async getUsername() {
+		return (await this.getMetadata()).username;
+	}
+
+	async getStatus() {
+		return (await this.getMetadata()).user_status;
+	}
+
+	async getAccountType() {
+		const metadata = await this.getMetadata();
+		if (metadata["account_type"] === undefined) return "user";
+		return metadata["account_type"];
+	}
+
+	async setCoins(newValue) {
+		let metadata = await this.getMetadata();
+		metadata.coins = newValue;
+		this.setMetadata(metadata);
+	}
+
+	async setStatus(newValue) {
+		let metadata = await this.getMetadata();
+		metadata.user_status = newValue;
+		this.setMetadata(metadata);
+	}
+
 }
 
-socialUser = function(id, date) {
-	let metadata = userMetadata(id);
+export function socialUser(id, date) {
+	const metadata = new User(id).metadata;
 	return {
 		"user_id": parseInt(id),
 		"username": metadata["username"],
@@ -36,14 +285,14 @@ socialUser = function(id, date) {
 		"user_blocksworld_premium": metadata["user_status"],
 		"started_following_at": date,
 		"profile_image_url": metadata["profile_image_url"],
-		"relationship": 2
+		"relationship": 1
 	}
 }
 
-addPayout = function(id, payout) {
+export function addPayout(id, payout) {
 	let nextId = 0;
 	let payouts = JSON.parse(fs.readFileSync("users/"+id+"/pending_payouts.json"));
-	for (i in payouts["pending_payouts"]) {
+	for (const i in payouts["pending_payouts"]) {
 		nextId = Math.max(nextId, i+1);
 	}
 	if (!Array.isArray(payouts["pending_payouts"])) {
@@ -80,7 +329,8 @@ function basic_info(req, res) {
 		json["owner_id"] = metadata["owner_id"];
 		let members = [];
 		for (i in metadata["members"]) {
-			members.push(userMetadata(metadata["members"][i]).username);
+			const member = new User(metadata["members"][i]);
+			members.push(member.username);
 		}
 		json["members_usernames"] = members;
 		json["members_ids"] = metadata["members"];
@@ -88,12 +338,11 @@ function basic_info(req, res) {
 	res.status(200).json(json);
 }
 
-function save_current_user_profile_world(req, res) {
+async function save_current_user_profile_world(req, res) {
 	let valid = validAuthToken(req, res, false);
-	if (!valid[0]) {
-		return;
-	}
-	let userId = valid[1];
+	if (!valid.ok) return;
+
+	let userId = valid.user.id;
 	console.log("User " + userId + " uploading his profile world.");
 	if (!fs.existsSync("users/"+userId+"/profile_world")) {
 		fs.mkdirSync("users/"+userId+"/profile_world");
@@ -119,7 +368,8 @@ function save_current_user_profile_world(req, res) {
 	}
 	meta["updated_at_timestamp"] = Date.now();
 	fs.writeFileSync("users/"+userId+"/profile_world/metadata.json", JSON.stringify(meta));
-	let userMeta = userMetadata(userId)
+
+	let userMeta = await valid.user.getMetadata();
 	if (userMeta["is_image_locked"] != true) {
 		if (req.files["profile_image"]) {
 			fs.copyFileSync(req.files["profile_image"][0].path, "images/profiles/"+userId+".jpg");
@@ -127,15 +377,15 @@ function save_current_user_profile_world(req, res) {
 			fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(userMeta));
 		}
 	}
+	await valid.user.setMetadata(userMeta);
+
 	res.status(200).json(userMeta);
 }
 
-function current_user_profile_world(req, res) {
+async function current_user_profile_world(req, res) {
 	let valid = validAuthToken(req, res, false);
-	if (!valid[0]) {
-		return;
-	}
-	let userId = valid[1];
+	if (valid.ok === false) return;
+	let userId = valid.user.id;
 	console.log("User " + userId + " downloading his profile world.");
 	if (!fs.existsSync("users/"+userId+"/profile_world")) {
 		fs.mkdirSync("users/"+userId+"/profile_world");
@@ -149,10 +399,10 @@ function current_user_profile_world(req, res) {
 				"updated_at_timestamp": Date.now()
 			}));
 	}
-	let userMeta = userMetadata(userId);
+
 	let src = fs.readFileSync("users/"+userId+"/profile_world/source.json",{"encoding":"utf8"});
 	let meta = JSON.parse(fs.readFileSync("users/"+userId+"/profile_world/metadata.json"));
-	meta["image_url"] = userMeta["profile_image_url"];
+	meta["image_url"] = await valid.user.getProfileImageURL();
 	meta["source_json_str"] = src
 	if (fs.existsSync("users/"+userId+"/profile_world/avatar_source.json")) {
 		meta["avatar_source_json_str"] = fs.readFileSync("users/"+userId+"/profile_world/avatar_source.json",{"encoding":"utf8"});
@@ -161,26 +411,24 @@ function current_user_profile_world(req, res) {
 	res.status(200).json(meta);
 }
 
-function current_user_worlds(req, res) {
+async function current_user_worlds(req, res) {
 	let is_published = url.parse(req.url, true).query.is_published
 	let valid = validAuthToken(req, res, false);
-	if (!valid[0]) {
-		return;
-	}
-	let userId = valid[1];
-	console.log("User " + userId + " downloading his worlds.");
-	let user = JSON.parse(fs.readFileSync("users/"+userId+"/metadata.json"));
-	user.worlds = [];
-	for (i in user["_SERVER_worlds"]) {
-		let id = user["_SERVER_worlds"][i];
+	if (valid.ok === false) return;
+	const user = valid.user;
+	console.log("User " + user.id + " downloading his worlds.");
+	let metadata = await user.getMetadata();
+	const ownedWorlds = await user.getOwnedWorlds();
+	metadata.worlds = [];
+	for (const id of ownedWorlds) {
 		try {
 			let w = fullWorldSync(id, true);
 			if (is_published == "yes") {
 				if (w.publication_status == 1) {
-					user.worlds.push(w);
+					metadata.worlds.push(w);
 				}
 			} else {
-				user.worlds.push(w);
+				metadata.worlds.push(w);
 			}
 		} catch (e) {
 			console.debug(e);
@@ -191,22 +439,19 @@ function current_user_worlds(req, res) {
 			});
 		}
 	}
-	user["_SERVER_worlds"] = undefined;
-	user["_SERVER_models"] = undefined;
-	user["_SERVER_groups"] = undefined;
-	res.status(200).json(user);
+	metadata["_SERVER_worlds"] = undefined;
+	metadata["_SERVER_models"] = undefined;
+	metadata["_SERVER_groups"] = undefined;
+	res.status(200).json(metadata);
 }
 
 function current_user_worlds_for_teleport(req, res) {
 	let valid = validAuthToken(req, res, false);
-	if (!valid[0]) {
-		return;
-	}
-	let userId = valid[1];
-	let user = userMetadata(userId);
+	if (!valid.ok) return;
+	const user = new User(userId);
 	let worlds = [];
-	for (i in user["_SERVER_worlds"]) {
-		let id = user["_SERVER_worlds"][i];
+	for (const i in user.ownedWorlds) {
+		let id = user.ownedWorlds[i];
 		try {
 			let world = fullWorldSync(id, true);
 			if (!world["image_urls_for_sizes"]["440x440"]) {
@@ -218,7 +463,7 @@ function current_user_worlds_for_teleport(req, res) {
 			worlds.push(world);
 		} catch (e) {
 			console.debug(e);
-			console.error("could not retrieve worlds for user " + userId + "!");
+			console.error("could not retrieve worlds for user " + user.id + "!");
 			res.status(200).json({
 				"error": 404,
 				"error_msg": "Could not load your worlds."
@@ -286,7 +531,7 @@ function unfollow(req, res) {
 	});
 }
 
-module.exports.run = function(app) {
+export function run(app) {
 	if (!fs.existsSync("users")) {
 		fs.mkdirSync("users");
 		console.log("Created folder \"users\"");
@@ -338,8 +583,9 @@ module.exports.run = function(app) {
 		//if (valid[1] == id) {
 			let json = JSON.parse(fs.readFileSync("users/"+id+"/followers.json"))["attrs_for_follow_users"];
 			for (i in json) {
-				if (json[i] != undefined)
+				if (json[i] != undefined) {
 					out.push(socialUser(i.substring(1), json[i]));
+				}
 			}
 		//}
 		res.status(200).json({
@@ -353,7 +599,7 @@ module.exports.run = function(app) {
 			return;
 		}
 		let userId = valid[1];
-		let userMeta = userMetadata(userId);
+		let user = new User(userId);
 		let pending = JSON.parse(fs.readFileSync("users/"+userId+"/pending_payouts.json"));
 		let payouts = req.body["payouts"];
 		for (k in payouts) {
@@ -361,7 +607,7 @@ module.exports.run = function(app) {
 			for (i in pending["pending_payouts"]) {
 				let pendingPayout = pending["pending_payouts"][i];
 				if (pendingPayout["ref_id"] == payout["ref_id"]) {
-					userMeta["coins"] = userMeta["coins"] + pendingPayout.coin_grants;
+					user.coins = user.coins + pendingPayout.coin_grants;
 					pending["pending_payouts"].splice(i, 1);
 				}
 			}
@@ -371,21 +617,17 @@ module.exports.run = function(app) {
 			fs.writeFile("users/"+userId+"/pending_payouts.json", JSON.stringify(pending), function(err) {
 				if (err) throw err;
 				res.status(200).json({
-					"attrs_for_current_user": userMeta
+					"attrs_for_current_user": user.metadata
 				});
 			});
 		});
 	});
 
-	app.get("/api/v1/current_user/pending_payouts", function(req, res) {
+	app.get("/api/v1/current_user/pending_payouts", async function(req, res) {
 		let valid = validAuthToken(req, res, false);
-		if (!valid[0]) {
-			return;
-		}
-		let userId = valid[1];
-		let pending = JSON.parse(fs.readFileSync("users/"+userId+"/pending_payouts.json"));
+		if (valid.ok === false) return;
 		res.status(200).json({
-			"pending_payouts": pending["pending_payouts"]
+			"pending_payouts": await valid.user.getPendingPayouts()
 		})
 	});
 
@@ -395,19 +637,26 @@ module.exports.run = function(app) {
 		});
 	});
 
-	app.get("/api/v1/users/:id/liked_worlds", function(req, res) {
-		let id = req.params["id"];
-		if (!fs.existsSync("users/"+id)) {
-			res.status(404);
+	app.get("/api/v1/users/:id/liked_worlds", async function(req, res) {
+		const id = req.params["id"];
+		const user = new User(id);
+		if (await user.exists() === false) {
+			res.status(404).json({ error: 404, error_msg: "user does not exists" });
 			return;
 		}
-		if (!fs.existsSync("users/"+id+"/liked_worlds.json")) {
-			res.status(200).json({
-				"worlds": []
-			});
-			return;
+		const worlds = await user.getLikedWorlds();
+		let worldMetadatas = [];
+		for (let world of worlds) {
+			if (world != null) {
+				const fWorld = fullWorldSync(world, true);
+				if (fWorld == null) continue;
+				worldMetadatas.push(fWorld);
+			}
 		}
-		res.status(200).sendFile("users/"+id+"/liked_worlds.json", fileOptions);
+		res.status(200).json({
+			"worlds": worldMetadatas
+		});
+		console.log("ok");
 	});
 
 	app.get("/api/v1/users/:id/basic_info", basic_info);

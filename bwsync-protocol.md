@@ -17,7 +17,8 @@ This is sent from the server to the client (the client must also host a sync end
 	"imageIcon": "model's icon"
 }
 ```
-The `source` *string* is encoded to WSON and is then compressed using raw deflate level 9, this has up to 4500% efficiency on large world, `metadata` is so small that it would have a much lower compression efficiency.  
+The `source` *string* is encoded to WSON and is then compressed using raw deflate level 9, this has up to 4500% efficiency on large world, `metadata` is so small that it
+would have a much lower compression efficiency.  
 This command is used for:
 - Sending newly created worlds/models
 - Sending updated worlds/models
@@ -52,7 +53,8 @@ When a profile is edited, not all files/image need to be resent.
 First, a mix of performance and load balancing is achieved client-side. That is the client SHOULD measure the RTT (round-trip-time) of a ping (using `/api/v2/ping`) of every server it knows, then it SHOULD add a +/- 50ms random value to ping time OR have a 10% chance of not using the best choice, and then another 10% choice of not using the second choice and so on.  
 Finally it SHOULD pick the best choice (+ the 10% chance described above).
 
-*This system has been made so that the client can benefit from more performance with a lowered ping, but load balancing was also taken into consideration in order to not always have the same servers used and be overused.*
+*This system has been made so that the client can benefit from more performance with a lowered ping, but load balancing was also taken into consideration in order to not always
+have the same servers used and be overused.*
 
 ### `/api/v2/ping` (GET)
 Always responds with:

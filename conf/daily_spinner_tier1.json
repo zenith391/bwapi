@@ -1,0 +1,42 @@
+[
+	{
+		"game_blocks": "33:1",
+		"win_message": "You won.. up arrow button?"
+	},
+	{
+		"game_gems": 5,
+		"win_message": "You won 5 gems! You are VERY lucky!"
+	},
+	{
+		"game_gems": 1,
+		"win_message": "You won 1 gem! Try it out on the Lucky Prize Wheel!"
+	},
+	{
+		"game_coins": 25,
+		"win_message": "You won 25 coins!"
+	},
+	{
+		"game_coins": 10,
+		"win_message": "You won 10 coins!"
+	},
+	{
+		"game_coins": 10,
+		"win_message": "You won 10 coins!"
+	},
+	{
+		"game_coins": 5,
+		"win_message": "You won 5 coins!"
+	},
+	{
+		"game_coins": 2,
+		"win_message": "You won 2 coins!"
+	},
+	{
+		"game_coins": 1,
+		"win_message": "You won 1 coin!"
+	},
+	{
+		"game_coins": 1,
+		"win_message": "You won 1 coin!"
+	}
+]

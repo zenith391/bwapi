@@ -16,9 +16,10 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
 
-const fs = require("fs");
-const express = require("express");
-const url = require("url");
+import fs from "fs";
+import url from "url";
+import { User } from "./users.js";
+import { urlencoded } from "express";
 
 // The world ID of the currently featured world
 let featuredWorldId = 1;
@@ -26,7 +27,7 @@ let featuredWorldId = 1;
 // Utility Functions //
 
 // Retrieve author (author_username, etc.) data and store it in metadata.
-processUserWorld = function(meta) {
+global.processUserWorld = async function(meta) {
 	if (meta["author_id"] == 0) {
 		meta["author_username"] = "Corrupted";
 		meta["author_profile_image_url"] = "corrupted";
@@ -34,15 +35,13 @@ processUserWorld = function(meta) {
 		meta["author_blocksworld_premium"] = false;
 		meta["author_account_type"] = "user"
 	} else {
-		let user = userMetadata(meta["author_id"].toString());
-		meta["author_username"] = user.username;
-		meta["author_profile_image_url"] = user["profile_image_url"];
-		meta["author_status"] = user["user_status"];
+		let user = new User(parseInt(meta["author_id"]));
+		meta["author_username"] = await user.getUsername();
+		meta["author_profile_image_url"] = await user.getProfileImageURL();
+		meta["author_status"] = await user.getStatus();
 		//meta["author_blocksworld_premium"] = (user["blocksworld_premium"] != 0);
 		meta["author_blocksworld_premium"] = false; // nobody has Premium here, since nobody pays
-		if (user["account_type"]) {
-			meta["author_account_type"] = user["account_type"];
-		}
+		meta["author_account_type"] = await user.getAccountType();
 	}
 	return meta;
 }
@@ -52,12 +51,12 @@ processUserWorld = function(meta) {
 //   id: string      The ID of the world to load
 //   source: bool    Whether to also load world source (alongside metadata) in 'source_json_str'
 //   callback: func  The callback to call once the world is loaded
-fullWorld = function(id, source, callback) {
+global.fullWorld = function(id, source, callback) {
 	if (!fs.existsSync("worlds/" + id)) {
 		callback(new Error("World not found."));
 		return;
 	}
-	fs.readFile("worlds/" + id + "/metadata.json", function(err, data) {
+	fs.readFile("worlds/" + id + "/metadata.json", async function(err, data) {
 		if (err) {
 			callback(err, null);
 		} else {
@@ -83,7 +82,7 @@ fullWorld = function(id, source, callback) {
 }
 
 // Synchronous (and deprecated) version of the fullWorld(...) function
-fullWorldSync = function(id, noSource) {
+global.fullWorldSync = async function(id, noSource) {
 	let world = {
 		id: id.toString()
 	}
@@ -91,14 +90,14 @@ fullWorldSync = function(id, noSource) {
 		return null;
 	}
 	let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
-	for (key in metadata) {
+	for (const key in metadata) {
 		world[key] = metadata[key];
 	}
 	if (!world["required_mods"]) world["required_mods"] = [];
 	if (noSource === undefined || noSource == null) {
 		world["source_json_str"] = fs.readFileSync("worlds/"+id+"/source.json",{"encoding":"utf8"});
 	}
-	world = processUserWorld(world);
+	world = await processUserWorld(world);
 	return world;
 }
 
@@ -107,55 +106,55 @@ let allWorldsCacheValid = false;
 let allWorldsCacheLoading = false;
 
 // Request the world cache. Calls 'callback' function with a list of all loaded worlds.
-worldCache = function(callback) {
+global.worldCache = function(callback) {
 	if (!allWorldsCacheValid) {
 		if (allWorldsCacheLoading) {
 			console.log("Tried loading world cache at the same time!");
 		}
 		allWorldsCacheLoading = true;
 		console.debug("Populating world cache..");
-		fs.readdir("worlds", function(err, files) {
+		fs.readdir("worlds", async function(err, files) {
 			if (err) callback(err, null);
 
-			for (i in files) {
+			for (const i in files) {
 				let file = files[i];
 				try {
 					let json = JSON.parse(fs.readFileSync("worlds/"+file+"/metadata.json"));
 					json["id"] = parseInt(file);
 					if (!json["required_mods"]) json["required_mods"] = [];
 					try {
-						json = processUserWorld(json);
+						json = await processUserWorld(json);
 					} catch (e) {
-						console.error("Error parsing metadata:");
-						console.error(e);
+						console.error("Error parsing metadata", e);
 					}
 					allWorldsCache[json["id"]] = json;
 				} catch (e) {
 					// try to recover world
-					console.error("Had to recover world " + file + "!");
-					let currDateStr = dateString();
-					fs.writeFileSync("worlds/"+file+"/metadata.json", JSON.stringify({
-						"title": "",
-						"average_star_rating": 0,
-						"description": "",
-						"has_win_condition": false,
-						"category_ids": [],
-						"author_id": 0, // TODO
-						"app_version": "1.47.0",
-						"publication_status": 5,
-						"likes_count": 0,
-						"play_count": 0,
-						"pay_to_play_cost": 0,
-						"image_urls_for_sizes": {
-							"440x440": HOST + "/images/"+file+".png",
-							"512x384": HOST + "/images/"+file+".png",
-							"220x220": HOST + "/images/"+file+".png",
-							"1024x768": HOST + "/images/"+file+".png"
-						},
-						"created_at": currDateStr,
-						"first_published_at": currDateStr,
-						"updated_at": currDateStr
-					}))
+					// console.error("Had to recover world " + file + "!");
+					console.warn("Should recover world " + file + " !");
+					// let currDateStr = dateString();
+					// fs.writeFileSync("worlds/"+file+"/metadata.json", JSON.stringify({
+					// 	"title": "",
+					// 	"average_star_rating": 0,
+					// 	"description": "",
+					// 	"has_win_condition": false,
+					// 	"category_ids": [],
+					// 	"author_id": 0, // TODO
+					// 	"app_version": "1.47.0",
+					// 	"publication_status": 5,
+					// 	"likes_count": 0,
+					// 	"play_count": 0,
+					// 	"pay_to_play_cost": 0,
+					// 	"image_urls_for_sizes": {
+					// 		"440x440": HOST + "/images/"+file+".png",
+					// 		"512x384": HOST + "/images/"+file+".png",
+					// 		"220x220": HOST + "/images/"+file+".png",
+					// 		"1024x768": HOST + "/images/"+file+".png"
+					// 	},
+					// 	"created_at": currDateStr,
+					// 	"first_published_at": currDateStr,
+					// 	"updated_at": currDateStr
+					// }))
 				}
 			}
 			console.debug(files.length + " worlds found.");
@@ -168,11 +167,11 @@ worldCache = function(callback) {
 	}
 }
 
-isWorldCacheValid = function() {
+global.isWorldCacheValid = function() {
 	return allWorldsCacheValid;
 }
 
-invalidateWorldCache = function() {
+global.invalidateWorldCache = function() {
 	allWorldsCache = {};
 	allWorldsCacheValid = false;
 }
@@ -183,16 +182,38 @@ invalidateWorldCache = function() {
 function world(req, res) {
 	let id = req.params["id"];
 	if (fs.existsSync("worlds/" + id)) {
-		fullWorld(id, true, function(err, world) {
+		fullWorld(id, true, async function(err, world) {
 			if (err) {
 				throw err;
 			}
-			if (world.publication_status != 1) {
-				res.status(500).json({
-					"error": 500,
+			if (world.publication_status != 1 && false) {
+				// This shouldn't be executed as it's necessary to retrieve private worlds
+				res.status(403).json({
+					"error": 403,
 					"error_msg": "The world is private!"
 				});
 				return;
+			}
+			world["number_of_raters"] = undefined;
+			res.status(200).json({
+				"world": await processUserWorld(world)
+			})
+		});
+	} else {
+		res.status(404).json({
+			"error": 404,
+			"error_msg": "Not Found"
+		});
+	}
+}
+
+// Endpoint for GET /api/v1/worlds/:id/source_for_teleport
+function worldTeleportSource(req, res) {
+	let id = req.params["id"];
+	if (fs.existsSync("worlds/" + id)) {
+		fullWorld(id, true, function(err, world) {
+			if (err) {
+				throw err;
 			}
 			world["number_of_raters"] = undefined;
 			res.status(200).json({
@@ -211,11 +232,11 @@ function world(req, res) {
 function worldBasicInfo(req, res) {
 	let id = req.params["id"];
 	if (fs.existsSync("worlds/" + id)) {
-		fullWorld(id, false, function(err, world) {
+		fullWorld(id, false, async function(err, world) {
 			if (err) {
 				throw err;
 			}
-			res.status(200).json(processUserWorld(world));
+			res.status(200).json(await processUserWorld(world));
 		});
 	} else {
 		res.status(404).json({
@@ -227,21 +248,9 @@ function worldBasicInfo(req, res) {
 
 // Endpoint for DELETE /api/v1/worlds/:id
 function deleteWorld(req, res) {
-	let authToken = getAuthToken(req);
-	if (authToken === undefined) {
-		res.status(400).json({
-			"error": 400,
-			"error_msg": "Missing auth token"
-		});
-		return;
-	}
-	let userId = authTokens[authToken];
-	if (userId == undefined) {
-		res.status(403).json({
-			"error": "unauthentificated user"
-		});
-		return;
-	}
+	const valid = validAuthToken(req, res);
+	if (valid.ok === false) return;
+	const userId = valid.user.id;
 	let id = req.params.id
 	if (fs.existsSync("worlds/" + id)) {
 		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
@@ -272,30 +281,10 @@ function deleteWorld(req, res) {
 }
 
 // Endpoint for PUT /api/v1/worlds/:id/publication_status
-function publicationStatus(req, res) {
-	let authToken = getAuthToken(req);
-	if (authToken === undefined) {
-		console.log("missing auth token");
-		res.status(400).json({
-			"error": 400,
-			"error_msg": "Missing auth token"
-		});
-		return;
-	}
-	let userId = authTokens[authToken];
-	if (userId == undefined) {
-		res.status(403).json({
-			"error": "unauthentificated user"
-		});
-		return;
-	}
-	if (req.body == undefined || req.body == null) {
-		console.log("no body");
-		res.status(403).json({
-			"error": "no body"
-		});
-		return;
-	}
+async function publicationStatus(req, res) {
+	const valid = validAuthToken(req, res, true);
+	if (valid.ok === false) return;
+	const userId = valid.user.id;
 	let id = req.params.id
 	if (fs.existsSync("worlds/" + id)) {
 		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json", {"encoding": "utf8"}));
@@ -318,7 +307,7 @@ function publicationStatus(req, res) {
 			}
 			allWorldsCache[id] = metadata;
 			fs.writeFileSync("worlds/"+id+"/metadata.json", JSON.stringify(metadata));
-			res.status(200).json(fullWorldSync(id));
+			res.status(200).json(await fullWorldSync(id));
 		} else {
 			res.status(400).json({
 				"error": "not owner"
@@ -327,30 +316,68 @@ function publicationStatus(req, res) {
 	}
 }
 
+// Endpoint for POST /api/v1/worlds/:id/likes
+function likeStatus(req, res) {
+	const valid = validAuthToken(req, res, true);
+	if (valid.ok === false) return;
+	const userId = valid.user.id;
+
+	const id = req.params.id;
+	const likedWorlds = JSON.parse(fs.readFileSync("users/"+userId+"/liked_worlds.json"), {"encoding":"utf8"});
+	if (fs.existsSync("worlds/" + id)) {
+		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json", {"encoding": "utf8"}));
+		let hasLiked = false;
+		for (world of likedWorlds.worlds) {
+			if (world == metadata.id) {
+				hasLiked = true;
+			}
+		}
+
+		if (req.body.action == "add_like") {
+			if (!hasLiked) {
+				metadata["likes_count"] += 1;
+				likedWorlds.worlds.push(parseInt(metadata.id));
+			} else {
+				res.status(403).json({
+					"error": 403,
+					"error_msg": "World already liked."
+				});
+				return;
+			}
+		} else if (req.body.action == "remove_like") {
+			if (hasLiked) {
+				metadata["likes_count"] -= 1;
+				for (i in likedWorlds.worlds) {
+					if (likedWorlds.worlds[i] == id) {
+						likedWorlds.worlds.splice(i, 1);
+					}
+				}
+			} else {
+				res.status(403).json({
+					"error": 403,
+					"error_msg": "World not liked."
+				});
+				return;
+			}
+		} else {
+			res.status(400).json({
+				"error": 400,
+				"error_msg": "Invalid 'action' field"
+			});
+			return;
+		}
+
+		fs.writeFileSync("worlds/"+id+"/metadata.json", JSON.stringify(metadata));
+		fs.writeFileSync("users/"+userId+"/liked_worlds.json", JSON.stringify(likedWorlds));
+		res.status(200).json({});
+	}
+}
+
 // Endpoint for POST /api/v1/worlds
 function createWorld(req, res) {
-	let authToken = getAuthToken(req);
-	if (authToken === undefined) {
-		res.status(400).json({
-			"error": 400,
-			"error_msg": "Missing auth token"
-		});
-		return;
-	}
-	let userId = authTokens[authToken];
-	if (userId == undefined) {
-		res.status(403).json({
-			"error": "unauthentificated user"
-		});
-		return;
-	}
-	if (req.body == undefined || req.body == null) {
-		console.log("no body, body = " + req.body);
-		res.status(403).json({
-			"error": "no body"
-		});
-		return;
-	}
+	const valid = validAuthToken(req, res, true);
+	if (valid.ok === false) return;
+	const userId = valid.user.id;
 	let user = userMetadata(userId);
 	if (user["_SERVER_worlds"].length > MAX_WORLD_LIMIT) {
 		console.log(user["username"] + " has too many worlds.");
@@ -360,7 +387,7 @@ function createWorld(req, res) {
 		});
 		return;
 	}
-	fs.readFile("conf/new_world_id.txt", {"encoding": "utf8"}, function(err, data) {
+	fs.readFile("conf/new_world_id.txt", {"encoding": "utf8"}, async function(err, data) {
 		if (err != null)
 			console.log(err);
 		let newId = data;
@@ -426,31 +453,19 @@ function createWorld(req, res) {
 		}
 
 		res.status(200).json({
-			"world": fullWorldSync(newId)
+			"world": await fullWorldSync(newId)
 		});
 	});
 }
 
 // Endpoint for PUT /api/v1/worlds/:id
-function updateWorld(req, res) {
-	let authToken = getAuthToken(req);
-	if (authToken === undefined) {
-		res.status(400).json({
-			"error": 400,
-			"error_msg": "Missing auth token"
-		});
-		return;
-	}
-	let userId = authTokens[authToken];
-	if (userId == undefined) {
-		res.status(403).json({
-			"error": "unauthentificated user"
-		});
-		return;
-	}
+async function updateWorld(req, res) {
+	const valid = validAuthToken(req, res);
+	if (valid.ok === false) return;
+	const userId = valid.user.id;
 	let id = req.params["id"];
 	if (fs.existsSync("worlds/" + id) && req.body != null) {
-		let metadata = fullWorldSync(id, true)
+		let metadata = await fullWorldSync(id, true)
 		let owning = false;
 		if (metadata["author_id"] == userId) {
 			owning = true;
@@ -527,7 +542,7 @@ function updateWorld(req, res) {
 			allWorldsCache[id] = metadata;
 			fs.writeFileSync("worlds/"+id+"/metadata.json", metaStr);
 			res.status(200).json({
-				"world": fullWorldSync(id)
+				"world": await fullWorldSync(id)
 			});
 		} else {
 			res.status(403).json({
@@ -589,7 +604,8 @@ function worldsGet(req, res, u) {
 				}
 				let date = new Date(world["first_published_at"]);
 				if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
-					date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+					//date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+					date = 0;
 				} else {
 					date = date.getTime();
 				}
@@ -646,7 +662,7 @@ function worldsGet(req, res, u) {
 			}
 		}
 		
-		for (i in worlds) {
+		for (const i in worlds) {
 			try {
 			let world = worlds[i];
 			if (world.id < 0) { // status update world
@@ -698,7 +714,7 @@ function worldsGet(req, res, u) {
 		}
 		let start = Math.min(publishedWorlds.length, 24*page);
 		let end = Math.min(publishedWorlds.length, start+24);
-		for (i=start; i < end; i++) {
+		for (let i=start; i < end; i++) {
 			obj.push(publishedWorlds[i]);
 		}
 		json["worlds"] = obj;
@@ -713,21 +729,9 @@ function worldsGet(req, res, u) {
 
 // Endpoint for POST /api/v1/worlds/:id/plays
 function playWorld(req, res) {
-	let authToken = getAuthToken(req);
-	if (authToken === undefined) {
-		res.status(400).json({
-			"error": 400,
-			"error_msg": "Missing auth token"
-		});
-		return;
-	}
-	let userId = authTokens[authToken];
-	if (userId == undefined) {
-		res.status(403).json({
-			"error": "unauthentificated user"
-		});
-		return;
-	}
+	const valid = validAuthToken(req, res);
+	if (valid.ok === false) return;
+	const userId = valid.user.id;
 	let id = req.params["id"];
 	if (fs.existsSync("worlds/" + id) && req.body != null) {
 		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
@@ -735,10 +739,7 @@ function playWorld(req, res) {
 		if (playedWorlds["worlds"].indexOf(parseInt(id)) == -1) {
 			metadata["play_count"] += 1;
 			let metaStr = JSON.stringify(metadata);
-			fs.writeFile("worlds/"+id+"/metadata.json", metaStr, function(err) {
-				if (err != null)
-					console.log("file error for world update: " + err);
-			});
+			fs.writeFileSync("worlds/"+id+"/metadata.json", metaStr);
 			playedWorlds["worlds"].push(parseInt(id))
 			let playStr = JSON.stringify(playedWorlds)
 			fs.writeFile("users/"+userId+"/played_worlds.json", playStr, function(err) {
@@ -813,11 +814,9 @@ function worldLeaderboard(req, res) {
 
 // Endpoint for POST /api/v1/world_leaderboards/:id/plays
 function submitLeaderboardRecord(req, res) {
-	let valid = validAuthToken(req, res, true);
-	if (!valid[0]) {
-		return;
-	}
-	let userId = valid[1];
+	const valid = validAuthToken(req, res, true);
+	if (valid.ok === false) return;
+	const userId = valid.user.id;
 	let id = req.params.id;
 	fs.readFile("worlds/"+id+"/metadata.json", function(err, data) {
 		if (err) {
@@ -867,7 +866,7 @@ function submitLeaderboardRecord(req, res) {
 	});
 }
 
-module.exports.run = function(app) {
+export function run(app) {
 	if (!fs.existsSync("worlds")) {
 		fs.mkdirSync("worlds");
 		console.log("Created folder \"worlds\"");
@@ -884,19 +883,21 @@ module.exports.run = function(app) {
 	app.post("/api/v1/worlds", createWorld);
 	app.put("/api/v1/worlds/:id", updateWorld);
 	app.post("/api/v1/worlds/:id/plays", playWorld);
-	app.get("/api/v1/worlds/:id/source_for_teleport", world);
+	app.get("/api/v1/worlds/:id/source_for_teleport", worldTeleportSource);
 	app.get("/api/v1/world_leaderboards/:id", worldLeaderboard);
 	app.post("/api/v1/world_leaderboards/:id/plays", submitLeaderboardRecord);
 
-	app.put("/api/v1/worlds/:id/published_status", express.urlencoded({"extended":false}), publicationStatus);
+	app.put("/api/v1/worlds/:id/published_status", urlencoded({ extended: false }), publicationStatus);
 	app.get("/api/v1/worlds", function(req, res) {
 		worldsGet(req, res, url.parse(req.url, true));
 	});
 	app.get("/api/v1/users/:user/worlds", function(req, res) {
 		worldsGet(req, res, url.parse(req.url, true));
-	})
+	});
 
-	app.get("/api/v1/current_user/world_star_rating/:id", function(req, res) {
+	app.post("/api/v1/worlds/:id/likes", likeStatus);
+
+	app.get("/api/v1/current_user/world_star_rating/:id", async function(req, res) {
 		let valid = validAuthToken(req, res, false);
 		if (!valid[0]) {
 			return;
@@ -906,7 +907,7 @@ module.exports.run = function(app) {
 		if (fs.existsSync("worlds/" + id)) {
 			let ratings = JSON.parse(fs.readFileSync("users/" + userId + "/world_ratings.json"));
 			let json = {
-				"average_star_rating": fullWorldSync(id, true)["average_star_rating"]
+				"average_star_rating": (await fullWorldSync(id, true))["average_star_rating"]
 			}
 			if (ratings.ratings[parseInt(id)]) {
 				json["star_rating"] = ratings.ratings[parseInt(id)];
@@ -935,7 +936,7 @@ module.exports.run = function(app) {
 				"error_msg": "missing \"id\" POST data"
 			});
 		}
-		if (stars === undefined) {
+		if (stars === undefined || stars === null) {
 			res.status(400).json({
 				"error": 400,
 				"error_msg": "missing \"stars\" POST data"
@@ -944,26 +945,26 @@ module.exports.run = function(app) {
 		if (fs.existsSync("worlds/" + id)) {
 			let ratings = JSON.parse(fs.readFileSync("users/" + userId + "/world_ratings.json"));
 			let meta = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
-			if (!meta["number_of_raters"]) {
-				meta["number_of_raters"] = 0;
+			if (meta["number_of_raters"] === undefined) {
+				meta["number_of_raters"] = 1;
 			}
 			if (ratings.ratings[id]) {
 				meta["average_star_rating"] = (meta["average_star_rating"] * meta["number_of_raters"] - ratings.ratings[id]) / (meta["number_of_raters"]-1);
 				meta["number_of_raters"] -= 1;
 			}
-			if (meta["average_star_rating"] == 0) {
+			if (meta["average_star_rating"] == 0 || !isFinite(meta["average_star_rating"])) {
 				meta["average_star_rating"] = stars;
+			} else {
+				meta["average_star_rating"] = (meta["average_star_rating"] * meta["number_of_raters"] + stars) / (meta["number_of_raters"]+1);
 			}
-			meta["average_star_rating"] = (meta["average_star_rating"] * meta["number_of_raters"] + stars) / (meta["number_of_raters"]+1);
 			meta["number_of_raters"] += 1;
 			fs.writeFileSync("worlds/"+id+"/metadata.json", JSON.stringify(meta));
 			ratings.ratings[id] = stars;
 			fs.writeFileSync("users/" + userId + "/world_ratings.json", JSON.stringify(ratings));
-			const json = {
-				"average_star_rating": fullWorldSync(id, true),
+			res.status(200).json({
+				"average_star_rating": meta["average_star_rating"],
 				"star_rating": stars,
-			};
-			res.status(200).json(json);
+			});
 		} else {
 			res.status(404).json({
 				"error": 404,

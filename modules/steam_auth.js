@@ -15,13 +15,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
-
-const express = require("express");
-const url = require("url");
-const fs = require("fs");
+import { urlencoded } from "express";
+import fs from "fs";
+import url from "url";
+import uuid from "uuid";
 
 let dayLogins = 0;
-let dayLoginsDate;
 
 function steam_current_user(req, res, u) {
 	let steam_id = u.query.steam_id
@@ -50,7 +49,7 @@ function steam_current_user(req, res, u) {
 		}
 		if (updated)
 			fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(user));
-		let authToken = require("uuid/v4")();
+		let authToken = uuid.v4();
 		let worldTemplates = [];
 		if (!fs.existsSync("users/"+userId+"/world_ratings.json")) {
 			fs.writeFileSync("users/"+userId+"/world_ratings.json", "{\"ratings\": {}}");
@@ -65,7 +64,7 @@ function steam_current_user(req, res, u) {
 			fs.writeFileSync("users/" + userId + "/friends.json", "{\"friends\": {}}");
 		}
 		fs.readdir("conf/world_templates", function(err, files) {
-			for (j in files) {
+			for (const j in files) {
 				let path = "conf/world_templates/" + files[j] + "/"
 				let worldTemplate = JSON.parse(fs.readFileSync(path + "metadata.json"));
 				worldTemplate["world_source"] = fs.readFileSync(path + "source.json", {"encoding": "utf8"});
@@ -83,16 +82,16 @@ function steam_current_user(req, res, u) {
 
 			let date = new Date();
 			let line = date.toLocaleDateString("en-US");
-			let csv = fs.readFileSync("active_players.csv").toString();
+			let csv = fs.readFileSync("steam_active_players.csv").toString();
 			let lines = csv.split("\n");
 			let lastLine = lines[lines.length-1].split(",");
 			if (lastLine[0] == line) {
 				dayLogins = parseInt(lastLine[1]) + 1;
 				lines[lines.length-1] = line + "," + dayLogins;
-				fs.writeFileSync("active_players.csv", lines.join("\n"));
+				fs.writeFileSync("steam_active_players.csv", lines.join("\n"));
 			} else {
 				dayLogins = 1; // we changed day
-				fs.appendFileSync("active_players.csv", "\n" + line + "," + dayLogins);
+				fs.appendFileSync("steam_active_players.csv", "\n" + line + "," + dayLogins);
 			}
 
 			res.status(200).json(user);
@@ -189,13 +188,11 @@ function create_steam_user(req, res) {
 	});
 }
 
-module.exports.run = function(app) {
+export function run(app) {
 	if (!fs.existsSync("usersSteamLinks")) {
 		fs.mkdirSync("usersSteamLinks");
 		console.log("Created folder \"usersSteamLinks\"");
 	}
-
-	dayLoginsDate = new Date();
 
 	app.get("/api/v1/steam_current_user", function(req, res) {
 		steam_current_user(req, res, url.parse(req.url, true))
@@ -203,6 +200,6 @@ module.exports.run = function(app) {
 	app.get("/api/v1/steam_current_user/locale", function(req, res) {
 		res.status(404).json({"error":404}).end();
 	});
-	app.post("/api/v1/steam_current_user/username", express.urlencoded({"extended":false}), steam_set_username);
-	app.post("/api/v1/steam_users", express.urlencoded({"extended":false}), create_steam_user);
+	app.post("/api/v1/steam_current_user/username", urlencoded({ extended: false }), steam_set_username);
+	app.post("/api/v1/steam_users", urlencoded({ extended: false }), create_steam_user);
 }
