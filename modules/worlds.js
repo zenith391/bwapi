@@ -247,7 +247,7 @@ function worldBasicInfo(req, res) {
 }
 
 // Endpoint for DELETE /api/v1/worlds/:id
-function deleteWorld(req, res) {
+async function deleteWorld(req, res) {
 	const valid = validAuthToken(req, res);
 	if (valid.ok === false) return;
 	const userId = valid.user.id;
@@ -374,7 +374,7 @@ function likeStatus(req, res) {
 }
 
 // Endpoint for POST /api/v1/worlds
-function createWorld(req, res) {
+async function createWorld(req, res) {
 	const valid = validAuthToken(req, res, true);
 	if (valid.ok === false) return;
 	const userId = valid.user.id;
@@ -754,7 +754,7 @@ function playWorld(req, res) {
 // Endpoint for GET /api/v1/world_leaderboards/:id
 async function worldLeaderboard(req, res) {
 	let id = req.params.id;
-	fullWorld(id, false, function(err, world) {
+	fullWorld(id, false, async function(err, world) {
 		if (err) {
 			console.error(err);
 			return;
