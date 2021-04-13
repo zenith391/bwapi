@@ -51,7 +51,7 @@ export function run(app) {
 		}
 	});
 
-	app.get("/api/v1/current_user/news_feed", function(req, res) {
+	app.get("/api/v1/current_user/news_feed", async function(req, res) {
 		let valid = validAuthToken(req, res);
 		if (valid.ok === false) return;
 
