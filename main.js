@@ -336,14 +336,14 @@ for (const i in cores) {
 // Plain file hosting //
 
 // Minify files at start of the program so they don't have to be minified each time.
-let steamRemoteConf = JSON.stringify(JSON.parse(fs.readFileSync("conf/app_remote_configuration.json")));
+const steamRemoteConf = JSON.stringify(JSON.parse(fs.readFileSync("conf/steam_app_remote_configuration.json")));
 app.get("/api/v1/steam-app-remote-configuration", function(req, res) {
 	res.status(200).send(steamRemoteConf);
 });
 
-// TODO: find differences between Steam and iOS remote configurations
+const iosRemoteConf = JSON.stringify(JSON.parse(fs.readFileSync("conf/app_remote_configuration.json")));
 app.get("/api/v1/app-remote-configuration", function(req, res) {
-	res.status(200).send(steamRemoteConf);
+	res.status(200).send(iosRemoteConf);
 });
 
 let contentCategories = JSON.stringify(JSON.parse(fs.readFileSync("conf/content_categories.json")));

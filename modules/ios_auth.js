@@ -123,6 +123,14 @@ export function run(app) {
 		});
 	});
 
+	app.get("/api/v1/subscription_building_sets", async function(req, res) {
+		res.status(200).json({
+			"building_sets": [
+				
+			]
+		})
+	})
+
 	app.get("/api/v1/spinner/configuration", function(req, res) {
 		res.status(200).json({
 			"1": {

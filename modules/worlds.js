@@ -211,13 +211,13 @@ function world(req, res) {
 function worldTeleportSource(req, res) {
 	let id = req.params["id"];
 	if (fs.existsSync("worlds/" + id)) {
-		fullWorld(id, true, function(err, world) {
+		fullWorld(id, true, async function(err, world) {
 			if (err) {
 				throw err;
 			}
 			world["number_of_raters"] = undefined;
 			res.status(200).json({
-				"world": processUserWorld(world)
+				"world": await processUserWorld(world)
 			})
 		});
 	} else {

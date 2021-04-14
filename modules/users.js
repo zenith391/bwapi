@@ -311,7 +311,7 @@ export function addPayout(id, payout) {
 }
 
 // Module code //
-function basic_info(req, res) {
+async function basic_info(req, res) {
 	let userId = req.params.id
 	if (!fs.existsSync("users/" + userId + "/metadata.json")) {
 		res.status(404).json({
@@ -335,9 +335,9 @@ function basic_info(req, res) {
 		json["worlds_ids"] = metadata["_SERVER_worlds"];
 		json["owner_id"] = metadata["owner_id"];
 		let members = [];
-		for (i in metadata["members"]) {
-			const member = new User(metadata["members"][i]);
-			members.push(member.username);
+		for (const id of metadata["members"]) {
+			const member = new User(id);
+			members.push(await member.getUsername());
 		}
 		json["members_usernames"] = members;
 		json["members_ids"] = metadata["members"];
@@ -452,13 +452,12 @@ async function current_user_worlds(req, res) {
 	res.status(200).json(metadata);
 }
 
-function current_user_worlds_for_teleport(req, res) {
+async function current_user_worlds_for_teleport(req, res) {
 	let valid = validAuthToken(req, res, false);
-	if (!valid.ok) return;
-	const user = new User(userId);
+	if (valid.ok === false) return;
+	const ownedWorlds = await valid.user.getOwnedWorlds()
 	let worlds = [];
-	for (const i in user.ownedWorlds) {
-		let id = user.ownedWorlds[i];
+	for (const id of ownedWorlds) {
 		try {
 			let world = fullWorldSync(id, true);
 			if (!world["image_urls_for_sizes"]["440x440"]) {
@@ -470,7 +469,7 @@ function current_user_worlds_for_teleport(req, res) {
 			worlds.push(world);
 		} catch (e) {
 			console.debug(e);
-			console.error("could not retrieve worlds for user " + user.id + "!");
+			console.error("could not retrieve worlds for user " + valid.user.id + "!");
 			res.status(200).json({
 				"error": 404,
 				"error_msg": "Could not load your worlds."
@@ -648,7 +647,7 @@ export function run(app) {
 		const id = req.params["id"];
 		const user = new User(id);
 		if (await user.exists() === false) {
-			res.status(404).json({ error: 404, error_msg: "user does not exists" });
+			res.status(404).json({ error: "404", error_msg: "user does not exists" });
 			return;
 		}
 		const worlds = await user.getLikedWorlds();
@@ -663,7 +662,6 @@ export function run(app) {
 		res.status(200).json({
 			"worlds": worldMetadatas
 		});
-		console.log("ok");
 	});
 
 	app.get("/api/v1/users/:id/basic_info", basic_info);
