@@ -146,7 +146,10 @@ export class User {
 			this._followers = [];
 			for (const i in rawFollowers) {
 				if (rawFollowers[i] != undefined) {
-					this._followers[i.substring(1)] = rawFollowers[i];
+					this._followers.push({
+						user: new User(i.substring(1)),
+						date: rawFollowers[i]
+					})
 				}
 			}
 		}
@@ -163,7 +166,10 @@ export class User {
 			this._followedUsers = [];
 			for (const i in rawFollowedUsers) {
 				if (rawFollowedUsers[i] != undefined) {
-					this._followedUsers[i.substring(1)] = rawFollowedUsers[i];
+					this._followedUsers.push({
+						user: new User(i.substring(1)),
+						date: rawFollowedUsers[i]
+					})
 				}
 			}
 		}
@@ -310,8 +316,9 @@ export class User {
 
 }
 
-export function socialUser(id, date) {
-	const metadata = new User(id).metadata;
+export async function socialUser(id, date) {
+	const user = new User(id);
+	const metadata = await user.getMetadata();
 	return {
 		"user_id": parseInt(id),
 		"username": metadata["username"],
@@ -590,8 +597,8 @@ export function run(app) {
 		}
 		let out = [];
 		const followedUsers = await user.getFollowedUsers();
-		for (const userId in followedUsers) {
-			out.push(socialUser(userId, followedUsers[userId]));
+		for (const followed in followedUsers) {
+			out.push(await socialUser(followed.user.id, followed.date));
 		}
 		res.status(200).json({
 			"attrs_for_follow_users": out
@@ -607,8 +614,8 @@ export function run(app) {
 		}
 		let out = [];
 		const followers = await user.getFollowers();
-		for (const userId in followers) {
-			out.push(socialUser(userId, followers[userId]));
+		for (const follower of followers) {
+			out.push(await socialUser(follower.user.id, follower.date));
 		}
 		res.status(200).json({
 			"attrs_for_follow_users": out

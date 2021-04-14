@@ -63,13 +63,12 @@ export function run(app) {
 		let followedUsers = await valid.user.getFollowedUsers();
 		followedUsers.push(userId);
 
-		for (const followedId in followedUsers) {
-			const followed = new User(followedId);
-			const feeds = await followed.getFeeds();
+		for (const followed in followedUsers) {
+			const feeds = await followed.user.getFeeds();
 			for (let feed of feeds) {
 				feed["follow_target_id"] = followedId;
-				feed["follow_target_username"] = await followed.getUsername();
-				feed["follow_target_profile_image_url"] = await followed.getProfileImageURL();
+				feed["follow_target_username"] = await followed.user.getUsername();
+				feed["follow_target_profile_image_url"] = await followed.user.getProfileImageURL();
 				newsFeed.push(JSON.stringify(feed));
 			}
 		}
