@@ -42,40 +42,34 @@ export function run(app) {
 				}
 				newsFeed.push(JSON.stringify(feed));
 			}
+
+			const followers = await user.getFollowers(); // TODO: only take the count
 			res.status(200).json({
 				"user_activity": newsFeed,
 				"subscription_tier": 0,
-				"followers_count": 0,
+				"followers_count": followers.length,
 				"last_transaction_at": dateString(lastDate)
 			});
 		}
 	});
 
 	app.get("/api/v1/current_user/news_feed", async function(req, res) {
-		let valid = validAuthToken(req, res);
+		const valid = validAuthToken(req, res);
 		if (valid.ok === false) return;
 
-		let userId = valid.user.id;
+		const userId = valid.user.id;
 		let newsFeed = [];
-		let followedUsers = [];
 
-		if (!fs.existsSync("users/" + userId + "/followed_users.json")) {
-			fs.writeFileSync("users/" + userId + "/followed_users.json", "{\"attrs_for_follow_users\":{}}");
-		}
-		let json = JSON.parse(fs.readFileSync("users/"+userId+"/followed_users.json"))["attrs_for_follow_users"];
-		for (const i in json) {
-			if (json[i] != undefined) {
-				followedUsers.push(i.substring(1));
-			}
-		}
+		let followedUsers = await valid.user.getFollowedUsers();
 		followedUsers.push(userId);
 
-		for (const id of followedUsers) {
-			let feeds = await valid.user.getFeeds();
+		for (const followedId in followedUsers) {
+			const followed = new User(followedId);
+			const feeds = await followed.getFeeds();
 			for (let feed of feeds) {
-				feed["follow_target_id"] = valid.user.id;
-				feed["follow_target_username"] = await valid.user.getUsername();
-				feed["follow_target_profile_image_url"] = await valid.user.getProfileImageURL();
+				feed["follow_target_id"] = followedId;
+				feed["follow_target_username"] = await followed.getUsername();
+				feed["follow_target_profile_image_url"] = await followed.getProfileImageURL();
 				newsFeed.push(JSON.stringify(feed));
 			}
 		}

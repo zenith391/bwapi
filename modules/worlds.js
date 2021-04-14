@@ -575,7 +575,7 @@ function worldsGet(req, res, u) {
 	}
 	if (worldListCache[cacheIndex]) {
 		let json = worldListCache[cacheIndex];
-		if (json["expires"] <= Date.now()) {
+		if (json["expires"] >= Date.now()) {
 			worldListCache[cacheIndex] = undefined;
 		} else {
 			res.status(200).json(json);
@@ -729,11 +729,11 @@ function worldsGet(req, res, u) {
 
 // Endpoint for POST /api/v1/worlds/:id/plays
 function playWorld(req, res) {
-	const valid = validAuthToken(req, res);
+	const valid = validAuthToken(req, res, true);
 	if (valid.ok === false) return;
 	const userId = valid.user.id;
 	let id = req.params["id"];
-	if (fs.existsSync("worlds/" + id) && req.body != null) {
+	if (fs.existsSync("worlds/" + id)) {
 		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
 		let playedWorlds = JSON.parse(fs.readFileSync("users/"+userId+"/played_worlds.json"))
 		if (playedWorlds["worlds"].indexOf(parseInt(id)) == -1) {
@@ -748,6 +748,8 @@ function playWorld(req, res) {
 			});
 		}
 		res.status(200).json({ ok: true });
+	} else {
+		res.status(404).json({ error: "404", error_msg: "world does not exists" })
 	}
 }
 

@@ -138,9 +138,36 @@ export class User {
 
 	async getFollowers() {
 		if (this._followers === undefined) {
-			this._followers = JSON.parse(fs.readFileSync("users/" + this.id + "/followers.json"))["attrs_for_follow_users"];
+			if (!fs.existsSync("users/" + userId + "/followers.json")) {
+				fs.writeFileSync("users/" + userId + "/followers.json", "{\"attrs_for_follow_users\":{}}");
+			}
+
+			const rawFollowers = JSON.parse(fs.readFileSync("users/" + this.id + "/followers.json"))["attrs_for_follow_users"];
+			this._followers = [];
+			for (const i in rawFollowers) {
+				if (rawFollowers[i] != undefined) {
+					this._followers[i.substring(1)] = rawFollowers[i];
+				}
+			}
 		}
 		return this._followers;
+	}
+
+	async getFollowedUsers() {
+		if (this._followedUsers === undefined) {
+			if (!fs.existsSync("users/" + userId + "/followed_users.json")) {
+				fs.writeFileSync("users/" + userId + "/followed_users.json", "{\"attrs_for_follow_users\":{}}");
+			}
+
+			const rawFollowedUsers = JSON.parse(fs.readFileSync("users/" + this.id + "/followed_users.json"))["attrs_for_follow_users"];
+			this._followedUsers = [];
+			for (const i in rawFollowedUsers) {
+				if (rawFollowedUsers[i] != undefined) {
+					this._followedUsers[i.substring(1)] = rawFollowedUsers[i];
+				}
+			}
+		}
+		return this._followedUsers;
 	}
 
 	async getPendingPayouts() {
@@ -554,46 +581,35 @@ export function run(app) {
 	app.post("/api/v1/user/:id/follow_activity", follow);
 	app.delete("/api/v1/user/:id/follow_activity", unfollow);
 
-	app.get("/api/v1/user/:id/followed_users", function(req, res) {
-		let id = req.params["id"];
-		if (!fs.existsSync("users/"+id)) {
+	app.get("/api/v1/user/:id/followed_users", async function(req, res) {
+		const id = req.params["id"];
+		const user = new User(id);
+		if (await user.exists() === false) {
 			res.status(404);
 			return;
 		}
 		let out = [];
-		try {
-			let json = JSON.parse(fs.readFileSync("users/"+id+"/followed_users.json"))["attrs_for_follow_users"];
-			for (i in json) {
-				if (json[i] != undefined)
-					out.push(socialUser(i.substring(1), json[i]));
-			}
-		} catch (e) {
-			console.error(e);
+		const followedUsers = await user.getFollowedUsers();
+		for (userId in followedUsers) {
+			out.push(socialUser(userId, followedUsers[userId]));
 		}
 		res.status(200).json({
 			"attrs_for_follow_users": out
 		});
 	});
 
-	app.get("/api/v1/user/:id/followers", function(req, res) {
-		let id = req.params["id"];
-		if (!fs.existsSync("users/"+id)) {
+	app.get("/api/v1/user/:id/followers", async function(req, res) {
+		const id = req.params["id"];
+		const user = new User(id);
+		if (await user.exists() === false) {
 			res.status(404);
 			return;
 		}
-		let valid = validAuthToken(req, res, false);
-		if (!valid[0]) {
-			return;
-		}
 		let out = [];
-		//if (valid[1] == id) {
-			let json = JSON.parse(fs.readFileSync("users/"+id+"/followers.json"))["attrs_for_follow_users"];
-			for (i in json) {
-				if (json[i] != undefined) {
-					out.push(socialUser(i.substring(1), json[i]));
-				}
-			}
-		//}
+		const followers = await user.getFollowers();
+		for (userId in followers) {
+			out.push(socialUser(userId, followers[userId]));
+		}
 		res.status(200).json({
 			"attrs_for_follow_users": out
 		});

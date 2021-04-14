@@ -341,9 +341,9 @@ app.get("/api/v1/steam-app-remote-configuration", function(req, res) {
 	res.status(200).send(steamRemoteConf);
 });
 
-const iosRemoteConf = JSON.stringify(JSON.parse(fs.readFileSync("conf/app_remote_configuration.json")));
+const iosRemoteConf = JSON.parse(fs.readFileSync("conf/app_remote_configuration.json"));
 app.get("/api/v1/app-remote-configuration", function(req, res) {
-	res.status(200).send(iosRemoteConf);
+	res.status(200).json(iosRemoteConf);
 });
 
 let contentCategories = JSON.stringify(JSON.parse(fs.readFileSync("conf/content_categories.json")));
