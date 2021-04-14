@@ -590,7 +590,7 @@ export function run(app) {
 		}
 		let out = [];
 		const followedUsers = await user.getFollowedUsers();
-		for (userId in followedUsers) {
+		for (const userId in followedUsers) {
 			out.push(socialUser(userId, followedUsers[userId]));
 		}
 		res.status(200).json({
@@ -607,7 +607,7 @@ export function run(app) {
 		}
 		let out = [];
 		const followers = await user.getFollowers();
-		for (userId in followers) {
+		for (const userId in followers) {
 			out.push(socialUser(userId, followers[userId]));
 		}
 		res.status(200).json({
