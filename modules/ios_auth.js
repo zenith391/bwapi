@@ -131,6 +131,31 @@ export function run(app) {
 		})
 	})
 
+	app.get("/api/v1/purchased_building_sets", async function(req, res) {
+		fs.readdir("conf/world_templates", function(err, files) {
+			let worldTemplates = [];
+			for (const name of files) {
+				let path = "conf/world_templates/" + name + "/"
+				let worldTemplate = JSON.parse(fs.readFileSync(path + "metadata.json"));
+				worldTemplate["world_source"] = fs.readFileSync(path + "source.json", {"encoding": "utf8"});
+				worldTemplates.push(worldTemplate);
+			}
+			res.status(200).json({
+				"building_sets": [
+					{
+						"id": 123789456,
+						"title": "BW2 Pack",
+						"subtitle": "It's free. It's BW2. It's awesome!",
+						"puzzle_subtitle": "\"puzzle\"",
+						"internal_identifier": "this_is_an_identifier",
+						"puzzles": [],
+						"world_templates": worldTemplates
+					}
+				]
+			})
+		})
+	})
+
 	app.get("/api/v1/spinner/configuration", function(req, res) {
 		res.status(200).json({
 			"1": {
