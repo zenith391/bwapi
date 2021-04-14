@@ -7,7 +7,7 @@
   "main": "main.js",
   "scripts": {
     "start": "node --trace-warnings --unhandled-rejections=strict main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --exit"
   },
   "author": "zenith391",
   "license": "MIT",
@@ -23,5 +23,9 @@
     "serverline": "^1.5.0",
     "uuid": "^3.4.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^8.3.2",
+    "supertest": "^6.1.3"
+  }
 }

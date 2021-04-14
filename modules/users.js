@@ -34,8 +34,9 @@ export class User {
 		}
 
 		const newId = fs.readFileSync("conf/new_account_id.txt", {"encoding": "utf8"});
-		console.log("Creating user with ID " + newId);
 		fs.writeFileSync("conf/new_account_id.txt", (parseInt(newId)+1).toString());
+
+		console.log("Creating user with ID " + newId);
 		fs.mkdirSync("users/"+newId);
 		let newUserStatus = statusFromLinkType[linkType];
 		if (EARLY_ACCESS)
@@ -370,7 +371,7 @@ async function save_current_user_profile_world(req, res) {
 		fs.writeFileSync("users/"+userId+"/profile_world/avatar_source.json", value2(req.body["avatar_source_json_str"]));
 	}
 	if (req.body["profile_gender"]) {
-		meta["profile_gender"] = req.body["profile_gender"];
+		meta["profile_gender"] = value2(req.body["profile_gender"]);
 	}
 	meta["updated_at_timestamp"] = Date.now();
 	fs.writeFileSync("users/"+userId+"/profile_world/metadata.json", JSON.stringify(meta));

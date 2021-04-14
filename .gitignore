@@ -7,6 +7,7 @@ conf/new_account_id.txt
 conf/new_model_id.txt
 conf/new_world_id.txt
 conf/gifts.json
+conf/ios_links.json
 cert/
 worlds/
 models/

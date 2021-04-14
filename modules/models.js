@@ -301,7 +301,7 @@ function modelsGet(req, res) {
 				}
 			}
 			if (metadata["publication_status"] == 2 && cond) {
-				for (key in metadata) {
+				for (const key in metadata) {
 					model[key] = metadata[key];
 				}
 				if (categoryId != undefined && model["model_category_id"] != categoryId) {
@@ -313,7 +313,7 @@ function modelsGet(req, res) {
 		}
 		let start = Math.min(publishedModels.length, 30*page);
 		let end = Math.min(publishedModels.length, start+30);
-		for (i=start; i < end; i++) {
+		for (let i = start; i < end; i++) {
 			obj.push(publishedModels[i]);
 		}
 		json["u2u_models"] = obj;

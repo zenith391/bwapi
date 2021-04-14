@@ -110,13 +110,10 @@ serverline.on("line", function(line) {
 			});
 		}
 	} else if (line == "cache") {
-		console.log("Usage: cache [clear|peek]");
-	} else if (line == "exit") {
-		process.exit();
+		console.log("Usage: cache [clear|peek|fill]");
 	} else {
 		console.log("Commands:");
-		console.log("- cache [clear|peek]")
-		console.log("- exit");
+		console.log("- cache [clear|peek|fill]")
 	}
 });
 
@@ -397,9 +394,4 @@ server.listen(port);
 console.log("The server is ready!");
 console.log("Note: If you want the server to be publicly accessible (outside your house), be sure to port-forward port 8080 (there are many tutorials on internet)")
 
-// async function unitTest() {
-// 	const user = new User(1);
-// 	let coins = await user.getCoins();
-// 	console.log(coins);
-// }
-// unitTest();
+export default app;
