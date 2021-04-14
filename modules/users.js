@@ -138,8 +138,8 @@ export class User {
 
 	async getFollowers() {
 		if (this._followers === undefined) {
-			if (!fs.existsSync("users/" + userId + "/followers.json")) {
-				fs.writeFileSync("users/" + userId + "/followers.json", "{\"attrs_for_follow_users\":{}}");
+			if (!fs.existsSync("users/" + this.id + "/followers.json")) {
+				fs.writeFileSync("users/" + this.id + "/followers.json", "{\"attrs_for_follow_users\":{}}");
 			}
 
 			const rawFollowers = JSON.parse(fs.readFileSync("users/" + this.id + "/followers.json"))["attrs_for_follow_users"];
@@ -155,8 +155,8 @@ export class User {
 
 	async getFollowedUsers() {
 		if (this._followedUsers === undefined) {
-			if (!fs.existsSync("users/" + userId + "/followed_users.json")) {
-				fs.writeFileSync("users/" + userId + "/followed_users.json", "{\"attrs_for_follow_users\":{}}");
+			if (!fs.existsSync("users/" + this.id + "/followed_users.json")) {
+				fs.writeFileSync("users/" + this.id + "/followed_users.json", "{\"attrs_for_follow_users\":{}}");
 			}
 
 			const rawFollowedUsers = JSON.parse(fs.readFileSync("users/" + this.id + "/followed_users.json"))["attrs_for_follow_users"];
