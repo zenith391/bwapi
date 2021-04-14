@@ -61,7 +61,7 @@ export function run(app) {
 		let newsFeed = [];
 
 		let followedUsers = await valid.user.getFollowedUsers();
-		followedUsers.push(valid.user);
+		followedUsers.push({ user: valid.user });
 
 		for (const followed of followedUsers) {
 			const feeds = await followed.user.getFeeds();
