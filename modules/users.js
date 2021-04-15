@@ -597,7 +597,7 @@ export function run(app) {
 		}
 		let out = [];
 		const followedUsers = await user.getFollowedUsers();
-		for (const followed in followedUsers) {
+		for (const followed of followedUsers) {
 			out.push(await socialUser(followed.user.id, followed.date));
 		}
 		res.status(200).json({
