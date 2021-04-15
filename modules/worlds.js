@@ -926,10 +926,8 @@ export function run(app) {
 
 	app.post("/api/v1/current_user/world_star_rating/:id", function(req, res) {
 		let valid = validAuthToken(req, res, true);
-		if (!valid[0]) {
-			return;
-		}
-		let userId = valid[1];
+		if (valid.ok === false) return;
+		let userId = valid.user.id;
 		let id = parseInt(req.params.id);
 		let stars = parseInt(req.body.stars);
 
