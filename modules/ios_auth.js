@@ -149,7 +149,10 @@ export function run(app) {
 		})
 	});
 
-	app.get("/api/v1/purchased_building_sets", async function(req, res) {
+	app.get("/api/v1/building_sets", async function(req, res) {
+		const query = url.parse(req.url, true).query;
+		const setType = query.attrs_for_type;
+
 		fs.readdir("conf/world_templates", function(err, files) {
 			let worldTemplates = [];
 			for (const name of files) {
@@ -158,18 +161,21 @@ export function run(app) {
 				worldTemplate["world_source"] = fs.readFileSync(path + "source.json", {"encoding": "utf8"});
 				worldTemplates.push(worldTemplate);
 			}
+
+			let buildingSets = [];
+			if (setType === "purchased_building_set") {
+				buildingSets.push({
+					"id": 123789456,
+					"title": "BW2 Pack",
+					"subtitle": "It's free. It's BW2. It's awesome!",
+					"puzzle_subtitle": "\"puzzle\"",
+					"internal_identifier": "this_is_an_identifier",
+					"puzzles": [],
+					"world_templates": worldTemplates
+				})
+			}
 			res.status(200).json({
-				"building_sets": [
-					{
-						"id": 123789456,
-						"title": "BW2 Pack",
-						"subtitle": "It's free. It's BW2. It's awesome!",
-						"puzzle_subtitle": "\"puzzle\"",
-						"internal_identifier": "this_is_an_identifier",
-						"puzzles": [],
-						"world_templates": worldTemplates
-					}
-				]
+				"building_sets": buildingSets
 			})
 		})
 	})
