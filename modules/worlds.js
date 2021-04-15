@@ -401,11 +401,13 @@ async function createWorld(req, res) {
 		} else {
 			requiredMods = JSON.parse(requiredMods);
 		}
+		let categoryIdsJsonStr = value(req.body, "category_ids_json_str");
+		if (categoryIdsJsonStr === undefined) categoryIdsJsonStr = "[]";
 		let metadata = {
 			"title": value(req.body, "title"),
 			"description": value(req.body, "description"),
 			"has_win_condition": value(req.body, "has_win_condition") == "true",
-			"category_ids": JSON.parse(value(req.body, "category_ids_json_str")),
+			"category_ids": JSON.parse(categoryIdsJsonStr),
 			"required_mods": requiredMods,
 			"author_id": parseInt(userId),
 			"publication_status": 5,
