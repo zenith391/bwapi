@@ -293,14 +293,13 @@ async function publicationStatus(req, res) {
 				metadata["publication_status"] = 1;
 				if (metadata["first_published_at"] == metadata["created_at"]) {
 					metadata["first_published_at"] = dateString();
-					let feed = {
+					await valid.user.addFeed({
 						"type": 201,
 						"timestamp": metadata["first_published_at"],
 						"world_id": parseInt(id),
 						"world_image_urls_for_sizes": metadata["image_urls_for_sizes"],
 						"world_title": metadata["title"]
-					}
-					addFeed(userId, feed);
+					});
 				}
 			} else {
 				metadata["publication_status"] = 5;

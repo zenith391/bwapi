@@ -131,6 +131,23 @@ export function run(app) {
 		})
 	})
 
+	app.get("/api/v1/building_set_franchises", async function(req, res) {
+		res.status(200).json({
+			"building_set_franchises": [
+				{
+					"id": 1,
+					"index": 0,
+					"name": "Zen1th & Friends",
+					"description": "Lorem ipsum dolor sit amet",
+					"image_urls_for_sizes": {
+						"220x220": "https://bwsecondary.ddns.net:8080/images/28",
+						"440x440": "https://bwsecondary.ddns.net:8080/images/29"
+					}
+				}
+			]
+		})
+	});
+
 	app.get("/api/v1/purchased_building_sets", async function(req, res) {
 		fs.readdir("conf/world_templates", function(err, files) {
 			let worldTemplates = [];
