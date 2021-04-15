@@ -93,16 +93,16 @@ global.value = function(body, name) {
 global.validAuthToken = function(req, res, bodyCheck) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
-		res.status(403).json({
-			"error": 403,
+		res.status(405).json({
+			"error": 405,
 			"error_msg": "missing authentication token"
 		});
 		return { ok: false };
 	}
 	let userId = authTokens[authToken];
 	if (userId == undefined) {
-		res.status(403).json({
-			"error": 403,
+		res.status(405).json({
+			"error": 405,
 			"error_msg": "unauthentificated user"
 		});
 		return { ok: false };
