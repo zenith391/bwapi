@@ -34,6 +34,7 @@ async function ios_current_user(req, res, u) {
 			metadata["_SERVER_worlds"] = undefined;
 			metadata["_SERVER_models"] = undefined;
 			metadata["_SERVER_groups"] = undefined;
+			metadata["purchased_building_sets_ids"] = [123789456];
 			// TODO: completed_puzzles_ids
 
 			// user["api_v2_supported"] = true; // iOS can't be modded as of now
