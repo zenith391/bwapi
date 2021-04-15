@@ -1,7 +1,7 @@
 import assert from "assert";
 import { expect } from "chai";
 import request from "supertest";
-import app from "../main.js";
+import app from "../app.js";
 
 describe("Unit testing the / route", () => {
 
