@@ -131,7 +131,7 @@ function createModel(req, res) {
 			"created_at": currDateStr,
 			"updated_at": currDateStr
 		};
-		let source = req.body["source_json_str"];
+		let source = value2(req.body["source_json_str"]);
 		fs.mkdirSync("models/"+newId)
 		fs.writeFileSync("models/"+newId+"/metadata.json", JSON.stringify(metadata));
 		fs.writeFileSync("models/"+newId+"/source.json", source);

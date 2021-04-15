@@ -390,10 +390,7 @@ async function createWorld(req, res) {
 		if (err != null)
 			console.log(err);
 		let newId = data;
-		fs.writeFile("conf/new_world_id.txt", (parseInt(newId)+1).toString(), function(err) {
-			if (err != null)
-				console.log(err);
-		});
+		fs.writeFileSync("conf/new_world_id.txt", (parseInt(newId)+1).toString());
 		let currDateStr = dateString();
 		let requiredMods = value(req.body, "required_mods_json_str");
 		if (!requiredMods) {
