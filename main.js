@@ -3,6 +3,7 @@ import serverline from "serverline";
 import fs from "fs";
 import https from "https";
 import http from "http";
+import util from "util";
 
 // Init logging
 const logFilePath = "latest.log";
