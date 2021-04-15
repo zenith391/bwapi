@@ -5,11 +5,11 @@ import app from "../main.js";
 
 describe("Unit testing the / route", () => {
 
-	it("should return 403 status", () => {
+	it("should return Forbidden status", () => {
 		return request(app)
 			.get("/")
 			.then((response) => {
-				assert(response.status, 403)
+				expect(response.status).to.equals(403);
 			})
 	})
 
@@ -17,7 +17,7 @@ describe("Unit testing the / route", () => {
 		return request(app)
 			.get("/")
 			.then((response) => {
-				assert(response.text, "Forbidden");
+				expect(response.text).to.equals("Forbidden");
 			})
 	})
 
@@ -29,7 +29,7 @@ describe("Unit testing the /api/v1/ route", () => {
 		return request(app)
 			.get("/api/v1/")
 			.then((response) => {
-				assert(response.status, 404)
+				expect(response.status).to.equals(404)
 			})
 	})
 
@@ -38,7 +38,7 @@ describe("Unit testing the /api/v1/ route", () => {
 			.get("/api/v1/")
 			.then((response) => {
 				const json = JSON.parse(response.text)
-				assert(json, {
+				expect(json).to.deep.equals({
 					"error": "404",
 					"error_msg": "Not Found",
 					"error_details": "This API endpoint has no route handler."

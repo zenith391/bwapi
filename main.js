@@ -214,22 +214,22 @@ global.value = function(body, name) {
 global.validAuthToken = function(req, res, bodyCheck) {
 	let authToken = getAuthToken(req);
 	if (authToken === undefined) {
-		res.status(405).json({
-			"error": 405,
+		res.status(403).json({
+			"error": 403,
 			"error_msg": "missing authentication token"
 		});
 		return { ok: false };
 	}
 	let userId = authTokens[authToken];
 	if (userId == undefined) {
-		res.status(405).json({
-			"error": 405,
+		res.status(403).json({
+			"error": 403,
 			"error_msg": "unauthentificated user"
 		});
 		return { ok: false };
 	}
 	if (bodyCheck && (req.body == undefined || req.body == null)) {
-		res.status(403).json({
+		res.status(400).json({
 			"error": "no body"
 		});
 		return { ok: false };
@@ -276,7 +276,7 @@ app.use(function(req, res, next) {
 	if (authToken !== undefined) {
 		userId = authTokens[authToken];
 	}
-	console.debug(req.method + " " + req.url, userId);
+	//console.debug(req.method + " " + req.url, userId);
 
 	res.set("Server", "Vaila");
 	res.set("Access-Control-Allow-Origin", "*"); // allows client JavaScript code to access bwapi
@@ -326,7 +326,7 @@ app.use("/images", express.static("images")); // Serve the 'images' folder
 let cores = fs.readdirSync("modules");
 for (const i in cores) {
 	let file = cores[i];
-	console.debug("Init module " + file);
+	//console.debug("Init module " + file);
 	const userModule = await import("./modules/" + file);
 	if (userModule.run) {
 		userModule.run(app);
@@ -392,6 +392,6 @@ server.listen(port);
 
 // Program startup is done
 console.log("The server is ready!");
-console.log("Note: If you want the server to be publicly accessible (outside your house), be sure to port-forward port 8080 (there are many tutorials on internet)")
+//console.log("Note: If you want the server to be publicly accessible (outside your house), be sure to port-forward port 8080 (there are many tutorials on internet)")
 
 export default app;

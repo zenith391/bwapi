@@ -721,8 +721,9 @@ function worldsGet(req, res, u) {
 		if (end < publishedWorlds.length) {
 			json["pagination_next_page"] = page + 2; // + 2 because it got substracted by 1 before
 		}
-		worldListCache[cacheIndex] = json;
+		worldListCache[cacheIndex] = Object.assign({}, json);
 		worldListCache[cacheIndex]["expires"] = Date.now() + 1000*3600; // 1 hour
+
 		res.status(200).json(json);
 	});
 }
@@ -903,10 +904,8 @@ export function run(app) {
 
 	app.get("/api/v1/current_user/world_star_rating/:id", async function(req, res) {
 		let valid = validAuthToken(req, res, false);
-		if (!valid[0]) {
-			return;
-		}
-		let userId = valid[1];
+		if (valid.ok === false) return;
+		let userId = valid.user.id;
 		let id = req.params.id;
 		if (fs.existsSync("worlds/" + id)) {
 			let ratings = JSON.parse(fs.readFileSync("users/" + userId + "/world_ratings.json"));

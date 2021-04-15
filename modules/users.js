@@ -463,7 +463,7 @@ async function current_user_worlds(req, res) {
 	metadata.worlds = [];
 	for (const id of ownedWorlds) {
 		try {
-			let w = fullWorldSync(id, true);
+			let w = await fullWorldSync(id, true);
 			if (is_published == "yes") {
 				if (w.publication_status == 1) {
 					metadata.worlds.push(w);
@@ -655,12 +655,16 @@ export function run(app) {
 	app.get("/api/v1/current_user/pending_payouts", async function(req, res) {
 		let valid = validAuthToken(req, res, false);
 		if (valid.ok === false) return;
+		
 		res.status(200).json({
 			"pending_payouts": await valid.user.getPendingPayouts()
 		})
 	});
 
 	app.get("/api/v1/current_user/deleted_worlds", function(req, res) {
+		let valid = validAuthToken(req, res, false);
+		if (valid.ok === false) return;
+
 		res.status(200).json({
 			"worlds": []
 		});
