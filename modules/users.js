@@ -493,7 +493,7 @@ async function current_user_worlds_for_teleport(req, res) {
 	let worlds = [];
 	for (const id of ownedWorlds) {
 		try {
-			let world = fullWorldSync(id, true);
+			let world = await fullWorldSync(id, true);
 			if (!world["image_urls_for_sizes"]["440x440"]) {
 				world["image_urls_for_sizes"]["440x440"] = "test";
 			}
@@ -681,7 +681,7 @@ export function run(app) {
 		let worldMetadatas = [];
 		for (let world of worlds) {
 			if (world != null) {
-				const fWorld = fullWorldSync(world, true);
+				const fWorld = await fullWorldSync(world, true);
 				if (fWorld == null) continue;
 				worldMetadatas.push(fWorld);
 			}
