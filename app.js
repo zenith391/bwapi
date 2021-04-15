@@ -155,7 +155,7 @@ app.use(function(req, res, next) {
 	if (authToken !== undefined) {
 		userId = authTokens[authToken];
 	}
-	//console.debug(req.method + " " + req.url, userId);
+	console.debug(req.method + " " + req.url, userId);
 
 	res.set("Server", "Vaila");
 	res.set("Access-Control-Allow-Origin", "*"); // allows client JavaScript code to access bwapi
