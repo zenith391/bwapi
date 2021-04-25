@@ -269,7 +269,12 @@ export class User {
 	}
 
 	async getOwnedModels() {
-		return (await this.getMetadata())["_SERVER_models"];
+		const ownedModels = (await this.getMetadata())["_SERVER_models"];
+		if (ownedModels === undefined) {
+			return [];
+		} else {
+			return ownedModels;
+		}
 	}
 
 	async appendOwnedWorld(worldId) {
@@ -328,20 +333,6 @@ export async function socialUser(id, date) {
 		"profile_image_url": metadata["profile_image_url"],
 		"relationship": 1
 	}
-}
-
-export function addPayout(id, payout) {
-	let nextId = 0;
-	let payouts = JSON.parse(fs.readFileSync("users/"+id+"/pending_payouts.json"));
-	for (const i in payouts["pending_payouts"]) {
-		nextId = Math.max(nextId, i+1);
-	}
-	if (!Array.isArray(payouts["pending_payouts"])) {
-		payouts["pending_payouts"] = [];
-	}
-	payout["ref_id"] = nextId+1;
-	payouts["pending_payouts"].push(payout);
-	fs.writeFileSync("users/"+id+"/pending_payouts.json", JSON.stringify(payouts));
 }
 
 // Module code //
@@ -622,33 +613,29 @@ export function run(app) {
 		});
 	});
 
-	app.post("/api/v1/current_user/collected_payouts", function(req, res) {
+	app.post("/api/v1/current_user/collected_payouts", async function(req, res) {
 		let valid = validAuthToken(req, res, false);
-		if (!valid[0]) {
-			return;
-		}
-		let userId = valid[1];
-		let user = new User(userId);
-		let pending = JSON.parse(fs.readFileSync("users/"+userId+"/pending_payouts.json"));
-		let payouts = req.body["payouts"];
-		for (k in payouts) {
-			let payout = payouts[k];
-			for (i in pending["pending_payouts"]) {
-				let pendingPayout = pending["pending_payouts"][i];
+		if (valid.ok === false) return;
+		const user = valid.user;
+
+		let pending = await user.getPendingPayouts();
+		const payouts = req.body["payouts"];
+		let totalCoins = await user.getCoins();
+
+		for (const payout in payouts) {
+			for (const i in pending) {
+				let pendingPayout = pending[i];
 				if (pendingPayout["ref_id"] == payout["ref_id"]) {
-					user.coins = user.coins + pendingPayout.coin_grants;
-					pending["pending_payouts"].splice(i, 1);
+					totalCoins += pendingPayout.coin_grants;
+					pending.splice(i, 1);
 				}
 			}
 		}
-		fs.writeFile("users/"+userId+"/metadata.json", JSON.stringify(userMeta), function(err) {
-			if (err) throw err;
-			fs.writeFile("users/"+userId+"/pending_payouts.json", JSON.stringify(pending), function(err) {
-				if (err) throw err;
-				res.status(200).json({
-					"attrs_for_current_user": user.metadata
-				});
-			});
+
+		await user.setCoins(totalCoins);
+		await user.setPendingPayouts(pending);
+		res.status(200).json({
+			"attrs_for_current_user": { coins: totalCoins }
 		});
 	});
 
