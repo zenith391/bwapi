@@ -429,7 +429,7 @@ export function run(app) {
 				}
 				fs.rmdirSync("models/"+id);
 				let usr = await user.getMetadata();
-				for (i in usr["_SERVER_models"]) {
+				for (const i in usr["_SERVER_models"]) {
 					if (usr["_SERVER_models"][i] == id) {
 						usr["_SERVER_models"].splice(i, 1);
 					}
