@@ -622,7 +622,7 @@ export function run(app) {
 		const payouts = req.body["payouts"];
 		let totalCoins = await user.getCoins();
 
-		for (const payout in payouts) {
+		for (const payout of payouts) {
 			for (const i in pending) {
 				let pendingPayout = pending[i];
 				if (pendingPayout["ref_id"] == payout["ref_id"]) {
