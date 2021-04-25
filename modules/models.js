@@ -95,10 +95,7 @@ function createModel(req, res) {
 		if (err != null)
 			console.log(err);
 		let newId = data;
-		fs.writeFile("conf/new_model_id.txt", (parseInt(newId)+1).toString(), function(err) {
-			if (err != null)
-				console.log(err);
-		});
+		fs.writeFileSync("conf/new_model_id.txt", (parseInt(newId)+1).toString());
 		let currDateStr = dateString();
 		let metadata = {
 			"id": newId,
@@ -260,9 +257,11 @@ function modelsGet(req, res) {
 		if (kind == "best_sellers") {
 			models = models.map(function (model) {
 				let sales = parseInt(model["popularity_count"]);
-				let date = fs.statSync("models/"+model.id+"/metadata.json").birthtimeMs;
+				let date;
 				if (model["first_published_at"]) {
 					date = new Date(model["first_published_at"]).getTime();
+				} else {
+					date = fs.statSync("models/"+model.id+"/metadata.json").birthtimeMs;
 				}
 				if (sales == undefined || isNaN(sales)) {
 					sales = 0;
@@ -274,9 +273,10 @@ function modelsGet(req, res) {
 			});
 		} else {
 			models = models.map(function (model) {
-				let date = fs.statSync("models/"+model.id+"/metadata.json").birthtimeMs;
 				if (model["first_published_at"]) {
 					date = new Date(model["first_published_at"]).getTime();
+				} else {
+					date = fs.statSync("models/"+model.id+"/metadata.json").birthtimeMs;
 				}
 				return {
 					name: model,

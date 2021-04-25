@@ -321,13 +321,21 @@ function likeStatus(req, res) {
 	if (valid.ok === false) return;
 	const userId = valid.user.id;
 
-	const id = req.params.id;
+	const id = parseInt(req.params.id);
+	if (isNaN(id)) {
+		res.status(400).json({
+			"error": 400,
+			"error_msg": "id is not a number"
+		});
+		return;
+	}
+
 	const likedWorlds = JSON.parse(fs.readFileSync("users/"+userId+"/liked_worlds.json"), {"encoding":"utf8"});
 	if (fs.existsSync("worlds/" + id)) {
 		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json", {"encoding": "utf8"}));
 		let hasLiked = false;
 		for (const world of likedWorlds.worlds) {
-			if (world == metadata.id) {
+			if (world == id) {
 				hasLiked = true;
 			}
 		}
@@ -335,7 +343,7 @@ function likeStatus(req, res) {
 		if (req.body.action == "add_like") {
 			if (!hasLiked) {
 				metadata["likes_count"] += 1;
-				likedWorlds.worlds.push(parseInt(metadata.id));
+				likedWorlds.worlds.push(parseInt(id));
 			} else {
 				res.status(403).json({
 					"error": 403,
@@ -346,10 +354,9 @@ function likeStatus(req, res) {
 		} else if (req.body.action == "remove_like") {
 			if (hasLiked) {
 				metadata["likes_count"] -= 1;
-				for (const i in likedWorlds.worlds) {
-					if (likedWorlds.worlds[i] == id) {
-						likedWorlds.worlds.splice(i, 1);
-					}
+				const index = likedWorlds.worlds.indexOf(parseInt(id));
+				if (index !== -1) {
+					likedWorlds.worlds.splice(index, 1);
 				}
 			} else {
 				res.status(403).json({
@@ -609,7 +616,7 @@ function worldsGet(req, res, u) {
 				}
 				return {
 					world: world,
-					time: date + (parseInt(world["play_count"]) * 10000000 * (rate-1))
+					time: date + ((parseInt(world["play_count"]) + parseInt(world["likes_count"])*10) * 10000000 * (rate-1))
 				}
 			});
 		} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
@@ -660,51 +667,43 @@ function worldsGet(req, res, u) {
 			}
 		}
 		
-		for (const i in worlds) {
+		for (let world of worlds) {
 			try {
-			let world = worlds[i];
-			if (world.id < 0) { // status update world
-				continue;
-			}
-			let metadata = world;
-			try {
-				//metadata = processUserWorld(world);
-			} catch (e) {
-				console.error("Error parsing metadata:");
-				console.error(e);
-				metadata = null;
-			}
-			let cond = (metadata["publication_status"] == 1);
-			if (req.params) {
-				if (req.params.user) {
-					cond = cond && (metadata["author_id"] == req.params.user);
-				}
-			}
-			if (search) {
-				if (cond === true) {
-					if (searchType === "id") {
-						cond = (metadata["id"].toString() == searchArgument);
-					} else if (searchType === "madebyid") {
-						cond = (metadata["author_id"].toString() == searchArgument);
-					} else if (searchType === "madeby") {
-						cond = (metadata["author_username"].search(searchArguments) != -1);
-					} else {
-						cond = (metadata["title"].toLowerCase().search(search) != -1);
-					}
-				}
-			}
-			if (cond) {
-				if (categoryId !== undefined && metadata["category_ids"].indexOf(parseInt(categoryId)) == -1) {
+				if (world.id < 0) { // status update world
 					continue;
 				}
-				metadata["has_win_condition"] = undefined;
-				//metadata["required_mods"] = undefined;
-				metadata["number_of_raters"] = undefined;
-				publishedWorlds.push(metadata);
-				if (kind == "featured") {
-					break;
+				let metadata = world;
+				let cond = (metadata["publication_status"] == 1);
+				if (req.params) {
+					if (req.params.user) {
+						cond = cond && (metadata["author_id"] == req.params.user);
+					}
 				}
-			}
+				if (search) {
+					if (cond === true) {
+						if (searchType === "id") {
+							cond = (metadata["id"].toString() == searchArgument);
+						} else if (searchType === "madebyid") {
+							cond = (metadata["author_id"].toString() == searchArgument);
+						} else if (searchType === "madeby") {
+							cond = (metadata["author_username"].toLowerCase().search(searchArgument) != -1);
+						} else {
+							cond = (metadata["title"].toLowerCase().search(search) != -1);
+						}
+					}
+				}
+				if (cond) {
+					if (categoryId !== undefined && metadata["category_ids"].indexOf(parseInt(categoryId)) == -1) {
+						continue;
+					}
+					metadata["has_win_condition"] = undefined;
+					//metadata["required_mods"] = undefined;
+					metadata["number_of_raters"] = undefined;
+					publishedWorlds.push(metadata);
+					if (kind == "featured") {
+						break;
+					}
+				}
 			} catch (e) {
 				console.error("Error sorting world " + worlds[i].id);
 				console.error(e);

@@ -9,7 +9,7 @@ describe("Unit testing no-authentication on multiple endpoints", () => {
 		return request(app)
 			.get("/api/v1/current_user/deleted_worlds")
 			.then((response) => {
-				expect(response.status).to.equals(403);
+				expect(response.status).to.equals(405);
 			})
 	})
 
@@ -17,7 +17,7 @@ describe("Unit testing no-authentication on multiple endpoints", () => {
 		return request(app)
 			.get("/api/v1/current_user/pending_payouts")
 			.then((response) => {
-				expect(response.status).to.equals(403);
+				expect(response.status).to.equals(405);
 			})
 	})
 
@@ -25,7 +25,7 @@ describe("Unit testing no-authentication on multiple endpoints", () => {
 		return request(app)
 			.post("/api/v1/current_user/collected_payouts")
 			.then((response) => {
-				expect(response.status).to.equals(403);
+				expect(response.status).to.equals(405);
 			})
 	})
 
@@ -33,7 +33,7 @@ describe("Unit testing no-authentication on multiple endpoints", () => {
 		return request(app)
 			.get("/api/v1/current_user/worlds")
 			.then((response) => {
-				expect(response.status).to.equals(403);
+				expect(response.status).to.equals(405);
 			})
 	})
 
@@ -41,7 +41,7 @@ describe("Unit testing no-authentication on multiple endpoints", () => {
 		return request(app)
 			.get("/api/v1/current_user/worlds_for_teleport")
 			.then((response) => {
-				expect(response.status).to.equals(403);
+				expect(response.status).to.equals(405);
 			})
 	})
 
@@ -49,7 +49,7 @@ describe("Unit testing no-authentication on multiple endpoints", () => {
 		return request(app)
 			.get("/api/v1/current_user/profile_world")
 			.then((response) => {
-				expect(response.status).to.equals(403);
+				expect(response.status).to.equals(405);
 			})
 	})
 
@@ -57,7 +57,7 @@ describe("Unit testing no-authentication on multiple endpoints", () => {
 		return request(app)
 			.put("/api/v1/current_user/profile_world")
 			.then((response) => {
-				expect(response.status).to.equals(403);
+				expect(response.status).to.equals(405);
 			})
 	})
 
@@ -65,7 +65,7 @@ describe("Unit testing no-authentication on multiple endpoints", () => {
 		return request(app)
 			.post("/api/v1/user/123/follow_activity")
 			.then((response) => {
-				expect(response.status).to.equals(403);
+				expect(response.status).to.equals(405);
 			})
 	})
 
@@ -73,7 +73,7 @@ describe("Unit testing no-authentication on multiple endpoints", () => {
 		return request(app)
 			.delete("/api/v1/user/123/follow_activity")
 			.then((response) => {
-				expect(response.status).to.equals(403);
+				expect(response.status).to.equals(405);
 			})
 	})
 
