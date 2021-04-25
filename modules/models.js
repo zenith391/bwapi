@@ -273,6 +273,7 @@ function modelsGet(req, res) {
 			});
 		} else {
 			models = models.map(function (model) {
+				let date;
 				if (model["first_published_at"]) {
 					date = new Date(model["first_published_at"]).getTime();
 				} else {
