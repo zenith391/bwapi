@@ -540,7 +540,7 @@ async function updateWorld(req, res) {
 					"world_image_urls_for_sizes": metadata["image_urls_for_sizes"],
 					"world_title": metadata["title"]
 				}
-				addFeed(userId, feed);
+				await valid.user.addFeed(feed);
 			}
 			metadata["updated_at"] = dateString();
 			let metaStr = JSON.stringify(metadata);
