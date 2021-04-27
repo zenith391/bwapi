@@ -148,7 +148,7 @@ export class User {
 				if (rawFollowers[i] != undefined) {
 					this._followers.push({
 						user: new User(i.substring(1)),
-						date: rawFollowers[i]
+						date: new Date(rawFollowers[i])
 					})
 				}
 			}
@@ -168,7 +168,7 @@ export class User {
 				if (rawFollowedUsers[i] != undefined) {
 					this._followedUsers.push({
 						user: new User(i.substring(1)),
-						date: rawFollowedUsers[i]
+						date: new Date(rawFollowedUsers[i])
 					})
 				}
 			}
@@ -229,6 +229,29 @@ export class User {
 		await this.setFeeds(newsFeed);
 	}
 
+	async follow(target) {
+		const targetId = target.id;
+		let user = JSON.parse(fs.readFileSync("users/"+this.id+"/followed_users.json"));
+		let targetFollowers;
+		if (fs.existsSync("users/"+targetId+"/followers.json")) {
+			targetFollowers = JSON.parse(fs.readFileSync("users/"+targetId+"/followers.json"))
+		} else {
+			res.status(404).json({
+				"error": "the target doesn't exists"
+			});
+			return;
+		}
+		user["attrs_for_follow_users"]["u"+targetId] = dateString();
+		targetFollowers["attrs_for_follow_users"]["u"+this.id] = dateString();
+		fs.writeFile("users/"+this.id+"/followed_users.json", JSON.stringify(user), function(err) {
+			if (err) console.error(err);
+			fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(targetFollowers), function(err) {
+				if (err) console.error(err);
+				res.status(200).json({"ok":true});
+			});
+		});
+	}
+
 	async setMetadata(newValue) {
 		this._metadata = newValue;
 		fs.writeFileSync("users/" + this.id + "/metadata.json", JSON.stringify(newValue));
@@ -236,8 +259,27 @@ export class User {
 
 	async setFollowers(newValue) {
 		this._followers = newValue;
+
+		let obj = {};
+		for (const follower of newValue) {
+			obj["u" + follower.user.id] = dateString(follower.date);
+		}
+
 		fs.writeFileSync("users/" + this.id + "/followers.json", JSON.stringify({
-			attrs_for_follow_users: newValue
+			attrs_for_follow_users: obj
+		}));
+	}
+
+	async setFollowedUsers(newValue) {
+		this._followedUsers = newValue;
+
+		let obj = {};
+		for (const followed of newValue) {
+			obj["u" + followed.user.id] = dateString(followed.date);
+		}
+
+		fs.writeFileSync("users/" + this.id + "/followed_users.json", JSON.stringify({
+			attrs_for_follow_users: obj
 		}));
 	}
 
@@ -329,7 +371,7 @@ export async function socialUser(id, date) {
 		"username": metadata["username"],
 		"user_status": metadata["user_status"],
 		"user_blocksworld_premium": metadata["user_status"],
-		"started_following_at": date,
+		"started_following_at": dateString(date),
 		"profile_image_url": metadata["profile_image_url"],
 		"relationship": 1
 	}
@@ -508,10 +550,8 @@ async function current_user_worlds_for_teleport(req, res) {
 
 function follow(req, res) {
 	let valid = validAuthToken(req, res, false);
-	if (!valid[0]) {
-		return;
-	}
-	let userId = parseInt(valid[1]);
+	if (valid.ok === false) return;
+	let userId = valid.user.id;
 	let targetId = parseInt(req.params["id"]);
 	let user = JSON.parse(fs.readFileSync("users/"+userId+"/followed_users.json"));
 	let target;
@@ -536,10 +576,8 @@ function follow(req, res) {
 
 function unfollow(req, res) {
 	let valid = validAuthToken(req, res, false);
-	if (!valid[0]) {
-		return;
-	}
-	let userId = parseInt(valid[1]);
+	if (valid.ok === false) return;
+	let userId = valid.user.id;
 	let targetId = parseInt(req.params["id"]);
 	let user = JSON.parse(fs.readFileSync("users/"+userId+"/followed_users.json"));
 	let target;

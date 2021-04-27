@@ -120,7 +120,7 @@ global.validAuthToken = function(req, res, bodyCheck) {
 	};
 }
 
-// Helper function for Blocksworld's date formatting
+// Helper function for ISO date formatting
 function datePart(num) {
 	let str = num.toString();
 	if (str.length < 2) {
@@ -129,10 +129,10 @@ function datePart(num) {
 	return str;
 }
 
-// Format a 'Date' object in Blocksworld format.
+// Format a 'Date' object in ISO format.
 global.dateString = function(date) {
-	if (date == undefined || date == null) {
-		date = new Date();
+	if (date === undefined || date === null) {
+		date = new Date(); // default to current date
 	}
 	let currDateStr = 
 		date.getUTCFullYear()
