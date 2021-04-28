@@ -112,7 +112,7 @@ function newWorlds(req, res) {
 
 		let publishedWorlds = [];
 			
-		for (i in worlds) {
+		for (const i in worlds) {
 			let world = worlds[i];
 			if (world.id < 0) { // status update world
 				continue;

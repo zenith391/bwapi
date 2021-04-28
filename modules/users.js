@@ -445,7 +445,7 @@ async function save_current_user_profile_world(req, res) {
 
 	let userMeta = await valid.user.getMetadata();
 	if (userMeta["is_image_locked"] != true) {
-		if (req.files["profile_image"]) {
+		if (req.files && req.files["profile_image"]) {
 			fs.copyFileSync(req.files["profile_image"][0].path, "images/profiles/"+userId+".jpg");
 			userMeta["profile_image_url"] = "https://bwsecondary.ddns.net:8080/images/profiles/"+userId+".jpg";
 			fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(userMeta));

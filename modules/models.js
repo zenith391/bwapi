@@ -335,7 +335,7 @@ async function purchaseModel(req, res) {
 	if (fs.existsSync("models/" + id)) {
 		let model = await fullModelSync(id, true);
 		const price = model["coins_price_markup"];
-		const author = userMetadata(model["author_id"]);
+		const author = new User(model["author_id"]);
 		if ((userCoins - price) >= 0) {
 			await user.setCoins(userCoins - price);
 			await author.addPayout({
@@ -359,9 +359,6 @@ async function purchaseModel(req, res) {
 			}
 			fs.writeFileSync("users/" + user.id + "/purchased_u2u_models.json", JSON.stringify(usr));
 			fs.writeFileSync("models/" + id + "/metadata.json", JSON.stringify(model));
-			res.status(200).json({
-				"attrs_for_current_user": { "coins": coins - price }
-			});
 
 			// notify model seller of the sale
 			await author.addFeed({
@@ -380,6 +377,10 @@ async function purchaseModel(req, res) {
 				"model_id": parseInt(id),
 				"model_icon_urls_for_sizes": model["icon_urls_for_sizes"],
 				"model_title": model["title"]
+			});
+
+			res.status(200).json({
+				"attrs_for_current_user": { "coins": userCoins - price }
 			});
 		} else {
 			res.status(400).json({
