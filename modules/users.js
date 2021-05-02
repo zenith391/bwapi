@@ -43,6 +43,12 @@ export class User {
 			newUserStatus |= 4; // add "early access" flag
 		let userInfo = {
 			"coins": 100,
+			"game_gems": 0,
+			"purchased_building_set_ids": [123789456],
+			"agreed_to_tos": false,
+			"agreed_to_u2u_tos": false,
+			"spinner1_unlocked": true,
+			"spinner2_unlocked": false,
 			"ios_link_available": false,
 			"ios_link_initiated": false,
 			"is_username_blocked": false,
@@ -343,6 +349,14 @@ export class User {
 		return (await this.getMetadata()).user_status;
 	}
 
+	async hasAgreedToToS() {
+		return (await this.getMetadata()).agreed_to_tos;
+	}
+
+	async hasAgreedToU2UToS() {
+		return (await this.getMetadata()).agreed_to_u2u_tos;
+	}
+
 	async getAccountType() {
 		const metadata = await this.getMetadata();
 		if (metadata["account_type"] === undefined) return "user";
@@ -358,6 +372,18 @@ export class User {
 	async setStatus(newValue) {
 		let metadata = await this.getMetadata();
 		metadata.user_status = newValue;
+		await this.setMetadata(metadata);
+	}
+
+	async agreeToToS() {
+		let metadata = await this.getMetadata();
+		metadata.agreed_to_tos = true;
+		await this.setMetadata(metadata);
+	}
+
+	async agreeToU2UToS() {
+		let metadata = await this.getMetadata();
+		metadata.agreed_to_u2u_tos = true;
 		await this.setMetadata(metadata);
 	}
 

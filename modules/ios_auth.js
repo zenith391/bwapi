@@ -113,6 +113,10 @@ export function run(app) {
 		const won = prizeWheel[wonSlot];
 		
 		let meta = await valid.user.getMetadata();
+		if (meta.spinner1_unlocked === false) {
+			res.status(400).json({ });
+			return;
+		}
 		if (won.game_coins) meta.coins += won.game_coins;
 		if (won.game_gems)  meta.game_gems += won.game_gems;
 		meta.spinner1_unlocked = false;
@@ -169,7 +173,7 @@ export function run(app) {
 					"title": "BW2 Pack",
 					"subtitle": "It's free. It's BW2. It's awesome!",
 					"puzzle_subtitle": "\"puzzle\"",
-					"internal_identifier": "this_is_an_identifier",
+					"internal_identifier": "bw2_pack",
 					"puzzles": [],
 					"world_templates": worldTemplates
 				})
@@ -193,9 +197,17 @@ export function run(app) {
 		});
 	});
 
-	app.put("/api/v1/current_user/agreed-to-tos", function(req, res) {
+	app.put("/api/v1/current_user/agreed-to-tos", async function(req, res) {
 		let valid = validAuthToken(req, res);
 		if (valid.ok === false) return;
+		await valid.user.agreeToToS();
+		res.status(200).json({});
+	});
+
+	app.put("/api/v1/current_user/agreed-to-u2u-tos", async function(req, res) {
+		let valid = validAuthToken(req, res);
+		if (valid.ok === false) return;
+		await valid.user.agreeToU2UToS();
 		res.status(200).json({});
 	})
 }
