@@ -1,16 +1,18 @@
 <%- include("header", {title: "Home"}) %>
-	<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@3.2.1"></script>
 	<script src="https://d3js.org/d3-dsv.v2.min.js"></script>
 	<script src="https://d3js.org/d3-fetch.v2.min.js"></script>
 	<div class="container">
-		<h5>- Uhm, what are the metrics of Blocksworld 2 today ?</h5>
-		- Well, today Blocksworld 2 has:<br/>
+		<h5>- Uhm, what are the metrics of the secondary server today ?</h5>
+		- Well, today the secondary server has:<br/>
         <b><%= worlds %></b> worlds,<br/>
         <b><%= models %></b> models,<br/>
         and <b><%= players %></b> players !<br/></b><br/>
         Yes, that's a lot isn't it?
         <p><b>Note: All data collected is 100% anonymous (it just counts a total, not who logged in / created a world or model).</b></p>
+        <p>Also note that holes in graphs represent moments where the data was missing (but this doesn't mean it was equals to zero). If it's missing it's just that I or Dennis accidentally deleted part of the metrics.</p>
 		<h3>Line chart representing the number of logins per day</h3>
+		<p>Just beware, before 4/12/2021, launcher logins where counted as steam logins. They are now split, which means to have consistent data you might want to profit from the graph being a Stacked Line Graph and just use "Logins (Steam)" and "Logins (Launcher)"</p>
 		<canvas id="activityChart" width="200" height="120" aria-label="User Logins Chart" role="img"></canvas>
 		<a href="server_metrics/active_players.csv">Download CSV file (Steam logins)</a>
 		<a href="server_metrics/active_players.csv">Download CSV file (Launcher logins)</a>
@@ -34,38 +36,61 @@
 						var values = [];
 						var iosValues = [];
 						var launcherValues = [];
-						var avgValues = [];
 						var avg = steamData[0].Players;
+
+						var lastDate = null;
 						for (const i in steamData) {
 							if (i == steamData.length-1) break;
 							const piece = steamData[i];
-							const avgDelta = 0.85;
-							avg = avgDelta * avg + (1 - avgDelta) * piece.Players;
 							labels.push(piece.Date);
-							avgValues.push(avg);
+							if (lastDate != null) {
+								var expected = new Date(lastDate.getTime() + 24 * 60 * 60 * 1000);
+								if (piece.Date != expected) {
+									while (expected.getTime() < new Date(piece.Date).getTime()) {
+										labels.push(expected.getMonth() + "/" + expected.getDay() + "/" + expected.getYear());
+										values.push(NaN);
+										expected = new Date(expected.getTime() + 24 * 60 * 60 * 1000);
+									}
+								}
+							}
 							values.push(piece.Players);
+							lastDate = new Date(piece.Date);
 						}
 
-						let startIndex = 0;
-						while (labels[startIndex] != iosData[0].Date) {
-							startIndex += 1;
-							iosValues.push(0);
-						}
+						lastDate = new Date(steamData[0].Date);
 						for (const i in iosData) {
 							if (i == iosData.length-1) break;
 							const piece = iosData[i];
+							if (lastDate != null) {
+								var expected = new Date(lastDate.getTime() + 24 * 60 * 60 * 1000);
+								if (new Date(piece.Date).getTime() !== expected.getTime()) {
+									iosValues.push(NaN);
+									while (expected.getTime() < new Date(piece.Date).getTime()) {
+										iosValues.push(NaN);
+										expected = new Date(expected.getTime() + 24 * 60 * 60 * 1000);
+									}
+								}
+							}
 							iosValues.push(piece.Players);
+							lastDate = new Date(piece.Date);
 						}
 
-						startIndex = 0;
-						while (labels[startIndex] != launcherData[0].Date && startIndex < labels.len) {
-							startIndex += 1;
-							launcherValues.push(0);
-						}
+						lastDate = new Date(steamData[0].Date);
 						for (const i in launcherData) {
 							if (i == launcherData.length-1) break;
 							const piece = launcherData[i];
+							if (lastDate != null) {
+								var expected = new Date(lastDate.getTime() + 24 * 60 * 60 * 1000);
+								if (new Date(piece.Date).getTime() !== expected.getTime()) {
+									launcherValues.push(NaN);
+									while (expected.getTime() < new Date(piece.Date).getTime()) {
+										launcherValues.push(NaN);
+										expected = new Date(expected.getTime() + 24 * 60 * 60 * 1000);
+									}
+								}
+							}
 							launcherValues.push(piece.Players);
+							lastDate = new Date(piece.Date);
 						}
 
 						var activityChart = new Chart(ctx, {
@@ -74,30 +99,55 @@
 								labels: labels,
 								datasets: [{
 									label: "Logins (Steam)",
-									backgroundColor: "rgba(0, 0, 0, 0)",
+									backgroundColor: "rgba(255, 99, 132, 0.5)",
 									borderColor: "rgb(255, 99, 132)",
+									fill: true,
 									data: values
 								},
 								{
 									label: "Logins (iOS)",
-									backgroundColor: "rgba(0, 0, 0, 0)",
+									backgroundColor: "rgba(132, 99, 255, 0.5)",
 									borderColor: "rgb(132, 99, 255)",
+									fill: true,
 									data: iosValues
 								},
 								{
 									label: "Logins (Launcher)",
-									backgroundColor: "rgba(0, 0, 0, 0)",
+									backgroundColor: "rgba(99, 255, 132, 0.5)",
 									borderColor: "rgb(99, 255, 132)",
+									fill: true,
 									data: launcherValues
 								}]
 								// {
-								// 	label: "Logins (smoothed)",
+								// 	label: "Logins (sum)",
 								// 	borderColor: "rgb(99, 255, 132)",
 								// 	data: avgValues
 								// }]
 							},
 							options: {
-
+								plugins: {
+									tooltip: { mode: "index" }
+								},
+								interaction: {
+									mode: 'nearest',
+									axis: 'x',
+									intersect: false
+								},
+								scales: {
+									x: {
+										title: {
+											display: true,
+											text: "Day"
+										}
+									},
+									y: {
+										stacked: true,
+										title: {
+											display: true,
+											text: "Logins"
+										}
+									}
+								}
 							}
 						});
 					});

@@ -17,6 +17,7 @@
 **/
 import fs from "fs";
 import url from "url";
+import { User }  from "./users.js";
 
 global.fullModelSync = async function(id, noSource) {
 	let model = {

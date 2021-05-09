@@ -104,6 +104,13 @@ export function run(app) {
 		res.status(500);
 	});
 
+	app.post("/api/v1/current_user/tutorial_started", async function(req, res) {
+		let valid = validAuthToken(req, res);
+		if (valid.ok === false) return;
+
+		await valid.user.completeTutorial();
+	}
+
 	app.post("/api/v1/spinner/spin", async function(req, res) {
 		let valid = validAuthToken(req, res);
 		if (valid.ok === false) return;

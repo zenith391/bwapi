@@ -44,6 +44,7 @@ export class User {
 		let userInfo = {
 			"coins": 100,
 			"game_gems": 0,
+			"needs_tutorial": true,
 			"purchased_building_set_ids": [123789456],
 			"agreed_to_tos": false,
 			"agreed_to_u2u_tos": false,
@@ -384,6 +385,12 @@ export class User {
 	async agreeToU2UToS() {
 		let metadata = await this.getMetadata();
 		metadata.agreed_to_u2u_tos = true;
+		await this.setMetadata(metadata);
+	}
+
+	async completeTutorial() {
+		let metadata = await this.getMetadata();
+		metadata.needs_tutorial = false;
 		await this.setMetadata(metadata);
 	}
 
