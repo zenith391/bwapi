@@ -30,7 +30,8 @@ export class User {
 
 	static async create(username, linkType) {
 		const statusFromLinkType = {
-			wool: 1024
+			wool: 1024,
+			ios: 256 | 512
 		}
 
 		const newId = fs.readFileSync("conf/new_account_id.txt", {"encoding": "utf8"});

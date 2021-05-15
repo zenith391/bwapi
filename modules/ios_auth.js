@@ -79,7 +79,7 @@ export function run(app) {
 			if (iosLinks[gcId] !== undefined) {
 				res.status(500);
 			} else {
-				const newUser = await User.create();
+				const newUser = await User.create(null, "ios");
 				iosLinks[gcId] = newUser.id;
 				fs.writeFileSync("conf/ios_links.json", JSON.stringify(iosLinks))
 				await ios_current_user(req,res,{
@@ -109,7 +109,7 @@ export function run(app) {
 		if (valid.ok === false) return;
 
 		await valid.user.completeTutorial();
-	}
+	});
 
 	app.post("/api/v1/spinner/spin", async function(req, res) {
 		let valid = validAuthToken(req, res);
