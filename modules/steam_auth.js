@@ -106,18 +106,14 @@ function steam_current_user(req, res, u) {
 	}
 } 
 
-function steam_set_username(req, res) {
-	let valid = validAuthToken(req, res, true);
-	if (!valid[0]) {
-		return;
-	}
-	let userId = valid[1];
-	let nickname = req.body["steam_nickname"];
-	let userMeta = userMetadata(userId);
-	console.log("Changed name of " + userMeta["username"] + " (" + userId + ") to " + nickname);
-	userMeta["username"] = nickname;
-	fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(userMeta));
-	res.status(200).json(userMeta);
+async function steam_set_username(req, res) {
+	const valid = validAuthToken(req, res, true);
+	if (valid.ok === false) return;
+	const nickname = req.body["steam_nickname"];
+
+	console.log("Changed name of " + valid.user.id + " to " + nickname);
+	await valid.user.setUsername(nickname);
+	res.status(200).json(await valid.user.getMetadata());
 }
 
 function create_steam_user(req, res) {

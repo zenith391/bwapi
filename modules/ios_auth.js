@@ -35,6 +35,7 @@ async function ios_current_user(req, res, u) {
 			metadata["_SERVER_models"] = undefined;
 			metadata["_SERVER_groups"] = undefined;
 			metadata["purchased_building_set_ids"] = [123789456];
+			metadata["game_center_player_id"] = gc_id;
 			// TODO: completed_puzzles_ids
 
 			// user["api_v2_supported"] = true; // iOS can't be modded as of now
@@ -66,6 +67,16 @@ async function ios_current_user(req, res, u) {
 	}
 }
 
+async function ios_set_username(req, res) {
+	const valid = validAuthToken(req, res, true);
+	if (valid.ok === false) return;
+
+	const newUsername = req.body["username"];
+	console.log("Changed name of " + valid.user.id + " to " + newUsername);
+	await valid.user.setUsername(newUsername);
+	res.status(200).json(await valid.user.getMetadata());
+}
+
 export function run(app) {
 	iosLinks = JSON.parse(fs.readFileSync("conf/ios_links.json"));
 
@@ -73,13 +84,18 @@ export function run(app) {
 		await ios_current_user(req, res, url.parse(req.url, true));
 	});
 
+	app.put("/api/v1/current_user/username", ios_set_username);
+
 	app.post("/api/v1/users", async function(req, res) {
-		const gcId = req.body.game_center_player_id
+		const gcId = req.body.game_center_player_id;
+		const username = req.body.username;
+		if (username === undefined) username = null; // null username = Unnamed Blockster
+
 		if (gcId !== undefined) {
 			if (iosLinks[gcId] !== undefined) {
 				res.status(500);
 			} else {
-				const newUser = await User.create(null, "ios");
+				const newUser = await User.create(username, "ios");
 				iosLinks[gcId] = newUser.id;
 				fs.writeFileSync("conf/ios_links.json", JSON.stringify(iosLinks))
 				await ios_current_user(req,res,{

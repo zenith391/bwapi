@@ -344,7 +344,9 @@ export class User {
 	}
 
 	async getUsername() {
-		return (await this.getMetadata()).username;
+		const username = (await this.getMetadata()).username;
+		if (username === undefined) return null;
+		return username;
 	}
 
 	async getStatus() {
@@ -368,6 +370,12 @@ export class User {
 	async setCoins(newValue) {
 		let metadata = await this.getMetadata();
 		metadata.coins = newValue;
+		await this.setMetadata(metadata);
+	}
+
+	async setUsername(newValue) {
+		let metadata = await this.getMetadata();
+		metadata.username = newValue;
 		await this.setMetadata(metadata);
 	}
 

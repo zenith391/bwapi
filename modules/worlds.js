@@ -580,7 +580,7 @@ function worldsGet(req, res, u) {
 	}
 	if (worldListCache[cacheIndex]) {
 		let json = worldListCache[cacheIndex];
-		if (json["expires"] >= Date.now()) {
+		if (Date.now() >= json["expires"]) {
 			worldListCache[cacheIndex] = undefined;
 		} else {
 			res.status(200).json(json);
