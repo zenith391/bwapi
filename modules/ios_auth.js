@@ -71,9 +71,13 @@ async function ios_set_username(req, res) {
 	const valid = validAuthToken(req, res, true);
 	if (valid.ok === false) return;
 
-	const newUsername = req.body["username"];
-	console.log("Changed name of " + valid.user.id + " to " + newUsername);
-	await valid.user.setUsername(newUsername);
+	const status = await valid.user.getStatus();
+	if ((status & 2) == 0) {
+		const newUsername = req.body["username"];
+		console.log("Changed name of " + valid.user.id + " to " + newUsername);
+		await valid.user.setUsername(newUsername);
+	}
+	
 	res.status(200).json(await valid.user.getMetadata());
 }
 
