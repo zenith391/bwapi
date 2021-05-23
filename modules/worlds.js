@@ -21,9 +21,6 @@ import url from "url";
 import { User } from "./users.js";
 import { urlencoded } from "express";
 
-// The world ID of the currently featured world
-let featuredWorldId = 1;
-
 // Utility Functions //
 
 // Retrieve author (author_username, etc.) data and store it in metadata.
@@ -620,6 +617,9 @@ function worldsGet(req, res, u) {
 				}
 			});
 		} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
+			const featuredWorldTxt = fs.readFileSync("conf/featured_world_id.txt", { encoding: "utf8" });
+			const featuredWorldId  = parseInt(featuredWorldTxt);
+
 			worlds = worlds.map(function (world) {
 				return {
 					world: world,
@@ -716,7 +716,9 @@ function worldsGet(req, res, u) {
 		}
 		json["worlds"] = obj;
 		if (end < publishedWorlds.length) {
-			json["pagination_next_page"] = page + 2; // + 2 because it got substracted by 1 before
+			json["pagination_next_page"] = page + 2;
+		} else {
+			json["pagination_next_page"] = null;
 		}
 		worldListCache[cacheIndex] = Object.assign({}, json);
 		worldListCache[cacheIndex]["expires"] = Date.now() + 1000*3600; // 1 hour
@@ -877,7 +879,6 @@ export function run(app) {
 		fs.writeFileSync("conf/new_world_id.txt", "1")
 		console.log("Created file \"conf/new_world_id.txt\"");
 	}
-	featuredWorldId = fs.readFileSync("conf/featured_world.txt", {"encoding": "utf8"});
 
 	app.delete("/api/v1/worlds/:id", deleteWorld);
 	app.get("/api/v1/worlds/:id/basic_info", worldBasicInfo);

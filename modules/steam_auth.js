@@ -33,7 +33,7 @@ function steam_current_user(req, res, u) {
 		let user = JSON.parse(fs.readFileSync("users/"+userId+"/metadata.json"));
 		let updated = false;
 		if (user["user_status"] == 2 && EARLY_ACCESS) {
-			user["user_status"] = 6;
+			user["user_status"] = user["user_status"] | 4;
 			console.log("Adding early access user status to user " + userId);
 			updated = true;
 		}

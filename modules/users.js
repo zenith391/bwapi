@@ -405,6 +405,29 @@ export class User {
 
 }
 
+User.status = {
+	premium: 1,
+	steam: 2,
+	earlyAccess: 4,
+	moderator: 8,
+	// Is official Linden account
+	linden: 16,
+	// Has tier 1 premium membership
+	tier1: 32,
+	// Has tier 2 premium membership
+	tier2: 64,
+	// Has tier 3 premium membership
+	tier3: 128,
+	// Using an iPad
+	ipad: 256,
+	// Using an iPhone
+	iphone: 512,
+	// Using any iOS device
+	ios: 256 | 512,
+	// Using a Blocksworld Wool account (unofficial, only used by bots and marking)
+	launcher: 1024
+};
+
 export async function socialUser(id, date) {
 	const user = new User(id);
 	const metadata = await user.getMetadata();

@@ -8,6 +8,7 @@ conf/new_model_id.txt
 conf/new_world_id.txt
 conf/gifts.json
 conf/ios_links.json
+conf/featured_world.txt
 cert/
 worlds/
 models/
