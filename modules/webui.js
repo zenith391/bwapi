@@ -214,13 +214,13 @@ export function run(app) {
 		}
 	});
 
-	app.get("/webui/user/ban/:id", function() {
+	app.get("/webui/user/ban/:id", async function() {
 		const id = req.params.id;
 		if (req.session && req.session.user) {
 			const user = new User(id);
 			if (await user.exists()) {
 				await user.ban();
-				
+
 				res.redirect("/webui/worlds");
 				console.log("Banned user " + id + " from publishing");
 			}
