@@ -124,7 +124,6 @@ export class User {
 	}
 
 	async exists() {
-		//return await redis.exists("user:" + this.id);
 		return fs.existsSync("users/" + this.id);
 	}
 

@@ -122,7 +122,7 @@ function newWorlds(req, res) {
 		res.locals.worlds = finalPage;
 		res.locals.totalPages = totalPages;
 		res.locals.activePage = page;
-		res.locals.moderator = req.session.user;
+		res.locals.moderator = req.session && req.session.user;
 		res.render("worlds");
 	});
 }
@@ -197,6 +197,36 @@ export function run(app) {
 	});
 	app.get("/webui/server_metrics/total_players.csv", function(req, res) {
 		res.status(200).sendFile(ROOT_NAME + "/total_players.csv");
+	});
+
+	app.get("/webui/world/reject/:id", function() {
+		const id = req.params.id;
+		if (req.session && req.session.user) {
+			if (fs.existsSync("worlds/" + id)) {
+				let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json", {"encoding": "utf8"}));
+				metadata["publication_status"] = 2; // rejected publication status
+				fs.writeFileSync("worlds/"+id+"/metadata.json", JSON.stringify(metadata));
+				res.redirect("/webui/worlds");
+				console.log("Rejected world " + id);
+			}
+		} else {
+			res.redirect("/webui/login");
+		}
+	});
+
+	app.get("/webui/user/ban/:id", function() {
+		const id = req.params.id;
+		if (req.session && req.session.user) {
+			const user = new User(id);
+			if (await user.exists()) {
+				await user.ban();
+				
+				res.redirect("/webui/worlds");
+				console.log("Banned user " + id + " from publishing");
+			}
+		} else {
+			res.redirect("/webui/login");
+		}
 	});
 
 	app.get("/webui/worlds", newWorlds);

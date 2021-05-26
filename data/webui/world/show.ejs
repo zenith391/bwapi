@@ -5,13 +5,13 @@
 		<p class="card-text">
 			<%- world.description %><br/>
 			<b><%- world.play_count %> plays</b><br/>
-			<% if (!world.moderator) { %>
+			<% if (!moderator) { %>
 			<p>Play by launching Blocksworld, going into Play and searching
 			<code>id:<%- world.id %></code></p> 
 			<% } %>
-			<% if (world.moderator) { %>
-			<button class="btn btn-warning">Reject</button>
-			<button class="btn btn-danger">Ban Author</button>
+			<% if (moderator) { %>
+			<a href="/webui/world/reject/<%- world.id %>"><button class="btn btn-warning">Reject</button></a>
+			<a href="/webui/user/ban/<%- world.author_id %>"><button class="btn btn-danger">Ban Author</button></a>
 			<% } %>
 		</p>
 	</div>
