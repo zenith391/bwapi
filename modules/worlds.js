@@ -104,6 +104,12 @@ let allWorldsCache = {};
 let allWorldsCacheValid = false;
 let allWorldsCacheLoading = false;
 
+global.worldCacheSet = function(id, world) {
+	world.id = id;
+	if (!world.required_mods) world.required_mods = [];
+	allWorldsCache[id] = world;
+}
+
 // Request the world cache. Calls 'callback' function with a list of all loaded worlds.
 global.worldCache = function(callback) {
 	if (!allWorldsCacheValid) {

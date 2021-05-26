@@ -208,6 +208,7 @@ export function run(app) {
 				fs.writeFileSync("worlds/"+id+"/metadata.json", JSON.stringify(metadata));
 				res.redirect("/webui/worlds");
 				console.log("Rejected world " + id);
+				worldCacheSet(id, metadata);
 			}
 		} else {
 			res.redirect("/webui/login");
