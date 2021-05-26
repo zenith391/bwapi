@@ -28,7 +28,8 @@ describe("World listing", () => {
 			.then((response) => {
 				const json = JSON.parse(response.text)
 				expect(json).to.deep.equals({
-					worlds: []
+					worlds: [],
+					pagination_next_page: null
 				})
 			})
 	})
@@ -94,7 +95,8 @@ describe("World listing", () => {
 						"first_published_at": "2021-04-10T23:58:41+00:00",
 						"updated_at": "2021-04-10T23:58:41+00:00",
 						"required_mods": []
-					}]
+					}],
+					pagination_next_page: null
 				})
 			})
 	})

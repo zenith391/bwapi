@@ -65,7 +65,6 @@ let _warn = createLogFunction(console.warn);
 let _error = createLogFunction(console.error);
 
 console.log = function(obj) {
-	let dateStr = new Date().toLocaleTimeString();
 	if (typeof(obj) == "object") {
 		obj = util.inspect(obj, {
 			"colors": true
@@ -73,11 +72,10 @@ console.log = function(obj) {
 	} else if (obj === undefined) {
 		obj = "undefined";
 	}
-	_log("[ " + dateStr + " | LOG   ] " + obj.toString());
+	_log("[ LOG ] " + obj.toString());
 }
 
 console.debug = function(obj, userId) {
-	let dateStr = new Date().toLocaleTimeString();
 	if (typeof(obj) == "object") {
 		obj = util.inspect(obj, {
 			"colors": true
@@ -86,25 +84,22 @@ console.debug = function(obj, userId) {
 		obj = "undefined";
 	}
 	if (userId === undefined) {
-		_log("[ " + dateStr + " | DEBUG ] " + obj.toString());
+		_log("[DEBUG] " + obj.toString());
 	} else {
-		_log("[ " + dateStr + " | User " + userId + " | DEBUG ] " + obj.toString());
+		_log("[User " + userId + " | DEBUG] " + obj.toString());
 	}
 }
 
 console.info = function(obj) {
-	let dateStr = new Date().toLocaleTimeString();
-	_log("[ " + dateStr + " | INFO  ] " + obj.toString());
+	_log("[INFO ] " + obj.toString());
 }
 
 console.warn = function(obj) {
-	let dateStr = new Date().toLocaleTimeString();
-	_warn("[ " + dateStr + " | WARN  ] " + obj.toString());
+	_warn("[WARN ] " + obj.toString());
 }
 
 console.error = function(obj) {
-	let dateStr = new Date().toLocaleTimeString();
-	_error("[ " + dateStr + " | ERROR ] " + obj.toString());
+	_error("[ERROR] " + obj.toString());
 }
 
 let useHttps = true;

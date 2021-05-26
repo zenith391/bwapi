@@ -92,7 +92,7 @@ export function run(app) {
 
 	app.post("/api/v1/users", async function(req, res) {
 		const gcId = req.body.game_center_player_id;
-		const username = req.body.username;
+		let username = req.body.username;
 		if (username === undefined) username = null; // null username = Unnamed Blockster
 
 		if (gcId !== undefined) {

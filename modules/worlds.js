@@ -21,6 +21,8 @@ import url from "url";
 import { User } from "./users.js";
 import { urlencoded } from "express";
 
+const profanityRegex = /nigga|fuck|penis|dick|semen|cum/;
+
 // Utility Functions //
 
 // Retrieve author (author_username, etc.) data and store it in metadata.
@@ -171,6 +173,7 @@ global.isWorldCacheValid = function() {
 global.invalidateWorldCache = function() {
 	allWorldsCache = {};
 	allWorldsCacheValid = false;
+	worldListCache = {};
 }
 
 // Module code //
@@ -274,6 +277,11 @@ async function deleteWorld(req, res) {
 				"success": true
 			});
 		}
+	} else {
+		res.status(404).json({
+			"error": 404,
+			"error_message": "World is already deleted"
+		})
 	}
 }
 
@@ -287,16 +295,23 @@ async function publicationStatus(req, res) {
 		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json", {"encoding": "utf8"}));
 		if (metadata["author_id"] == userId) {
 			if (req.body.is_published == "true") {
-				metadata["publication_status"] = 1;
-				if (metadata["first_published_at"] == metadata["created_at"]) {
-					metadata["first_published_at"] = dateString();
-					await valid.user.addFeed({
-						"type": 201,
-						"timestamp": metadata["first_published_at"],
-						"world_id": parseInt(id),
-						"world_image_urls_for_sizes": metadata["image_urls_for_sizes"],
-						"world_title": metadata["title"]
+				if (profanityRegex.test(metadata.title) || profanityRegex.test(metadata.description)) {
+					res.status(400).json({
+						"error": 400,
+						"error_message": "profanity_filter_error"
 					});
+				} else {
+					metadata["publication_status"] = 1;
+					if (metadata["first_published_at"] == metadata["created_at"]) {
+						metadata["first_published_at"] = dateString();
+						await valid.user.addFeed({
+							"type": 201,
+							"timestamp": metadata["first_published_at"],
+							"world_id": parseInt(id),
+							"world_image_urls_for_sizes": metadata["image_urls_for_sizes"],
+							"world_title": metadata["title"]
+						});
+					}
 				}
 			} else {
 				metadata["publication_status"] = 5;
@@ -386,10 +401,11 @@ async function createWorld(req, res) {
 		console.log(user["username"] + " has too many worlds.");
 		res.status(400).json({
 			"error": 400,
-			"error_msg": "Too many worlds created."
+			"error_message": "Too many worlds created."
 		});
 		return;
 	}
+
 	fs.readFile("conf/new_world_id.txt", {"encoding": "utf8"}, async function(err, data) {
 		if (err != null)
 			console.log(err);
@@ -530,6 +546,14 @@ async function updateWorld(req, res) {
 				}
 			}
 			if (metadata["publication_status"] == 1) {
+				if (profanityRegex.test(metadata.title) || profanityRegex.test(metadata.description)) {
+					res.status(400).json({
+						"error": 400,
+						"error_message": "profanity_filter_error"
+					});
+					return;
+				}
+
 				let feed = {
 					"type": 202,
 					"timestamp": dateString(),
@@ -580,7 +604,9 @@ function worldsGet(req, res, u) {
 		if (Date.now() >= json["expires"]) {
 			worldListCache[cacheIndex] = undefined;
 		} else {
-			res.status(200).json(json);
+			let copy = Object.assign({}, json);
+			delete copy.expires;
+			res.status(200).json(copy);
 			return;
 		}
 	}
