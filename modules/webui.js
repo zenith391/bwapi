@@ -199,7 +199,7 @@ export function run(app) {
 		res.status(200).sendFile(ROOT_NAME + "/total_players.csv");
 	});
 
-	app.get("/webui/world/reject/:id", function() {
+	app.get("/webui/world/reject/:id", function(req, res) {
 		const id = req.params.id;
 		if (req.session && req.session.user) {
 			if (fs.existsSync("worlds/" + id)) {
@@ -214,7 +214,7 @@ export function run(app) {
 		}
 	});
 
-	app.get("/webui/user/ban/:id", async function() {
+	app.get("/webui/user/ban/:id", async function(req, res) {
 		const id = req.params.id;
 		if (req.session && req.session.user) {
 			const user = new User(id);
