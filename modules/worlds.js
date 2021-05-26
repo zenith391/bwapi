@@ -300,6 +300,11 @@ async function publicationStatus(req, res) {
 						"error": 400,
 						"error_message": "profanity_filter_error"
 					});
+				} else if (await valid.user.isBanned()) {
+					res.status(400).json({
+						"error": 400,
+						"error_message": "You are banned."
+					});
 				} else {
 					metadata["publication_status"] = 1;
 					if (metadata["first_published_at"] == metadata["created_at"]) {
@@ -695,9 +700,6 @@ function worldsGet(req, res, u) {
 		
 		for (let world of worlds) {
 			try {
-				if (world.id < 0) { // status update world
-					continue;
-				}
 				let metadata = world;
 				let cond = (metadata["publication_status"] == 1);
 				if (req.params) {

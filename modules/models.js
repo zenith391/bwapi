@@ -203,18 +203,25 @@ async function updateModel(req, res) {
 				metadata["sales_count"] = 0;
 			}
 			if (req.body["publish"] == "yes") {
-				metadata["publication_status"] = 2; // approved and published
-				metadata["u2u_model_id"] = metadata["id"];
-				if (!metadata["first_published_at"]) {
-					metadata["first_published_at"] = dateString();
-					await user.addFeed({
-						"type": 301,
-						"timestamp": metadata["first_published_at"],
-						"model_id": parseInt(id),
-						"model_icon_urls_for_sizes": metadata["icon_urls_for_sizes"],
-						"model_sales_count": metadata["sales_count"],
-						"model_title": metadata["title"]
+				if (await user.isBanned()) {
+					res.status(400).json({
+						"error": 400,
+						"error_message": "You are banned."
 					});
+				} else {
+					metadata["publication_status"] = 2; // approved and published
+					metadata["u2u_model_id"] = metadata["id"];
+					if (!metadata["first_published_at"]) {
+						metadata["first_published_at"] = dateString();
+						await user.addFeed({
+							"type": 301,
+							"timestamp": metadata["first_published_at"],
+							"model_id": parseInt(id),
+							"model_icon_urls_for_sizes": metadata["icon_urls_for_sizes"],
+							"model_sales_count": metadata["sales_count"],
+							"model_title": metadata["title"]
+						});
+					}
 				}
 			} else if (req.body["unpublish"] == "yes") {
 				metadata["publication_status"] = 0; // unpublished

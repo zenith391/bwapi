@@ -5,9 +5,13 @@
 		<p class="card-text">
 			<%- world.description %><br/>
 			<b><%- world.play_count %> plays</b><br/>
-			<% if (world.bc) { %>
+			<% if (!world.moderator) { %>
 			<p>Play by launching Blocksworld, going into Play and searching
 			<code>id:<%- world.id %></code></p> 
+			<% } %>
+			<% if (world.moderator) { %>
+			<button class="btn btn-warning">Reject</button>
+			<button class="btn btn-danger">Ban Author</button>
 			<% } %>
 		</p>
 	</div>

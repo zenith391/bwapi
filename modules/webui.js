@@ -75,20 +75,6 @@ function home(req, res) {
 	}
 }
 
-function bc(req, res) {
-	/*fs.readdir("worlds", function(err, files) {
-		let worlds = [];
-		for (i in files) {
-			let world = fullWorldSync(files[i], true);
-			if (world.description.match("#buildchallenge3")) {
-				worlds.push(world);
-			}
-		}
-		res.locals.worlds = worlds;
-		res.render("bc");
-	});*/
-}
-
 function newWorlds(req, res) {
 	let u = url.parse(req.url, true);
 	worldCache(function (err, worlds) {
@@ -96,7 +82,7 @@ function newWorlds(req, res) {
 		worlds = worlds.map(function (world) {
 			let date = new Date(world["first_published_at"]);
 			if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
-				date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+				date = 0;
 			} else {
 				date = date.getTime();
 			}
@@ -114,9 +100,6 @@ function newWorlds(req, res) {
 			
 		for (const i in worlds) {
 			let world = worlds[i];
-			if (world.id < 0) { // status update world
-				continue;
-			}
 			if (world["publication_status"] == 1) {
 				publishedWorlds.push(world);
 			}
@@ -139,6 +122,7 @@ function newWorlds(req, res) {
 		res.locals.worlds = finalPage;
 		res.locals.totalPages = totalPages;
 		res.locals.activePage = page;
+		res.locals.moderator = req.session.user;
 		res.render("worlds");
 	});
 }
@@ -215,7 +199,6 @@ export function run(app) {
 		res.status(200).sendFile(ROOT_NAME + "/total_players.csv");
 	});
 
-	app.get("/webui/submissions", bc);
 	app.get("/webui/worlds", newWorlds);
 
 	app.get("/webui/logout", function(req, res) {

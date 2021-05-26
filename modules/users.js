@@ -361,6 +361,10 @@ export class User {
 		return (await this.getMetadata()).agreed_to_u2u_tos;
 	}
 
+	async isBanned() {
+		return (await this.getMetadata()).is_username_blocked;
+	}
+
 	async getAccountType() {
 		const metadata = await this.getMetadata();
 		if (metadata["account_type"] === undefined) return "user";
@@ -400,6 +404,18 @@ export class User {
 	async completeTutorial() {
 		let metadata = await this.getMetadata();
 		metadata.needs_tutorial = false;
+		await this.setMetadata(metadata);
+	}
+
+	async ban() {
+		let metadata = await this.getMetadata();
+		metadata.is_username_blocked = true;
+		await this.setMetadata(metadata);
+	}
+
+	async unban() {
+		let metadata = await this.getMetadata();
+		metadata.is_username_blocked = false;
 		await this.setMetadata(metadata);
 	}
 

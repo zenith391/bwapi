@@ -10,7 +10,7 @@
 		</ul>
 		<div class="row">
 			<% worlds.forEach(function(world) { %>
-				<%- include("world/show", {world: world}) %>
+				<%- include("world/show", { world: world, moderator: moderator }) %>
 			<% }); %>
 		</div>
 		<ul class="pagination justify-content-center">
