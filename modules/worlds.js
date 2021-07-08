@@ -739,7 +739,7 @@ function worldsGet(req, res, u) {
 					}
 				}
 			} catch (e) {
-				console.error("Error sorting world " + worlds[i].id);
+				console.error("Error sorting world " + world.id);
 				console.error(e);
 			}
 		}
@@ -833,7 +833,7 @@ async function worldLeaderboard(req, res) {
 			let minDate = new Date();
 			minDate.setDate(minDate.getDate() - 7);
 			if (new Date(record["timestamp"]) > minDate) {
-				periodicRecords.push(record);
+				periodicRecords.push(Object.assign({}, record));
 			}
 		}
 
@@ -841,7 +841,7 @@ async function worldLeaderboard(req, res) {
 			return a["best_time_ms"] - b["best_time_ms"];
 		});
 		for (const k in periodicRecords) {
-			periodicRecords[k].rank = k;
+			periodicRecords[k].rank = parseInt(k);
 		}
 		lb["periodic_records"] = periodicRecords;
 		res.status(200).json({
