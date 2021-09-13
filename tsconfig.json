@@ -1,0 +1,12 @@
+{
+	"extends": "@tsconfig/node14/tsconfig.json",
+	"compilerOptions": {
+		"outDir": "./modules",
+		"module": "es2020",
+		"moduleResolution": "node",
+		"allowJs": true,
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true
+	},
+	"include": ["./src/*"]
+}

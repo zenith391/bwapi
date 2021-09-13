@@ -1,7 +1,7 @@
 import assert from "assert";
 import { expect } from "chai";
 import request from "supertest";
-import app from "../app.js";
+import app from "../modules/app.js";
 import fs from "fs";
 
 describe("Unit testing getting a non-existent world (id 123456789)", () => {

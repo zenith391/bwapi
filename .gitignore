@@ -20,12 +20,7 @@ usersWoolLinks/
 userAccounts/
 latest.log
 logging.txt
-total_worlds.csv
-total_models.csv
-total_players.csv
-steam_active_players.csv
-launcher_active_players.csv
-ios_active_players.csv
+metrics/
 
 # private tools
 list_world_by_user.js

@@ -26,15 +26,15 @@ import compression from "compression";
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { User } from "./modules/users.js";
-import { run } from "./modules/bwwool.js";
+import { User } from "./users.js";
+import { run } from "./bwwool.js";
 
 global.__filename = fileURLToPath(import.meta.url);
 global.__dirname = path.dirname(__filename);
 
 /*global.redis = new Redis({
 	host: "127.0.0.1",
-	password: "C`NkK(VyG;4N&u-gHdn,QUP`H;C{A$^e"
+	password: ""
 });*/
 
 // you *MUST* change this to the address of your server (otherwise some features like thumbnails won't work) !
@@ -205,9 +205,11 @@ let cores = fs.readdirSync("modules");
 for (const i in cores) {
 	let file = cores[i];
 	//console.debug("Init module " + file);
-	const userModule = await import("./modules/" + file);
-	if (userModule.run) {
-		userModule.run(app);
+	if (file != "app.js") {
+		const userModule = await import("./" + file);
+		if (userModule.run) {
+			userModule.run(app);
+		}
 	}
 }
 

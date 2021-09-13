@@ -1,5 +1,5 @@
 /**
-    bwapi - Blocksworld API server reimplementation
+	bwapi - Blocksworld API server reimplementation
     Copyright (C) 2020 zenith391
 
     This program is free software: you can redistribute it and/or modify
@@ -15,6 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
+
 // const express = require("express");
 // const https = require("https");
 // const url = require("url");
@@ -22,6 +23,7 @@
 // const fs = require("fs");
 // const zlib = require("zlib");
 // const qs = require("querystring");
+
 // var hosts = [
 // 	{
 // 		"address": "bwsecondary.ddns.net",
@@ -36,10 +38,13 @@
 // 		"port": 8080
 // 	},
 // ];
+
 // function sendData(targetHost, data) {
 // 	// TODO: wson
 // 	data.source = zlib.deflateRawSync(data.source, {"level": 9});
+
 // 	const postData = qs.stringify(data);
+
 // 	const req = https.request({
 // 		"hostname": targetHost.address,
 // 		"port": targetHost.port,
@@ -50,6 +55,7 @@
 // 			"Content-Length": Buffer.byteLength(postData)
 // 		}
 // 	}, function(res) {});
+
 // 	console.log("Sent " + data.type + " " + data.id);
 // 	req.on("error", function(e) {
 // 		console.error(e);
@@ -57,6 +63,7 @@
 // 	req.write(postData);
 // 	req.end();
 // }
+
 // function recvDataEndpoint(req, res) {
 // 	const decompressedSource = zlib.inflateRawSync(req.data.source, {"level":9});
 // 	console.log("Received " + req.data.type + " " + req.data.id);
@@ -71,6 +78,7 @@
 // 		fs.writeFileSync("images/models/" + worldId + "_icon.png", req.data.iconImage);
 // 	}
 // }
+
 // function requestEndpoint(req, res) {
 // 	for (worldId in req.body.worlds) {
 // 		fs.readFile("worlds/" + worldId + "/metadata.json", function(err, meta) {
@@ -89,6 +97,7 @@
 // 			});
 // 		});
 // 	}
+
 // 	for (modelId in req.body.models) {
 // 		fs.readFile("models/" + modelId + "/metadata.json", function(err, meta) {
 // 			fs.readFile("models/" + modelId + "/source.json", function(err, source) {
@@ -108,9 +117,11 @@
 // 		});
 // 	}
 // }
+
 // function startEndpoint(req, res) {
 // 	fs.readdir("worlds", function(err, worlds) {
 // 		let obj = {}
+
 // 		let worldsList = [];
 // 		for (world of worlds) {
 // 			worldsList.push({
@@ -119,6 +130,7 @@
 // 			});
 // 		}
 // 		obj.worlds = worldsList;
+
 // 		fs.readdir("models", function(err, models) {
 // 			let modelsList = [];
 // 			for (model of models) {
@@ -128,6 +140,7 @@
 // 				});
 // 			}
 // 			obj.models = modelsList;
+
 // 			fs.readdir("users", function(err, users) {
 // 				let usersList = [];
 // 				let userFiles = [
@@ -163,8 +176,9 @@
 // 		});
 // 	});
 // }
+
 export function run(app) {
-    //app.get("/api/sync/v1/start", startEndpoint);
-    //app.post("/api/sync/v1/request", requestEndpoint);
-    //app.post("/api/v2/sync/recv_data", recvDataEndpoint)
+	//app.get("/api/sync/v1/start", startEndpoint);
+	//app.post("/api/sync/v1/request", requestEndpoint);
+	//app.post("/api/v2/sync/recv_data", recvDataEndpoint)
 }

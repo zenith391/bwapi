@@ -1,5 +1,5 @@
 /**
-    bwapi - Blocksworld API server reimplementation
+	bwapi - Blocksworld API server reimplementation
     Copyright (C) 2020 zenith391
 
     This program is free software: you can redistribute it and/or modify
@@ -15,10 +15,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
+
 // let mpWorlds = {};
 // const express = require("express");
 // const url = require("url");
 // const fs = require("fs");
+
 // let createRoom = function(wid) {
 // 	let room = {
 // 		"world_id": parseInt(wid),
@@ -28,12 +30,14 @@
 // 	};
 // 	return room;
 // };
+
 // let formatRoom = function(room) {
 // 	return {
 // 		"world_id": room.world_id,
 // 		"players": room.players
 // 	};
 // }
+
 // let pushEvent = function(room, submitterSocket, event) {
 // 	for (socket in room.sockets) {
 // 		if (socket == submitterSocket) continue;
@@ -42,21 +46,25 @@
 // 		//socket.write(event.buffer);
 // 	}
 // }
+
 // function createGroup(req, res) {
 // 	let query = url.parse(req.url, true).query
 // 	let name = query["name"];
+
 // 	let valid = validAuthToken(req, res, false);
 // 	if (!valid[0]) {
 // 		return;
 // 	}
 // 	let userId = valid[1];
 // 	let userMeta = userMetadata(userId);
+
 // 	if (!name) {
 // 		res.status(400).json({
 // 			"error": 400,
 // 			"error_msg": "Invalid request, missing \"name\" query"
 // 		})
 // 	}
+
 // 	if (userMeta.coins > 50 && userMeta["_SERVER_groups"].length < 10) {
 // 		fs.readFile("conf/new_account_id.txt", function(err, data) {
 // 			if (err != null)
@@ -111,16 +119,21 @@
 // 		})
 // 	}
 // }
+
+
+
 // function transferWorld(req, res) {
 // 	let query = url.parse(req.url, true).query;
 // 	let worldId = req.params.wid;
 // 	let target = req.params.target;
+
 // 	let valid = validAuthToken(req, res, false);
 // 	if (!valid[0]) {
 // 		return;
 // 	}
 // 	let userId = valid[1];
 // 	let userMeta = userMetadata(userId);
+
 // 	fullWorld(worldId, false, function(err, world) {
 // 		if (world["author_id"] != userId) {
 // 			res.status(500).json({
@@ -160,6 +173,7 @@
 // 		}
 // 	});
 // }
+
 // function roomEventStream(req, res) {
 // 	let roomId = req.params.id;
 // 	let worldId = req.params.wid;
@@ -171,17 +185,21 @@
 // 		return;
 // 	}
 // 	let room = mpWorlds[worldId][roomId]; 
+
 // 	console.log("event stream");
 // 	let socket = req.socket;
 // 	let _end = socket.end;
 // 	socket.setKeepAlive(true, Number.MAX_SAFE_INTEGER);
 // 	socket.setNoDelay(true);
+
 // 	room.sockets.push(socket);
+
 // 	let commandBuf = {
 // 		"command": -1,
 // 		"length": -1,
 // 		"data": Buffer.alloc(0)
 // 	}
+
 // 	socket.on("data", function(chunk) {
 // 		if (commandBuf.command == -1) { // waiting for command, never sent with the length and data
 // 			commandBuf.command = chunk.readUInt8(0);
@@ -199,6 +217,7 @@
 // 			if (type == 1) { // world source
 // 				let buf = Buffer.alloc(commandBuf.length);
 // 				data.copy(buf, 0, 0, data.length);
+				
 // 			} else {
 // 				console.log("unknown type: " + type.toString());
 // 			}
@@ -216,69 +235,76 @@
 // 		}
 // 		//_end();
 // 	});
+
 // 	socket.end = function() {};
 // 	socket.destroy = function() {};
 // }
+
 export function run(app) {
-    // capabilities["bwmulti"] = {
-    // 	"version": "0.1.0"
-    // }
-    // app.get("/api/v2/worlds/:id/rooms/join_play", function (req, res) {
-    // 	let wid = req.params["id"];
-    // 	if (mpWorlds[wid] == undefined) {
-    // 		mpWorlds[wid] = [createRoom(wid)]; // first room is "build" room
-    // 	}
-    // 	let latest = mpWorlds[wid][mpWorlds[wid].length-1];
-    // 	if (mpWorlds[wid].length != 1 && latest.players < 10) {
-    // 		latest.players = latest.players + 1
-    // 		res.status(200).json({"room_id": mpWorld[wid].length-1, "room": formatRoom(latest)});
-    // 	} else {
-    // 		if (mpWorlds[wid].length >= 6) {
-    // 			res.status(500).json({
-    // 				"error": 500,
-    // 				"error_msg": "All rooms are full."
-    // 			});
-    // 		} else {
-    // 			let id = mpWorlds[wid].push(createRoom(wid))-1;
-    // 			res.status(200).json({
-    // 				"room_id": id,
-    // 				"room": formatRoom(mpWorlds[wid][id])
-    // 			});
-    // 		}
-    // 	}
-    // });
-    // app.get("/api/v2/current_user/groups", function (req, res) {
-    // 	let valid = validAuthToken(req, res, false);
-    // 	if (!valid[0]) {
-    // 		return;
-    // 	}
-    // 	let userId = valid[1];
-    // 	let userMeta = userMetadata(userId);
-    // 	let groups = userMeta["_SERVER_groups"];
-    // 	for (k in groups) {
-    // 		let group = groups[k];
-    // 		if (group["owner_id"])
-    // 			group["owner_username"] = userMetadata(group["owner_id"]).username;
-    // 	}
-    // 	res.status(200).json({
-    // 		"groups": groups
-    // 	});
-    // });
-    // app.get("/api/v2/worlds/:id/rooms/join_build", function (req, res) {
-    // 	let wid = req.params["id"];
-    // 	if (mpWorlds[wid] == undefined) {
-    // 		mpWorlds[wid] = [createRoom(wid)]; // first room is "build" room
-    // 	}
-    // 	let buildRoom = mpWorlds[wid][0];
-    // 	buildRoom.players = buildRoom.players + 1
-    // 	res.status(200).json({
-    // 		"room_id": 0,
-    // 		"room": formatRoom(buildRoom)
-    // 	});
-    // });
-    // // Rooms events
-    // app.get("/api/v2/worlds/:wid/rooms/:id/event_stream", roomEventStream);
-    // app.get("/api/v2/worlds/:wid/transfer_to/:target", transferWorld);
-    // app.get("/api/v2/groups/create", createGroup);
-}
-;
+	// capabilities["bwmulti"] = {
+	// 	"version": "0.1.0"
+	// }
+
+	// app.get("/api/v2/worlds/:id/rooms/join_play", function (req, res) {
+	// 	let wid = req.params["id"];
+	// 	if (mpWorlds[wid] == undefined) {
+	// 		mpWorlds[wid] = [createRoom(wid)]; // first room is "build" room
+	// 	}
+
+	// 	let latest = mpWorlds[wid][mpWorlds[wid].length-1];
+	// 	if (mpWorlds[wid].length != 1 && latest.players < 10) {
+	// 		latest.players = latest.players + 1
+	// 		res.status(200).json({"room_id": mpWorld[wid].length-1, "room": formatRoom(latest)});
+	// 	} else {
+	// 		if (mpWorlds[wid].length >= 6) {
+	// 			res.status(500).json({
+	// 				"error": 500,
+	// 				"error_msg": "All rooms are full."
+	// 			});
+	// 		} else {
+	// 			let id = mpWorlds[wid].push(createRoom(wid))-1;
+	// 			res.status(200).json({
+	// 				"room_id": id,
+	// 				"room": formatRoom(mpWorlds[wid][id])
+	// 			});
+	// 		}
+	// 	}
+	// });
+
+	// app.get("/api/v2/current_user/groups", function (req, res) {
+	// 	let valid = validAuthToken(req, res, false);
+	// 	if (!valid[0]) {
+	// 		return;
+	// 	}
+	// 	let userId = valid[1];
+	// 	let userMeta = userMetadata(userId);
+	// 	let groups = userMeta["_SERVER_groups"];
+	// 	for (k in groups) {
+	// 		let group = groups[k];
+	// 		if (group["owner_id"])
+	// 			group["owner_username"] = userMetadata(group["owner_id"]).username;
+	// 	}
+	// 	res.status(200).json({
+	// 		"groups": groups
+	// 	});
+	// });
+
+	// app.get("/api/v2/worlds/:id/rooms/join_build", function (req, res) {
+	// 	let wid = req.params["id"];
+	// 	if (mpWorlds[wid] == undefined) {
+	// 		mpWorlds[wid] = [createRoom(wid)]; // first room is "build" room
+	// 	}
+
+	// 	let buildRoom = mpWorlds[wid][0];
+	// 	buildRoom.players = buildRoom.players + 1
+	// 	res.status(200).json({
+	// 		"room_id": 0,
+	// 		"room": formatRoom(buildRoom)
+	// 	});
+	// });
+
+	// // Rooms events
+	// app.get("/api/v2/worlds/:wid/rooms/:id/event_stream", roomEventStream);
+	// app.get("/api/v2/worlds/:wid/transfer_to/:target", transferWorld);
+	// app.get("/api/v2/groups/create", createGroup);
+};

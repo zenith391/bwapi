@@ -1,5 +1,5 @@
 /**
-    bwapi - Blocksworld API server reimplementation
+	bwapi - Blocksworld API server reimplementation
     Copyright (C) 2020 zenith391
 
     This program is free software: you can redistribute it and/or modify
@@ -16,9 +16,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
 export function run(app) {
-    app.get("/api/v2/capabilities", function (req, res) {
-        res.status(200).json({
-            "capabilities": global.capabilities
-        });
-    });
+	app.get("/api/v2/capabilities", function(req, res) {
+		res.status(200).json({
+			"capabilities": global.capabilities
+		});
+	});
 }

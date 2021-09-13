@@ -6,26 +6,32 @@
   "type": "module",
   "main": "main.js",
   "scripts": {
-    "start": "node --trace-warnings --unhandled-rejections=strict main.js",
-    "test": "mocha --exit"
+    "start": "tsc && node --trace-warnings --unhandled-rejections=strict main.js",
+    "test": "tsc && mocha --exit"
   },
   "author": "zenith391",
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
+    "class-transformer": "^0.4.0",
     "compression": "^1.7.4",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "ioredis": "^4.26.0",
     "multiparty": "^4.2.2",
+    "reflect-metadata": "^0.1.13",
     "serverline": "^1.5.0",
     "uuid": "^3.4.0"
   },
   "devDependencies": {
+    "@tsconfig/node14": "^1.0.1",
+    "@types/node": "^16.0.1",
+    "@types/uuid": "^8.3.1",
     "chai": "^4.3.4",
     "mocha": "^8.3.2",
-    "supertest": "^6.1.3"
+    "supertest": "^6.1.3",
+    "typescript": "^4.3.5"
   }
 }
