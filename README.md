@@ -1,5 +1,9 @@
+![GitHub](https://img.shields.io/github/license/zenith391/bwapi?style=for-the-badge) ![GitHub](https://img.shields.io/github/stars/zenith391/bwapi?style=for-the-badge) ![GitHub](https://img.shields.io/github/issues/zenith391/bwapi?style=for-the-badge) ![GitHub](https://img.shields.io/github/forks/zenith391/bwapi?style=for-the-badge)
+
 # Blocksworld API server
-## Setup
+BWApi aims to be a free to use re-implementation of the Blocksworld Game API, allowing for Players to reconnect with other members of the Blocksworld community!
+
+## Server Installation:
 ### Ubuntu / Debian
 
 Clone this repository or use the Download ZIP button inside Code button on GitHub.  
