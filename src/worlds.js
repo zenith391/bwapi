@@ -1,19 +1,19 @@
 /**
 	bwapi - Blocksworld API server reimplementation
-    Copyright (C) 2020 zenith391
+	Copyright (C) 2020 zenith391
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+	This program is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+	You should have received a copy of the GNU General Public License
+	along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
 
 import fs from "fs";
@@ -64,14 +64,18 @@ global.fullWorld = function(id, source, callback) {
 			if (!metadata["required_mods"]) metadata["required_mods"] = [];
 			if (source) {
 				fs.readFile("worlds/" + id + "/source.json", function(e, d) {
-					metadata["source_json_str"] = d.toString();
-					if (!metadata["publication_status"]) {
-						metadata["publication_status"] = 5;
+					if (e) {
+						callback(e, null);
+					} else {
+						metadata["source_json_str"] = d.toString();
+						if (!metadata["publication_status"]) {
+							metadata["publication_status"] = 5;
+						}
+						if (!metadata["title"]) {
+							metadata["title"] = "";
+						}
+						callback(null, metadata);
 					}
-					if (!metadata["title"]) {
-						metadata["title"] = "";
-					}
-					callback(null, metadata);
 				});
 			} else {
 				callback(null, metadata);

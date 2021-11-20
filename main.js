@@ -105,8 +105,8 @@ console.error = function(obj) {
 let useHttps = true;
 
 if (!fs.existsSync("cert")) {
-	console.error("Missing 'cert' directory. Please refer to the 'README.md' for more details on how to setup.");
-	console.error("Launching bwapi in http mode");
+	console.warn("Missing 'cert' directory. Please refer to the 'README.md' for more details on how to setup.");
+	console.warn("Launching bwapi in http mode");
 	useHttps = false;
 }
 

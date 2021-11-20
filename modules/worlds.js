@@ -62,14 +62,19 @@ global.fullWorld = function (id, source, callback) {
                 metadata["required_mods"] = [];
             if (source) {
                 fs.readFile("worlds/" + id + "/source.json", function (e, d) {
-                    metadata["source_json_str"] = d.toString();
-                    if (!metadata["publication_status"]) {
-                        metadata["publication_status"] = 5;
+                    if (e) {
+                        callback(e, null);
                     }
-                    if (!metadata["title"]) {
-                        metadata["title"] = "";
+                    else {
+                        metadata["source_json_str"] = d.toString();
+                        if (!metadata["publication_status"]) {
+                            metadata["publication_status"] = 5;
+                        }
+                        if (!metadata["title"]) {
+                            metadata["title"] = "";
+                        }
+                        callback(null, metadata);
                     }
-                    callback(null, metadata);
                 });
             }
             else {
