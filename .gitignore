@@ -32,7 +32,7 @@ total_players.csv
 list_world_by_user.js
 
 # private module
-modules/bwwool.js
+modules/
 
 # Node
 node_modules/
