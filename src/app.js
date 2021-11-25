@@ -239,8 +239,9 @@ app.get("/api/v1/block_items/pricing", function(req, res) {
 	res.status(200).send(blocksPricings);
 });
 
+let coinPacks = JSON.stringify(JSON.parse(fs.readFileSync("conf/coin_packs.json")));
 app.get("/api/v1/store/coin_packs", function(req, res) {
-	res.status(200).sendFile("conf/coin_packs.json", fileOptions);
+	res.status(200).send(coinPacks);
 });
 
 app.use("/images", express.static("images", { extensions: ['png', 'jpg'], maxAge: '5m' })); // Serve the 'images' folder

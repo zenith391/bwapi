@@ -33,6 +33,7 @@ list_world_by_user.js
 
 # private module
 modules/
+src/bwwool.ts
 
 # Node
 node_modules/
