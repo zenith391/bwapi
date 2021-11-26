@@ -9,9 +9,13 @@ describe("Login with Steam", () => {
 		fs.renameSync("users", "users_old");
 		fs.mkdirSync("users", {});
 
+		fs.renameSync("worlds", "worlds_old");
+		fs.mkdirSync("worlds", {});
+
 		fs.renameSync("usersSteamLinks", "usersSteamLinks_old");
 		fs.mkdirSync("usersSteamLinks", {});
 
+		fs.copyFileSync("conf/new_world_id.txt", "conf/new_world_id.txt.bak");
 		fs.copyFileSync("conf/new_account_id.txt", "conf/new_account_id.txt.bak");
 	})
 
@@ -19,9 +23,15 @@ describe("Login with Steam", () => {
 		fs.rmSync("users", { recursive: true });
 		fs.renameSync("users_old", "users");
 
+		fs.rmSync("worlds", { recursive: true });
+		fs.renameSync("worlds_old", "worlds");
+
 		fs.rmSync("usersSteamLinks", { recursive: true });
 		fs.renameSync("usersSteamLinks_old", "usersSteamLinks");
 
+
+		fs.rmSync("conf/new_world_id.txt", {});
+		fs.renameSync("conf/new_world_id.txt.bak", "conf/new_world_id.txt");
 		fs.rmSync("conf/new_account_id.txt", {});
 		fs.renameSync("conf/new_account_id.txt.bak", "conf/new_account_id.txt");
 	})
@@ -46,6 +56,7 @@ describe("Login with Steam", () => {
 		let authToken;
 		let userId;
 		let secondUserId;
+		let secondAuthToken;
 
 		it("Create test account", (done) => {
 			request(app)
@@ -84,9 +95,30 @@ describe("Login with Steam", () => {
 
 					const json = JSON.parse(res.text);
 					secondUserId = json.id;
+					secondAuthToken = json.auth_token;
 					return done();
 				});
 		})
+
+		for (let i = 0; i < 10; i++) {
+			it("Create world #" + (i + 1).toString(), (done) => {
+				request(app)
+					.post("/api/v1/worlds")
+					.set("BW-Auth-Token", i % 2 == 0 ? authToken : secondAuthToken)
+					.set("BW-App-Version", "1.47.0")
+					.field("title", "Test World")
+					.field("description", "")
+					.field("has_win_condition", "false")
+					.field("source_json_str", "{\"blocks\":[]}")
+					.expect("Content-Type", "application/json; charset=utf-8")
+					.expect(200)
+					.end((err, res) => {
+						if (err) return done(err);
+						return done();
+					});
+			})
+		}
+
 
 		it("Get current worlds", (done) => {
 			request(app)
@@ -96,6 +128,8 @@ describe("Login with Steam", () => {
 				.expect(200)
 				.end((err, res) => {
 					if (err) return done(err);
+					const json = JSON.parse(res.text);
+					console.log(json.text);
 					return done();
 				})
 		})

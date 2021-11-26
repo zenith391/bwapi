@@ -728,6 +728,9 @@ async function current_user_worlds(req: any, res: any) {
 			});
 		}
 	}
+
+	console.log("User " + user.id + " worlds: " + util.inspect(response.worlds, { colors: true }));
+
 	res.status(200).json(metadata);
 }
 

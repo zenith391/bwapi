@@ -431,72 +431,69 @@ async function createWorld(req, res) {
 		return;
 	}
 
-	fs.readFile("conf/new_world_id.txt", {"encoding": "utf8"}, async function(err, data) {
-		if (err != null)
-			console.log(err);
-		let newId = data;
-		fs.writeFileSync("conf/new_world_id.txt", (parseInt(newId)+1).toString());
-		let currDateStr = dateString();
-		let requiredMods = value(req.body, "required_mods_json_str");
-		if (!requiredMods) {
-			requiredMods = [];
-		} else {
-			requiredMods = JSON.parse(requiredMods);
-		}
-		let categoryIdsJsonStr = value(req.body, "category_ids_json_str");
-		if (categoryIdsJsonStr === undefined) categoryIdsJsonStr = "[]";
-		let metadata = {
-			"title": value(req.body, "title"),
-			"description": value(req.body, "description"),
-			"has_win_condition": value(req.body, "has_win_condition") == "true",
-			"category_ids": JSON.parse(categoryIdsJsonStr),
-			"required_mods": requiredMods,
-			"author_id": parseInt(userId),
-			"publication_status": 5,
-			"app_version": req.headers["bw-app-version"],
-			"average_star_rating": 0,
-			"likes_count": 0,
-			"play_count": 0,
-			"pay_to_play_cost": 0,
-			"image_urls_for_sizes": {
-				"440x440": HOST + "/images/"+newId+".png",
-				"512x384": HOST + "/images/"+newId+".png",
-				"220x220": HOST + "/images/"+newId+".png",
-				"1024x768": HOST + "/images/"+newId+".png"
-			},
-			"created_at": currDateStr,
-			"first_published_at": currDateStr,
-			"updated_at": currDateStr
-		};
-		let source = value(req.body, "source_json_str");
+	const data = await fs.promises.readFile("conf/new_world_id.txt", {"encoding": "utf8"});
+	let newId = data;
+	let currDateStr = dateString();
+	let requiredMods = value(req.body, "required_mods_json_str");
+	if (!requiredMods) {
+		requiredMods = [];
+	} else {
+		requiredMods = JSON.parse(requiredMods);
+	}
+	let categoryIdsJsonStr = value(req.body, "category_ids_json_str");
+	if (categoryIdsJsonStr === undefined) categoryIdsJsonStr = "[]";
+	let metadata = {
+		"title": value(req.body, "title"),
+		"description": value(req.body, "description"),
+		"has_win_condition": value(req.body, "has_win_condition") == "true",
+		"category_ids": JSON.parse(categoryIdsJsonStr),
+		"required_mods": requiredMods,
+		"author_id": parseInt(userId),
+		"publication_status": 5,
+		"app_version": req.headers["bw-app-version"],
+		"average_star_rating": 0,
+		"likes_count": 0,
+		"play_count": 0,
+		"pay_to_play_cost": 0,
+		"image_urls_for_sizes": {
+			"440x440": HOST + "/images/"+newId+".png",
+			"512x384": HOST + "/images/"+newId+".png",
+			"220x220": HOST + "/images/"+newId+".png",
+			"1024x768": HOST + "/images/"+newId+".png"
+		},
+		"created_at": currDateStr,
+		"first_published_at": currDateStr,
+		"updated_at": currDateStr
+	};
+	let source = value(req.body, "source_json_str");
 
-		fs.mkdirSync("worlds/"+newId)
-		fs.writeFileSync("worlds/"+newId+"/metadata.json", JSON.stringify(metadata));
-		allWorldsCache[newId] = metadata;
-		fs.writeFileSync("worlds/"+newId+"/source.json", source);
-		let usr = new User(userId);
-		await usr.appendOwnedWorld(newId);
-		if (req.files["screenshot_image"]) {
-			fs.copyFileSync(req.files["screenshot_image"][0].path, "images/"+newId+".png");
-		}
-		console.log("World \"" + metadata.title + "\" created!");
+	fs.mkdirSync("worlds/"+newId)
+	fs.writeFileSync("worlds/"+newId+"/metadata.json", JSON.stringify(metadata));
+	allWorldsCache[newId] = metadata;
+	fs.writeFileSync("worlds/"+newId+"/source.json", source);
+	await valid.user.appendOwnedWorld(newId);
+	if (req.files["screenshot_image"]) {
+		fs.copyFileSync(req.files["screenshot_image"][0].path, "images/"+newId+".png");
+	}
 
-		let date = new Date();
-		let line = date.toLocaleDateString("en-US");
-		let csv = fs.readFileSync("total_worlds.csv").toString();
-		let lines = csv.split("\n");
-		let lastLine = lines[lines.length-1].split(",");
-		const totalWorlds = fs.readdirSync("worlds").length;
-		if (lastLine[0] == line) {
-			lines[lines.length-1] = line + "," + totalWorlds;
-			fs.writeFileSync("total_worlds.csv", lines.join("\n"));
-		} else {
-			fs.appendFileSync("total_worlds.csv", "\n" + line + "," + totalWorlds);
-		}
+	fs.writeFileSync("conf/new_world_id.txt", (parseInt(newId)+1).toString());
+	console.log("World \"" + metadata.title + "\" created for user " + userId);
 
-		res.status(200).json({
-			"world": await fullWorldSync(newId)
-		});
+	let date = new Date();
+	let line = date.toLocaleDateString("en-US");
+	let csv = fs.readFileSync("total_worlds.csv").toString();
+	let lines = csv.split("\n");
+	let lastLine = lines[lines.length-1].split(",");
+	const totalWorlds = fs.readdirSync("worlds").length;
+	if (lastLine[0] == line) {
+		lines[lines.length-1] = line + "," + totalWorlds;
+		fs.writeFileSync("total_worlds.csv", lines.join("\n"));
+	} else {
+		fs.appendFileSync("total_worlds.csv", "\n" + line + "," + totalWorlds);
+	}
+
+	res.status(200).json({
+		"world": await fullWorldSync(newId)
 	});
 }
 
@@ -926,6 +923,10 @@ export function run(app) {
 	if (!fs.existsSync("conf/new_world_id.txt")) {
 		fs.writeFileSync("conf/new_world_id.txt", "1")
 		console.log("Created file \"conf/new_world_id.txt\"");
+	}
+	if (!fs.existsSync("total_worlds.csv")) {
+		fs.writeFileSync("total_worlds.csv", "Date,Worlds");
+		console.log("Created file \"total_worlds.csv\"");
 	}
 
 	app.delete("/api/v1/worlds/:id", deleteWorld);
