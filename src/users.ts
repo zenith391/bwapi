@@ -22,6 +22,7 @@
 import fs from "fs";
 import url from "url";
 import uuid from "uuid";
+import util from "util";
 import config from "./config.js";
 import { value2, validAuthToken, dateString } from "./util.js";
 import classTransformer from "class-transformer";
@@ -720,6 +721,7 @@ async function current_user_worlds(req: any, res: any) {
 			});
 		}
 	}
+	console.log("User " + user.id + " worlds: " + util.inspect(response.worlds, { colors: true }));
 	res.status(200).json(metadata);
 }
 

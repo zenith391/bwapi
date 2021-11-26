@@ -131,7 +131,7 @@ global.worldCache = function(callback) {
 			for (const i in files) {
 				let file = files[i];
 				try {
-					let json = JSON.parse(fs.readFileSync("worlds/"+file+"/metadata.json"));
+					let json = JSON.parse(await fs.promises.readFile("worlds/"+file+"/metadata.json"));
 					json["id"] = parseInt(file);
 					if (!json["required_mods"]) json["required_mods"] = [];
 					try {
