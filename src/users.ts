@@ -707,12 +707,14 @@ async function current_user_worlds(req: any, res: any) {
 	for (const id of ownedWorlds) {
 		try {
 			let w = await (global as any).fullWorldSync(id, true);
-			if (is_published == "yes") {
-				if (w.publication_status == 1) {
+			if (w !== null) {
+				if (is_published == "yes") {
+					if (w.publication_status == 1) {
+						response.worlds.push(w);
+					}
+				} else {
 					response.worlds.push(w);
 				}
-			} else {
-				response.worlds.push(w);
 			}
 		} catch (e) {
 			console.debug(e);
@@ -723,7 +725,6 @@ async function current_user_worlds(req: any, res: any) {
 			});
 		}
 	}
-	console.log("User " + user.id + " worlds: " + util.inspect(response.worlds, { colors: true }));
 	res.status(200).json(metadata);
 }
 
