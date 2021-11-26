@@ -96,5 +96,5 @@ export function dateString(date?: Date) {
 }
 
 export function cloneArray<Type>(array: Type[]): Type[] {
-	return array.map(a => Object.assign({}, a));
+	return array.map(a => { return {...a}; });
 }
