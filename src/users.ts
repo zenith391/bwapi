@@ -249,6 +249,7 @@ export class User {
 		if (this._metadata === undefined) {
 			let metadataJson = JSON.parse(fs.readFileSync("users/" + this.id + "/metadata.json", { encoding: "utf8" }));
 			let metadata = classTransformer.plainToClassFromExist(defaultMetadata, metadataJson);
+			metadata.id = this.id; // enforce id number
 			this._metadata = metadata;
 		}
 		return this._metadata!;
