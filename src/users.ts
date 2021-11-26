@@ -709,14 +709,14 @@ async function current_user_worlds(req: any, res: any) {
 	response["_SERVER_groups"] = undefined;
 	for (const id of ownedWorlds) {
 		try {
-			let w = await (global as any).fullWorldSync(id, true);
-			if (w !== null) {
+			const retrievedWorld = await (global as any).fullWorldSync(id, true);
+			if (retrievedWorld !== null) {
 				if (is_published == "yes") {
-					if (w.publication_status == 1) {
-						response.worlds.push(w);
+					if (retrievedWorld.publication_status == 1) {
+						response.worlds.push(retrievedWorld);
 					}
 				} else {
-					response.worlds.push(w);
+					response.worlds.push(retrievedWorld);
 				}
 			}
 		} catch (e) {
