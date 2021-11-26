@@ -44,6 +44,7 @@ describe("Login with Steam", () => {
 
 	describe("Test account", () => {
 		let authToken;
+		let userId;
 
 		it("Create test account", (done) => {
 			request(app)
@@ -66,6 +67,7 @@ describe("Login with Steam", () => {
 					}
 
 					authToken = json.auth_token;
+					userId = json.id;
 					return done();
 				});
 		})
@@ -80,7 +82,30 @@ describe("Login with Steam", () => {
 					if (err) return done(err);
 					return done();
 				})
-		});
+		})
+
+		it("Get pending payouts", (done) => {
+			request(app)
+				.get("/api/v1/current_user/pending_payouts")
+				.set("BW-Auth-Token", authToken)
+				.expect("Content-Type", "application/json; charset=utf-8")
+				.expect(200)
+				.end((err, res) => {
+					if (err) return done(err);
+					return done();
+				})
+		})
+
+		it("Get liked worlds", (done) => {
+			request(app)
+				.get("/api/v1/users/" + userId + "/liked_worlds")
+				.expect("Content-Type", "application/json; charset=utf-8")
+				.expect(200)
+				.end((err, res) => {
+					if (err) return done(err);
+					return done();
+				})
+		})
 	})
 
 });

@@ -94,3 +94,7 @@ export function dateString(date?: Date) {
 		+ datePart(date.getSeconds()) + "+00:00"
 	return currDateStr;
 }
+
+export function cloneArray<Type>(arg: Type): Type {
+	return JSON.parse(JSON.stringify(arg));
+}

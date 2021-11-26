@@ -24,7 +24,7 @@ import url from "url";
 import uuid from "uuid";
 import util from "util";
 import config from "./config.js";
-import { value2, validAuthToken, dateString } from "./util.js";
+import { value2, validAuthToken, dateString, cloneArray } from "./util.js";
 import classTransformer from "class-transformer";
 
 type Payout = {
@@ -273,7 +273,7 @@ export class User {
 				}
 			}
 		}
-		return Object.assign({}, this._followers!);
+		return cloneArray(this._followers!);
 	}
 
 	async getFollowedUsers() {
@@ -293,14 +293,16 @@ export class User {
 				}
 			}
 		}
-		return Object.assign({}, this._followedUsers!);
+
+		return cloneArray(this._followedUsers!);
 	}
 
 	async getPendingPayouts() {
 		if (this._pendingPayouts === undefined) {
 			this._pendingPayouts = JSON.parse(fs.readFileSync("users/" + this.id + "/pending_payouts.json", { encoding: "utf8" }))["pending_payouts"];
 		}
-		return Object.assign({}, this._pendingPayouts!);
+
+		return cloneArray(this._pendingPayouts!);
 	}
 
 	async getPurchasedModels() {
@@ -310,7 +312,8 @@ export class User {
 			}
 			this._purchasedModels = JSON.parse(fs.readFileSync("users/" + this.id + "/purchased_u2u_models.json", { encoding: "utf8" }))["u2u_models"];
 		}
-		return Object.assign({}, this._purchasedModels!);
+
+		return cloneArray(this._purchasedModels!);
 	}
 
 	async getFeeds() {
@@ -320,17 +323,17 @@ export class User {
 			}
 			this._feeds = JSON.parse(fs.readFileSync("users/" + this.id + "/news_feed.json", { encoding: "utf8" }))["news_feed"];
 		}
-		return Object.assign({}, this._feeds!);
+		return cloneArray(this._feeds!);
 	}
 
-	async getLikedWorlds() {
+	async getLikedWorlds(): Promise<number[]> {
 		if (this._likedWorlds === undefined) {
 			if (!fs.existsSync("users/" + this.id + "/liked_worlds.json")) {
 				fs.writeFileSync("users/" + this.id + "/liked_worlds.json", "{\"worlds\":[]}");
 			}
 			this._likedWorlds = JSON.parse(fs.readFileSync("users/" + this.id + "/liked_worlds.json", { encoding: "utf8" }))["worlds"];
 		}
-		return Object.assign({}, this._likedWorlds!);
+		return cloneArray(this._likedWorlds!);
 	}
 
 	async appendPurchasedModel(modelId: any) {
@@ -913,7 +916,7 @@ export function run(app: any) {
 		}
 		const worlds = await user.getLikedWorlds();
 		let worldMetadatas = [];
-		for (let world of worlds) {
+		for (const world of worlds) {
 			if (world != null) {
 				const fWorld = await (global as any).fullWorldSync(world, true);
 				if (fWorld == null) continue;
