@@ -45,6 +45,7 @@ describe("Login with Steam", () => {
 	describe("Test account", () => {
 		let authToken;
 		let userId;
+		let secondUserId;
 
 		it("Create test account", (done) => {
 			request(app)
@@ -68,6 +69,21 @@ describe("Login with Steam", () => {
 
 					authToken = json.auth_token;
 					userId = json.id;
+					return done();
+				});
+		})
+
+		it("Create second account", (done) => {
+			request(app)
+				.post("/api/v1/steam_users")
+				.send("steam_id=12345&steam_auth_ticket=invalid&steam_persona=Tester2&steam_nickname=Tester2")
+				.expect("Content-Type", "application/json; charset=utf-8")
+				.expect(200)
+				.end((err, res) => {
+					if (err) return done(err);
+
+					const json = JSON.parse(res.text);
+					secondUserId = json.id;
 					return done();
 				});
 		})
@@ -103,6 +119,32 @@ describe("Login with Steam", () => {
 				.expect(200)
 				.end((err, res) => {
 					if (err) return done(err);
+					return done();
+				})
+		})
+
+		it("Follow Tester2", (done) => {
+			request(app)
+				.post("/api/v1/user/" + secondUserId + "/follow_activity")
+				.set("BW-Auth-Token", authToken)
+				.expect("Content-Type", "application/json; charset=utf-8")
+				.expect(200)
+				.end((err, res) => {
+					if (err) return done(err);
+					return done();
+				})
+		})
+
+		it("Get followed users", (done) => {
+			request(app)
+				.get("/api/v1/user/" + userId + "/followed_users")
+				.expect("Content-Type", "application/json; charset=utf-8")
+				.expect(200)
+				.end((err, res) => {
+					console.log(err);
+					if (err) return done(err);
+					const json = JSON.parse(res.text);
+					console.log(json);
 					return done();
 				})
 		})
