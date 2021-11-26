@@ -204,10 +204,10 @@ app.use(function(req, res, next) {
 let cores = fs.readdirSync("modules");
 for (const i in cores) {
 	let file = cores[i];
-	//console.debug("Init module " + file);
 	if (file != "app.js") {
 		const userModule = await import("./" + file);
 		if (userModule.run) {
+			console.debug("Init module " + file);
 			userModule.run(app);
 		}
 	}
