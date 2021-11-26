@@ -95,6 +95,6 @@ export function dateString(date?: Date) {
 	return currDateStr;
 }
 
-export function cloneArray<Type>(arg: Type): Type {
-	return JSON.parse(JSON.stringify(arg));
+export function cloneArray<Type>(array: Type[]): Type[] {
+	return array.map(a => Object.assign({}, a));
 }
