@@ -25,7 +25,7 @@ import { User } from "./users.js";
 let dayLogins = 0;
 let dayLoginsDate;
 
-const ACCOUNTS_PATH = "/usr/local/nginx/html/users/";
+const ACCOUNTS_PATH = "/etc/nginx/html/users/";
 
 async function account_login(req, res) {
 	const username = req.body.username;

@@ -6,12 +6,11 @@ import fs from "fs";
 
 describe("Unit testing getting a non-existent world (id 123456789)", () => {
 
-	it("should return Not Found status", () => {
-		return request(app)
+	it("should return Not Found status", (done) => {
+		request(app)
 			.get("/api/v1/worlds/123456789")
-			.then((response) => {
-				expect(response.status).to.equals(404);
-			})
+			.expect("Content-Type", "application/json; charset=utf-8")
+			.expect(404, done)
 	})
 
 });

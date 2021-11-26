@@ -117,10 +117,14 @@ async function steam_set_username(req, res) {
 }
 
 function create_steam_user(req, res) {
-	let steamId = req.body["steam_id"];
-	let steamAuthTicket = req.body["steam_auth_ticket"];
-	let persona = req.body["steam_persona"];
-	let nickname = req.body["steam_nickname"];
+	const steamId = req.body["steam_id"];
+	const steamAuthTicket = req.body["steam_auth_ticket"];
+	const persona = req.body["steam_persona"];
+	const nickname = req.body["steam_nickname"];
+	if (steamId === undefined || steamAuthTicket === undefined || persona === undefined || nickname === undefined) {
+		return res.status(400).json({ error: 400, error_msg: "Missing field" });
+	}
+
 	fs.readFile("conf/new_account_id.txt", function(err, data) {
 		if (err != null)
 			console.log(err);
@@ -188,6 +192,13 @@ export function run(app) {
 	if (!fs.existsSync("usersSteamLinks")) {
 		fs.mkdirSync("usersSteamLinks");
 		console.log("Created folder \"usersSteamLinks\"");
+	}
+
+	if (!fs.existsSync("total_players.csv")) {
+		fs.writeFileSync("total_players.csv", "Data,Players", {});
+	}
+	if (!fs.existsSync("steam_active_players.csv")) {
+		fs.writeFileSync("steam_active_players.csv", "Data,Players", {});
 	}
 
 	app.get("/api/v1/steam_current_user", function(req, res) {
