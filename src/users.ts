@@ -687,8 +687,8 @@ async function current_user_profile_world(req: any, res: any) {
 }
 
 async function current_user_worlds(req: any, res: any) {
-	let is_published = url.parse(req.url, true).query.is_published
-	let valid = validAuthToken(req, res, false);
+	const is_published = url.parse(req.url, true).query.is_published
+	const valid = validAuthToken(req, res, false);
 	if (valid.ok === false) return;
 	const user = valid.user;
 	console.log("User " + user.id + " downloading his worlds.");

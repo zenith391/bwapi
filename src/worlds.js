@@ -264,7 +264,7 @@ async function deleteWorld(req, res) {
 	let id = req.params.id
 	if (fs.existsSync("worlds/" + id)) {
 		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
-		if (metadata["author_id"] == userId) {
+		if (metadata["author_id"] === userId) {
 			fs.unlinkSync("worlds/"+id+"/metadata.json");
 			fs.unlinkSync("worlds/"+id+"/source.json");
 			try {
@@ -286,6 +286,11 @@ async function deleteWorld(req, res) {
 			res.status(200).json({
 				"success": true
 			});
+		} else {
+			res.status(400).json({
+				"error": 400,
+				"error_message": "Cannot delete a world that isn't your"
+			})
 		}
 	} else {
 		res.status(404).json({
@@ -410,8 +415,7 @@ function likeStatus(req, res) {
 async function createWorld(req, res) {
 	const valid = validAuthToken(req, res, true);
 	if (valid.ok === false) return;
-	const userId = valid.user.id;
-	let user = await (new User(userId)).getMetadata()
+	let user = await valid.user.getMetadata()
 	if (user["_SERVER_worlds"].length > MAX_WORLD_LIMIT) {
 		console.log(user["username"] + " has too many worlds.");
 		res.status(400).json({
