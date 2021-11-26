@@ -99,6 +99,7 @@ global.fullWorldSync = async function(id, noSource) {
 	for (const key in metadata) {
 		world[key] = metadata[key];
 	}
+	world.id = parseInt(id);
 	if (!world["required_mods"]) world["required_mods"] = [];
 	if (noSource === undefined || noSource == null) {
 		world["source_json_str"] = fs.readFileSync("worlds/"+id+"/source.json",{"encoding":"utf8"});
@@ -122,6 +123,7 @@ global.worldCache = function(callback) {
 	if (!allWorldsCacheValid) {
 		if (allWorldsCacheLoading) {
 			console.log("Tried loading world cache at the same time!");
+			return;
 		}
 		allWorldsCacheLoading = true;
 		console.debug("Populating world cache..");
