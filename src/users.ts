@@ -253,7 +253,7 @@ export class User {
 			metadata.id = this.id; // enforce id number
 			this._metadata = metadata;
 		}
-		return this._metadata!;
+		return Object.assign({}, this._metadata!);
 	}
 
 	async getFollowers() {
@@ -273,7 +273,7 @@ export class User {
 				}
 			}
 		}
-		return this._followers;
+		return Object.assign({}, this._followers!);
 	}
 
 	async getFollowedUsers() {
@@ -293,14 +293,14 @@ export class User {
 				}
 			}
 		}
-		return this._followedUsers;
+		return Object.assign({}, this._followedUsers!);
 	}
 
 	async getPendingPayouts() {
 		if (this._pendingPayouts === undefined) {
 			this._pendingPayouts = JSON.parse(fs.readFileSync("users/" + this.id + "/pending_payouts.json", { encoding: "utf8" }))["pending_payouts"];
 		}
-		return this._pendingPayouts!;
+		return Object.assign({}, this._pendingPayouts!);
 	}
 
 	async getPurchasedModels() {
@@ -310,7 +310,7 @@ export class User {
 			}
 			this._purchasedModels = JSON.parse(fs.readFileSync("users/" + this.id + "/purchased_u2u_models.json", { encoding: "utf8" }))["u2u_models"];
 		}
-		return this._purchasedModels!;
+		return Object.assign({}, this._purchasedModels!);
 	}
 
 	async getFeeds() {
@@ -320,7 +320,7 @@ export class User {
 			}
 			this._feeds = JSON.parse(fs.readFileSync("users/" + this.id + "/news_feed.json", { encoding: "utf8" }))["news_feed"];
 		}
-		return this._feeds!;
+		return Object.assign({}, this._feeds!);
 	}
 
 	async getLikedWorlds() {
@@ -330,7 +330,7 @@ export class User {
 			}
 			this._likedWorlds = JSON.parse(fs.readFileSync("users/" + this.id + "/liked_worlds.json", { encoding: "utf8" }))["worlds"];
 		}
-		return this._likedWorlds!;
+		return Object.assign({}, this._likedWorlds!);
 	}
 
 	async appendPurchasedModel(modelId: any) {
