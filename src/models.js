@@ -46,6 +46,7 @@ export function modelCache(callback) {
 	if (!allModelsCacheValid) {
 		if (allModelsCacheLoading) {
 			console.log("Tried loading model cache at the same time!");
+			return;
 		}
 		allModelsCacheLoading = true;
 		console.debug("Populating model cache..");
