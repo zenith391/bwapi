@@ -51,7 +51,7 @@ global.processUserWorld = async function(meta) {
 //   source: bool    Whether to also load world source (alongside metadata) in 'source_json_str'
 //   callback: func  The callback to call once the world is loaded
 global.fullWorld = function(id, source, callback) {
-	console.log("fullWorld(" + id + ", " + source + ", " + callback + ")");
+	console.debug("fullWorld(" + id + ", " + source + ", " + callback + ")");
 	if (!fs.existsSync("worlds/" + id)) {
 		callback(new Error("World not found."));
 		return;
@@ -90,7 +90,7 @@ global.fullWorldSync = async function(id, noSource) {
 	let world = {
 		id: id.toString()
 	}
-	console.log("fullWorldSync(" + id + ")");
+	console.debug("fullWorldSync(" + id + ")");
 	if (!fs.existsSync("worlds/" + id)) {
 		console.warn("World " + id + " does not exists!");
 		return null;
@@ -418,7 +418,8 @@ function likeStatus(req, res) {
 async function createWorld(req, res) {
 	const valid = validAuthToken(req, res, true);
 	if (valid.ok === false) return;
-	let user = await valid.user.getMetadata()
+	const userId = valid.user.id;
+	let user = await valid.user.getMetadata();
 	if (user["_SERVER_worlds"].length > MAX_WORLD_LIMIT) {
 		console.log(user["username"] + " has too many worlds.");
 		res.status(400).json({
