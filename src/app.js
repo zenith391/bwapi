@@ -39,7 +39,7 @@ global.__dirname = path.dirname(__filename);
 
 // you *MUST* change this to the address of your server (otherwise some features like thumbnails won't work) !
 global.HOST = "https://bwsecondary.ddns.net:8080";
-global.ROOT_NAME = __dirname;
+global.ROOT_NAME = path.dirname(__dirname);
 // is this server early access? (used for some status identifiers)
 global.EARLY_ACCESS = true;
 global.VERSION = "0.9.1";
