@@ -74,6 +74,7 @@ function steam_current_user(req, res, u) {
 			user["auth_token"] = authToken;
 			user["blocks_inventory_str"] = fs.readFileSync("conf/user_block_inventory.txt", {"encoding":"utf8"});
 			user["world_templates"] = worldTemplates;
+			user["worlds"] = undefined;
 			user["_SERVER_worlds"] = undefined;
 			user["_SERVER_models"] = undefined;
 			user["_SERVER_groups"] = undefined;

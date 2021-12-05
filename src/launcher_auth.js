@@ -162,7 +162,7 @@ async function create_account(req, res) {
 		bcrypt.compare(req.body.password, "$2a" + accountData.password.substring(3), async function(err, result) { // PHP produces $2y$ althought they're actually $2a$
 			console.log("Password valid: " + result);
 			if (result) {
-				const newUser = await User.create();
+				const newUser = await User.create(username, 1024);
 				const newId = newUser.id;
 
 				const id = uuid.v4();
