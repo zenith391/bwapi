@@ -99,6 +99,7 @@ export function run(app) {
 			if (iosLinks[gcId] !== undefined) {
 				res.status(500);
 			} else {
+				console.log("Creating user " + username + " with GC ID " + gcId);
 				const newUser = await User.create(username, 256 | 512);
 				iosLinks[gcId] = newUser.id;
 				fs.writeFileSync("conf/ios_links.json", JSON.stringify(iosLinks))
