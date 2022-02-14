@@ -585,35 +585,38 @@ export async function socialUser(id: number, date: Date): Promise<SocialUser> {
 
 // Module code //
 async function basic_info(req: any, res: any) {
-	let userId = req.params.id
-	if (!fs.existsSync("users/" + userId + "/metadata.json")) {
+	const userId = req.params.id;
+	const user = new User(userId);
+	if (!await user.exists()) {
 		res.status(404).json({
 			"error": 404,
 			"error_msg": "user not found."
 		});
+		return;
 	}
-	let metadata = JSON.parse(fs.readFileSync("users/"+userId+"/metadata.json", { encoding: "utf8" }));
+
+	const metadata = await user.getMetadata();
 	let json: any = {
 		"id": metadata.id,
 		"username": metadata.username,
 		"is_username_blocked": metadata.is_username_blocked,
 		"is_image_locked": metadata.is_image_locked,
 		"user_status": metadata.user_status,
-		"account_type": metadata["account_type"],
+		"account_type": metadata.account_type,
 		"blocksworld_premium": metadata.blocksworld_premium,
 		"profile_image_url": metadata.profile_image_url,
 		"coins": metadata.coins
 	}
 	if (metadata["account_type"] == "group") {
 		json["worlds_ids"] = metadata["_SERVER_worlds"];
-		json["owner_id"] = metadata["owner_id"];
-		let members = [];
-		for (const id of metadata["members"]) {
-			const member = new User(id);
-			members.push(await member.getUsername());
-		}
-		json["members_usernames"] = members;
-		json["members_ids"] = metadata["members"];
+		// json["owner_id"] = metadata["owner_id"];
+		// let members = [];
+		// for (const id of metadata["members"]) {
+		// 	const member = new User(id);
+		// 	members.push(await member.getUsername());
+		// }
+		// json["members_usernames"] = members;
+		// json["members_ids"] = metadata["members"];
 	}
 	res.status(200).json(json);
 }

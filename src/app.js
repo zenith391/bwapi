@@ -32,11 +32,6 @@ import { run } from "./bwwool.js";
 global.__filename = fileURLToPath(import.meta.url);
 global.__dirname = path.dirname(__filename);
 
-/*global.redis = new Redis({
-	host: "127.0.0.1",
-	password: ""
-});*/
-
 // you *MUST* change this to the address of your server (otherwise some features like thumbnails won't work) !
 global.HOST = "https://bwsecondary.ddns.net:8080";
 global.ROOT_NAME = path.dirname(__dirname);
