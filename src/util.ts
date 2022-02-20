@@ -95,6 +95,16 @@ export function dateString(date?: Date) {
 	return currDateStr;
 }
 
+// Two-level deep clone of the given array
 export function cloneArray<Type>(array: Type[]): Type[] {
-	return array.map(a => { return {...a}; });
+	// return array.map(a => { return {...a}; });
+	let newArray: Type[] = [];
+	for (const value of array) {
+		if (typeof value === "object") {
+			newArray.push(Object.assign({}, value));
+		} else {
+			newArray.push(value);
+		}
+	}
+	return newArray;
 }

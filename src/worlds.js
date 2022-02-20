@@ -91,7 +91,6 @@ global.fullWorldSync = async function(id, noSource) {
 		id: id.toString()
 	}
 	console.debug("fullWorldSync(" + id + ")");
-	console.debug(id);
 	if (!fs.existsSync("worlds/" + id)) {
 		console.warn("World " + id + " does not exists!");
 		return null;
