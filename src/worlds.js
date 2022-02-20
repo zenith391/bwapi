@@ -654,14 +654,15 @@ function worldsGet(req, res, u) {
 				}
 				let date = new Date(world["first_published_at"]);
 				if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
-					//date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+					// Assume worlds without a correct first_published_at time are the oldest
+					// as birthtimeMs is unreliable due to backups, moves, etc.
 					date = 0;
 				} else {
 					date = date.getTime();
 				}
 				return {
 					world: world,
-					time: date + ((parseInt(world["play_count"]) + parseInt(world["likes_count"])*10) * 10000000 * (rate-1))
+					time: date + ((parseInt(world["play_count"]) + parseInt(world["likes_count"])*10) * 4000000 * (rate-1))
 				}
 			});
 		} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
@@ -673,7 +674,7 @@ function worldsGet(req, res, u) {
 			worlds = worlds.map(function (world) {
 				let date = new Date(world["first_published_at"]);
 				if (world["first_published_at"] == undefined || isNaN(date.getTime())) {
-					date = fs.statSync("worlds/" + world.id + "/metadata.json").birthtimeMs;
+					date = 0;
 				} else {
 					date = date.getTime();
 				}
