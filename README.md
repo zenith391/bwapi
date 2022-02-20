@@ -29,4 +29,4 @@ Now type `launch.bat` on Windows or `./launch` on Linux and then press Enter.
 
 ### License
 
-**`bwapi` is under [GPLv3 license](https://github.com/zenith391/bwapi/tree/master/LICENSE). This license means all edits must be published.**
+`bwapi` is under [GPLv3 license](https://github.com/zenith391/bwapi/tree/master/LICENSE).

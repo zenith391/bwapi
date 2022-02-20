@@ -668,7 +668,7 @@ function worldsGet(req, res, u) {
 		} else if (kind == "featured") { // Should be only 1 world, the world shown in big at top.
 			const featuredWorldTxt = fs.readFileSync("conf/featured_world_id.txt", { encoding: "utf8" });
 			const featuredWorldId  = parseInt(featuredWorldTxt);
-
+			console.debug("Featured world ID is " + featuredWorldId);
 			worlds = [ { world: featuredWorldId, time: 1 } ];
 		} else { // "recent" and "unmoderated"
 			worlds = worlds.map(function (world) {

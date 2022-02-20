@@ -59,6 +59,8 @@ const app = express();
 // Get the auth token from a request object
 global.getAuthToken = function(req) {
 	let authToken = undefined;
+	console.debug("get auth token, headers are:");
+	console.debug(req.headers);
 	if (req.headers["bw-auth-token"] !== undefined) {
 		authToken = req.headers["bw-auth-token"];
 	}
