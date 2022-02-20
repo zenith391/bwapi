@@ -58,12 +58,9 @@ const app = express();
 
 // Get the auth token from a request object
 global.getAuthToken = function(req) {
-	let authToken = undefined;
-	console.debug("get auth token, headers are:");
+	const authToken = req.headers["bw-auth-token"];;
+	console.debug("get auth token (" + authToken + "), headers are:");
 	console.debug(req.headers);
-	if (req.headers["bw-auth-token"] !== undefined) {
-		authToken = req.headers["bw-auth-token"];
-	}
 	return authToken;
 }
 
@@ -147,7 +144,7 @@ app.use(compression());
 
 app.use(function(req, res, next) {
 	// Log queries
-	let authToken = getAuthToken(req);
+	let authToken = global.getAuthToken(req);
 	let userId = undefined;
 	if (authToken !== undefined) {
 		userId = authTokens[authToken];

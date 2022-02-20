@@ -1,11 +1,8 @@
 import { User } from "./users.js";
 
 // Get the auth token from a request object
-export function getAuthToken(req: any) {
-	let authToken = undefined;
-	if (req.headers["bw-auth-token"] !== undefined) {
-		authToken = req.headers["bw-auth-token"];
-	}
+export function getAuthToken(req: any): string|undefined {
+	const authToken = req.headers["bw-auth-token"];
 	return authToken;
 }
 
