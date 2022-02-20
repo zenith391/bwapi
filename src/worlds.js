@@ -432,8 +432,14 @@ async function createWorld(req, res) {
 	}
 
 	const data = await fs.promises.readFile("conf/new_world_id.txt", {"encoding": "utf8"});
-	let newId = data;
-	let currDateStr = dateString();
+	let newId = parseInt(data);
+	while (fs.existsSync("worlds/" + newId)) {
+		console.log("World " + newId + " already exists, skipping.");
+		newId += 1;
+	}
+
+	const currDateStr = dateString();
+
 	let requiredMods = value(req.body, "required_mods_json_str");
 	if (!requiredMods) {
 		requiredMods = [];
@@ -476,7 +482,7 @@ async function createWorld(req, res) {
 		fs.copyFileSync(req.files["screenshot_image"][0].path, "images/"+newId+".png");
 	}
 
-	fs.writeFileSync("conf/new_world_id.txt", (parseInt(newId)+1).toString());
+	fs.writeFileSync("conf/new_world_id.txt", (newId+1).toString());
 	console.log("World \"" + metadata.title + "\" created for user " + userId);
 
 	let date = new Date();
