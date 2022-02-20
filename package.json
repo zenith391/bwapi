@@ -6,6 +6,7 @@
   "type": "module",
   "main": "main.js",
   "scripts": {
+    "build": "tsc",
     "start": "tsc && node --trace-warnings --unhandled-rejections=strict main.js",
     "test": "tsc && mocha --exit"
   },
