@@ -668,12 +668,7 @@ function worldsGet(req, res, u) {
 			const featuredWorldTxt = fs.readFileSync("conf/featured_world_id.txt", { encoding: "utf8" });
 			const featuredWorldId  = parseInt(featuredWorldTxt);
 
-			worlds = worlds.map(function (world) {
-				return {
-					world: world,
-					time: (world.id == featuredWorldId) ? 1 : 0
-				}
-			});
+			worlds = [ { world: featuredWorldId, time: 1 } ];
 		} else { // "recent" and "unmoderated"
 			worlds = worlds.map(function (world) {
 				let date = new Date(world["first_published_at"]);

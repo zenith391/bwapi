@@ -703,7 +703,7 @@ async function current_user_worlds(req: any, res: any) {
 	let metadata = await user.getMetadata();
 	const ownedWorlds = await user.getOwnedWorlds();
 
-	// console.log("User " + user.id + " owned worlds: " + util.inspect(ownedWorlds, { colors: true }));
+	console.log("User " + user.id + " owned worlds: " + util.inspect(ownedWorlds, { colors: true }));
 
 	let response: any = metadata;
 	response.worlds = [];
@@ -732,7 +732,7 @@ async function current_user_worlds(req: any, res: any) {
 		}
 	}
 
-	console.log("User " + user.id + " worlds: " + util.inspect(response.worlds, { colors: true }));
+	// console.log("User " + user.id + " worlds: " + util.inspect(response.worlds, { colors: true }));
 
 	res.status(200).json(response);
 }
