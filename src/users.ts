@@ -224,7 +224,7 @@ export class User {
 	}
 
 	static async count() {
-		return fs.readdirSync("users/").length - 2 + 3; // minus user_list.js and owner_of.js
+		return fs.readdirSync("users/").length - 2; // minus user_list.js and owner_of.js
 	}
 
 	async addPayout(payout: Payout) {
@@ -430,7 +430,7 @@ export class User {
 	}
 
 	async getOwnedWorlds() {
-		return (await this.getMetadata())["_SERVER_worlds"];
+		return cloneArray((await this.getMetadata())["_SERVER_worlds"]);
 	}
 
 	async getOwnedModels() {
@@ -438,7 +438,7 @@ export class User {
 		if (ownedModels === undefined) {
 			return [];
 		} else {
-			return ownedModels;
+			return cloneArray(ownedModels);
 		}
 	}
 
@@ -703,7 +703,7 @@ async function current_user_worlds(req: any, res: any) {
 	let metadata = await user.getMetadata();
 	const ownedWorlds = await user.getOwnedWorlds();
 
-	console.log("User " + user.id + " owned worlds: " + util.inspect(ownedWorlds, { colors: true }));
+	// console.log("User " + user.id + " owned worlds: " + util.inspect(ownedWorlds, { colors: true }));
 
 	let response: any = metadata;
 	response.worlds = [];
@@ -922,9 +922,9 @@ export function run(app: any) {
 		}
 		const worlds = await user.getLikedWorlds();
 		let worldMetadatas = [];
-		for (const world of worlds) {
-			if (world != null) {
-				const fWorld = await (global as any).fullWorldSync(world, true);
+		for (const worldId of worlds) {
+			if (worldId != null) {
+				const fWorld = await (global as any).fullWorldSync(worldId, true);
 				if (fWorld == null) continue;
 				worldMetadatas.push(fWorld);
 			}
