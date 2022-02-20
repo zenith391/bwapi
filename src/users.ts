@@ -333,6 +333,7 @@ export class User {
 			}
 			this._likedWorlds = JSON.parse(fs.readFileSync("users/" + this.id + "/liked_worlds.json", { encoding: "utf8" }))["worlds"];
 		}
+		console.debug("user " + this.id + " liked worlds: " + util.inspect(this._likedWorlds!, {}));
 		return cloneArray(this._likedWorlds!);
 	}
 

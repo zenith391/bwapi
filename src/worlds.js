@@ -45,7 +45,7 @@ global.processUserWorld = async function(meta) {
 	return meta;
 }
 
-// Asynchronous function to load a world.
+// Callback-based function to load a world.
 // Parameters:
 //   id: string      The ID of the world to load
 //   source: bool    Whether to also load world source (alongside metadata) in 'source_json_str'
@@ -85,7 +85,7 @@ global.fullWorld = function(id, source, callback) {
 	});
 }
 
-// Synchronous (and deprecated) version of the fullWorld(...) function
+// Asynchronous version of the fullWorld(...) function
 global.fullWorldSync = async function(id, noSource) {
 	let world = {
 		id: id.toString()
