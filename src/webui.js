@@ -150,12 +150,12 @@ async function metrics(req, res) {
 
 export function run(app) {
 	if (app.get("views") != ROOT_NAME + "/views") { // not default path
-		console.error("Another view module is in use, cannot init WebUI");
+		console.error("Overriding previous view module: " + app.get("views"));
 		return;
-	} else {
-		app.set("view engine", "ejs");
-		app.set("views", ROOT_NAME + "/data/webui");
 	}
+
+	app.set("view engine", "ejs");
+	app.set("views", ROOT_NAME + "/data/webui");
 
 	if (!fs.existsSync("conf/plugins")) {
 		fs.mkdirSync("conf/plugins");
