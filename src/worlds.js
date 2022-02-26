@@ -19,6 +19,7 @@
 import fs from "fs";
 import url from "url";
 import { User } from "./users.js";
+import { cloneArray } from "./util.js";
 import { urlencoded } from "express";
 
 const profanityRegex = /nigga|fuck|penis|dick|semen|cum/;
@@ -639,8 +640,8 @@ function worldsGet(req, res, u) {
 		}
 	}
 
-	worldCache(function(err, worlds) {
-		worlds = Object.values(worlds);
+	worldCache(function(err, worldsMap) {
+		let worlds = Object.values(worldsMap);
 		if (kind == "arcade") { // Hall of Fame
 			worlds = worlds.map(function (world) {
 				let rate = world["average_star_rating"];
@@ -675,7 +676,7 @@ function worldsGet(req, res, u) {
 			const featuredWorldTxt = fs.readFileSync("conf/featured_world_id.txt", { encoding: "utf8" });
 			const featuredWorldId  = parseInt(featuredWorldTxt);
 			console.debug("Featured world ID is " + featuredWorldId);
-			worlds = [ { world: featuredWorldId, time: 1 } ];
+			worlds = [ { world: worldsMap[featuredWorldId], time: 1 } ];
 		} else { // "recent" and "unmoderated"
 			worlds = worlds.map(function (world) {
 				let date = new Date(world["first_published_at"]);
