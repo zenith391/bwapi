@@ -249,6 +249,9 @@ export class User {
 	async getMetadata() {
 		if (this._metadata === undefined) {
 			let metadataJson = JSON.parse(fs.readFileSync("users/" + this.id + "/metadata.json", { encoding: "utf8" }));
+			if (metadataJson["auth_token"] !== undefined) {
+				delete metadataJson["auth_token"];
+			}
 			let metadata = classTransformer.plainToClassFromExist(defaultMetadata, metadataJson);
 			metadata.id = this.id; // enforce id number
 			this._metadata = metadata;

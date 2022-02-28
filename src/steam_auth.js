@@ -95,7 +95,6 @@ function steam_current_user(req, res, u) {
 				fs.appendFileSync("steam_active_players.csv", "\n" + line + "," + dayLogins);
 			}
 
-			console.log(user);
 			res.status(200).json(user);
 			console.log("Steam login done!");
 		});
