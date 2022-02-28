@@ -92,6 +92,9 @@ global.validAuthToken = function(req, res, bodyCheck) {
 		return { ok: false };
 	}
 	let userId = authTokens[authToken];
+	if (userId === undefined) {
+		console.warn("vat: User has auth token " + authToken + " but no user ID is associated to it.");
+	}
 	if (userId == undefined) {
 		res.status(405).json({
 			"error": 405,
@@ -146,6 +149,9 @@ app.use(function(req, res, next) {
 	let userId = undefined;
 	if (authToken !== undefined) {
 		userId = authTokens[authToken];
+		if (userId === undefined) {
+			console.warn("User has auth token " + authToken + " but no user ID is associated to it.");
+		}
 	}
 	console.debug(req.method + " " + req.url, userId);
 

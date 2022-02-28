@@ -79,7 +79,7 @@ function steam_current_user(req, res, u) {
 			user["_SERVER_models"] = undefined;
 			user["_SERVER_groups"] = undefined;
 			user["api_v2_supported"] = true;
-			global.authTokens[authToken] = userId;
+			global.authTokens[authToken] = parseInt(userId);
 
 			let date = new Date();
 			let line = date.toLocaleDateString("en-US");
