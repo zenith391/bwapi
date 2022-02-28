@@ -753,7 +753,11 @@ function worldsGet(req, res, u) {
 					}
 				}
 			} catch (e) {
-				console.error("Error sorting world " + world.id);
+				let identifier = world;
+				if (world !== undefined) {
+					identifier = world.id;
+				}
+				console.error("Error sorting world " + identifier);
 				console.error(e);
 			}
 		}

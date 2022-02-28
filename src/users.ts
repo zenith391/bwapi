@@ -700,16 +700,12 @@ async function current_user_worlds(req: any, res: any) {
 	if (valid.ok === false) return;
 	const user = valid.user;
 	console.log("User " + user.id + " downloading his worlds.");
-	let metadata = await user.getMetadata();
 	const ownedWorlds = await user.getOwnedWorlds();
 
 	console.log("User " + user.id + " owned worlds: " + util.inspect(ownedWorlds, { colors: true }));
 
-	let response: any = metadata;
+	let response: any = {};
 	response.worlds = [];
-	response["_SERVER_worlds"] = undefined;
-	response["_SERVER_models"] = undefined;
-	response["_SERVER_groups"] = undefined;
 	for (const id of ownedWorlds) {
 		try {
 			const retrievedWorld = await (global as any).fullWorldSync(id, true);
