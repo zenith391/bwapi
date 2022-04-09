@@ -1,0 +1,11 @@
+{
+	"id": 16803,
+	"title": "Havoc Island",
+	"image_urls_for_sizes": {
+		"1024x768": "https://bwsecondary.ddns.net/img/templates/havoc_island-1024x768.jpg",
+		"512x384": "https://bwsecondary.ddns.net/img/templates/havoc_island-1024x768.jpg",
+		"440x440": "https://bwsecondary.ddns.net/img/templates/havoc_island-440x440.jpg",
+		"220x220": "https://bwsecondary.ddns.net/img/templates/havoc_island-440x440.jpg"
+	},
+	"hidden": false
+}

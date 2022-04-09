@@ -1,0 +1,45 @@
+{
+ "blocks":[
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Sky Winter"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Ice Material_Sky",{"x":-1,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}},{"type":"tile","gaf":{"predicate":"Block.SetFog","args":["300","450","Dark Bley"]}},{"type":"tile","gaf":{"predicate":"Block.SetBackgroundMusic","args":["MusicBackground2"]}},{"type":"tile","gaf":{"predicate":"Sky.EnvEffect","args":["Snow"]}},{"type":"tile","gaf":{"predicate":"Sky.SkyBoxTo","args":[5]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Sky.SetGravity","args":[{"x":0,"y":-20,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.Fixed","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Winter Tree"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Green"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Winter Tree Snow"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Winter Tree Trunk"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Brown"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Winter Mountain"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Black"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Ice Material_Terrain",{"x":0,"y":1,"z":-1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Winter Iceflow"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Ice Material_Terrain",{"x":1,"y":1,"z":1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Winter Ground"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Ice Material_Terrain",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Winter Road"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Brown"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Ice Water"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":-5,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Blue"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Ice Material_Water",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":2500,"y":1,"z":2500}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]}
+ ],
+ "connections":[
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  []
+ ],
+ "connectionTypes":[
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  []
+ ],
+ "frozen-in-terrain":[1,0,0,0,0,0,0,0,1],
+ "camera":{
+  "rotation":{"x":-0.00278,"y":-0.29409,"z":-0.00085,"w":0.95577},
+  "position":{"x":147.14527,"y":10.89235,"z":-158.00051},
+  "playDistance":17.54425,
+  "playAngle":72.32997
+ },
+ "camera-poses":[
+  {"name":"Camera Reset Pose","position":{"x":20.97685,"y":6.44721,"z":-113.41506},"direction":{"x":-0.61892,"y":-0.30353,"z":0.72442}}
+ ]
+}

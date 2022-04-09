@@ -1,0 +1,72 @@
+{
+ "blocks":[
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Sky Space"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Space Sky",{"x":1,"y":0,"z":-1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":6,"y":6,"z":6}]}},{"type":"tile","gaf":{"predicate":"Block.SetFog","args":["150","1500","Super Black"]}},{"type":"tile","gaf":{"predicate":"Block.SetBackgroundMusic","args":["MusicCreative"]}},{"type":"tile","gaf":{"predicate":"Sky.EnvEffect","args":["Space Dust"]}},{"type":"tile","gaf":{"predicate":"Sky.SkyBoxTo","args":[9]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Sky.SetGravity","args":[{"x":0,"y":-4,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.Fixed","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Arch"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Light Blue"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":-1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Cliff East"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Cliff West"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Light Blue"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Dust",{"x":-1,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Ground Cove"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Light Blue"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Dust",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Ground East"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Dust",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Ground North"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Dust",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Ground West"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Dust",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Mountains East"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Dark Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":-1,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Mountains North"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Black"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":-1,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Mountains South"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Dark Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":-1,"y":0,"z":-1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Rocks East"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Darker Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Rocks West"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Darker Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":-1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Sea Floor"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Dark Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain GI Joe Underwater"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":10,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Dark Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":3,"y":3,"z":3}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Billboard Jupiter No Reflect"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":-400,"y":200,"z":-200}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Texture Planet Jupiter",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1000,"y":1000,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Billboard Celestial Emissive Far No Reflect"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":500,"y":150,"z":150}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Moon",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":30,"y":30,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Water"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":-516,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Bley"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Dust",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":2500,"y":1024,"z":2500}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Yellow",1]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Plain",{"x":0,"y":1,"z":0},1]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Fixed","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]}
+ ],
+ "connections":[
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  []
+ ],
+ "connectionTypes":[
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  []
+ ],
+ "frozen-in-terrain":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+ "camera":{
+  "rotation":{"x":-0.02165,"y":-0.78138,"z":-0.02715,"w":0.62308},
+  "position":{"x":256.14355,"y":12.04979,"z":-67.96707},
+  "playDistance":21,
+  "playAngle":82.79393
+ },
+ "camera-poses":[
+  {"name":"","position":{"x":256.14355,"y":12.04979,"z":-67.96707},"direction":{"x":-0.97255,"y":0.0694,"z":-0.22206}}
+ ]
+}

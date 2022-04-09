@@ -1,0 +1,39 @@
+{
+ "blocks":[
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Sky Starter Island"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Cloudy Sky",{"x":1,"y":0,"z":-1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":2,"y":2,"z":2}]}},{"type":"tile","gaf":{"predicate":"Block.SetFog","args":["300","600","Light Blue"]}},{"type":"tile","gaf":{"predicate":"Block.SetBackgroundMusic","args":["MusicBackground"]}},{"type":"tile","gaf":{"predicate":"Sky.EnvEffect","args":["Clear"]}},{"type":"tile","gaf":{"predicate":"Sky.SkyBoxTo","args":[7]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Sky.SetGravity","args":[{"x":0,"y":-20,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.Fixed","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Pirate Island 1"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Light Yellow Green"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Pirate Island 2"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Grey"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Grass",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Pirate Island 3"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Grey"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Pirate Island 4"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Grey"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Terrain Pirate Island 5"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Light Ginger"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Sand",{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Water"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":-518,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Blue"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Texture Water Stream",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":2500,"y":1024,"z":2500}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Yellow",1]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Plain",{"x":0,"y":1,"z":0},1]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Fixed","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]}
+ ],
+ "connections":[
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  []
+ ],
+ "connectionTypes":[
+  [],
+  [],
+  [],
+  [],
+  [],
+  [],
+  []
+ ],
+ "frozen-in-terrain":[1,0,0,0,0,0,0],
+ "camera":{
+  "rotation":{"x":-0.00978,"y":0.9881,"z":-0.07111,"w":-0.13599},
+  "position":{"x":-8.37234,"y":11.88932,"z":83.48728},
+  "playDistance":21,
+  "playAngle":69.49491
+ },
+ "camera-poses":[
+  {"name":"Camera Reset Pose","position":{"x":68.36035,"y":9.11056,"z":39.89257},"direction":{"x":-0.58068,"y":-0.61514,"z":-0.53328}}
+ ]
+}

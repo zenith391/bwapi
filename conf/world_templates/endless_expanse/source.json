@@ -1,0 +1,24 @@
+{
+  "blocks":[
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Sky UV"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Cloudy Sky",{"x":0,"y":0,"z":-1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}},{"type":"tile","gaf":{"predicate":"Block.SetFog","args":["200","400","Light Blue"]}},{"type":"tile","gaf":{"predicate":"Block.SetBackgroundMusic","args":["MusicBackground"]}},{"type":"tile","gaf":{"predicate":"Sky.EnvEffect","args":["Clear"]}},{"type":"tile","gaf":{"predicate":"Sky.SkyBoxTo","args":[7]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Locked","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Sky.SetGravity","args":[{"x":0,"y":-20,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.Fixed","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Water Endless Expanse"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":-5,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Dark Green"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Rock",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":2500,"y":1,"z":2500}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Locked","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]}
+ ],
+ "connections":[
+  [],
+  []
+ ],
+ "connectionTypes":[
+  [],
+  []
+ ],
+ "frozen-in-terrain":[1,1],
+ "camera":{
+  "rotation":{"x":0.04398,"y":0.86303,"z":-0.07631,"w":0.4974},
+  "position":{"x":-51.3051,"y":5.6894,"z":-68.87731},
+  "playDistance":28.02644,
+  "playAngle":69.01241
+ },
+ "camera-poses":[
+  {"name":"Camera Reset Pose","position":{"x":-34.9957,"y":1.71939,"z":-90.56665},"direction":{"x":0.53139,"y":-0.3377,"z":0.77688}}
+ ]
+}

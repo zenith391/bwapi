@@ -1,0 +1,27 @@
+{
+ "blocks":[
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Sky UV"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Cloudy Sky",{"x":0,"y":0,"z":-1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}},{"type":"tile","gaf":{"predicate":"Block.SetFog","args":["200","400","White"]}},{"type":"tile","gaf":{"predicate":"Block.SetBackgroundMusic","args":["MusicBackground"]}},{"type":"tile","gaf":{"predicate":"Sky.EnvEffect","args":["Clear"]}},{"type":"tile","gaf":{"predicate":"Sky.SkyBoxTo","args":[7]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Locked","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Sky.SetGravity","args":[{"x":0,"y":-20,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.Fixed","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Water Endless Expanse"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":0,"y":-5,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":0,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Terrain Grid",{"x":0,"y":1,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":2500,"y":1,"z":2500}]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Locked","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]},
+  {"tile-rows":[[{"type":"tile","gaf":{"predicate":"Meta.Stop","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Create","args":["Jukebox"]}},{"type":"tile","gaf":{"predicate":"Block.MoveTo","args":[{"x":-426,"y":-4,"z":105}]}},{"type":"tile","gaf":{"predicate":"Block.RotateTo","args":[{"x":0,"y":90,"z":0}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Luminous Blue"]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Transparent",{"x":0,"y":0,"z":1}]}},{"type":"tile","gaf":{"predicate":"Block.ScaleTo","args":[{"x":1,"y":1,"z":1}]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Black",1]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Transparent",{"x":0,"y":0,"z":1},1]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["White",2]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Transparent",{"x":0,"y":0,"z":1},2]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Blue",3]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Transparent",{"x":0,"y":0,"z":1},3]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Grey",4]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Transparent",{"x":0,"y":0,"z":1},4]}},{"type":"tile","gaf":{"predicate":"Block.PaintTo","args":["Brown",5]}},{"type":"tile","gaf":{"predicate":"Block.TextureTo","args":["Transparent",{"x":1,"y":0,"z":0},5]}}],[{"type":"tile","gaf":{"predicate":"Block.FirstFrame","args":[]}},{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Jukebox.SetMusic","args":["MusicLogic",0.39999]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Fixed","args":[]}},{"type":"tile","gaf":{"predicate":"Block.Phantom","args":[]}}],[{"type":"tile","gaf":{"predicate":"Meta.Then","args":[]}}]]}
+ ],
+ "connections":[
+  [],
+  [],
+  []
+ ],
+ "connectionTypes":[
+  [],
+  [],
+  []
+ ],
+ "frozen-in-terrain":[1,1,0],
+ "camera":{
+  "rotation":{"x":0.10043,"y":-0.69533,"z":0.09909,"w":0.7047},
+  "position":{"x":-59.52325,"y":-2.98448,"z":-33.46131},
+  "playDistance":14.11807,
+  "playAngle":65.08066
+ },
+ "camera-poses":[
+  {"name":"Camera Reset Pose","position":{"x":-34.9957,"y":1.71939,"z":-90.56665},"direction":{"x":0.53139,"y":-0.3377,"z":0.77688}}
+ ]
+}

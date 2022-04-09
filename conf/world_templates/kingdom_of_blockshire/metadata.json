@@ -1,0 +1,11 @@
+{
+	"id": 16801,
+	"title": "Kingdom of Blockshire",
+	"image_urls_for_sizes": {
+		"1024x768": "https://bwsecondary.ddns.net/img/templates/kingdom_of_blockshire-1024x768.jpg",
+		"512x384": "https://bwsecondary.ddns.net/img/templates/kingdom_of_blockshire-1024x768.jpg",
+		"440x440": "https://bwsecondary.ddns.net/img/templates/kingdom_of_blockshire-440x440.jpg",
+		"220x220": "https://bwsecondary.ddns.net/img/templates/kingdom_of_blockshire-440x440.jpg"
+	},
+	"hidden": false
+}

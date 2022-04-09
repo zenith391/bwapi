@@ -2,7 +2,6 @@
 v2/
 conf/plugins
 conf/news_articles
-conf/world_templates
 conf/new_account_id.txt
 conf/new_model_id.txt
 conf/new_world_id.txt
