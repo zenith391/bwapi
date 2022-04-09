@@ -630,7 +630,7 @@ function worldsGet(req, res, u) {
 	}
 	if (worldListCache[cacheIndex]) {
 		let json = worldListCache[cacheIndex];
-		if (Date.now() >= json["expires"]) {
+		if (Date.now() >= json["expires"] || json["worlds"].length == 0) {
 			worldListCache[cacheIndex] = undefined;
 		} else {
 			let copy = Object.assign({}, json);
