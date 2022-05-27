@@ -712,7 +712,7 @@ async function current_user_worlds(req: any, res: any) {
 	for (const id of ownedWorlds) {
 		try {
 			const retrievedWorld = await (global as any).fullWorldSync(id, true);
-			if (retrievedWorld !== null) {
+			if (retrievedWorld !== null && parseInt(retrievedWorld.author_id) === user.id) {
 				if (is_published == "yes") {
 					if (retrievedWorld.publication_status == 1) {
 						response.worlds.push(retrievedWorld);

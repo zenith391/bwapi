@@ -350,10 +350,10 @@ async function purchaseModel(req, res) {
 			await author.addPayout({
 				"payout_type": "coins",
 				"coin_grants": price,
-				"title": "Sales!",
-				"msg1": "Sold 1 copy of \"" + model["title"] + "\"!",
-				"msg2": "",
-				"has_gold_border": false
+				"title": model.title + " sales!",
+				"msg1": "Sold 1 copy!",
+				"msg2": "You earned " + price + " coins",
+				"has_gold_border": true
 			})
 			if (!model["sales_count"]) model["sales_count"] = 0;
 			if (!model["popularity_count"]) model["popularity_count"] = model["sales_count"];
