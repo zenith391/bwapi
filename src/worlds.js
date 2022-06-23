@@ -19,7 +19,7 @@
 import fs from "fs";
 import url from "url";
 import { User } from "./users.js";
-import { cloneArray } from "./util.js";
+import { dateString } from "./util.js";
 import { urlencoded } from "express";
 
 const profanityRegex = /nigga|fuck|penis|dick|semen|cum/;

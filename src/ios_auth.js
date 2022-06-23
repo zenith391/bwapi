@@ -31,15 +31,15 @@ async function ios_current_user(req, res, u) {
 			metadata["auth_token"] = authToken;
 			metadata["blocks_inventory_str"] = fs.readFileSync("conf/user_block_inventory.txt", {"encoding":"utf8"});
 			metadata["world_templates"] = worldTemplates;
-			metadata["_SERVER_worlds"] = undefined;
-			metadata["_SERVER_models"] = undefined;
-			metadata["_SERVER_groups"] = undefined;
+			delete metadata["_SERVER_worlds"];
+			delete metadata["_SERVER_models"];
+			delete metadata["_SERVER_groups"];
 			metadata["purchased_building_set_ids"] = [123789456];
 			metadata["game_center_player_id"] = gc_id;
 			// TODO: completed_puzzles_ids
 
 			// user["api_v2_supported"] = true; // iOS can't be modded as of now
-			authTokens[authToken] = userId;
+			global.authTokens[authToken] = parseInt(userId);
 
 			let date = new Date();
 			let line = date.toLocaleDateString("en-US");

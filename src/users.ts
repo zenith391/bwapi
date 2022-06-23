@@ -506,6 +506,12 @@ export class User {
 		metadata.user_status = newValue;
 		await this.setMetadata(metadata);
 	}
+	
+	async setOwnedModels(newValue: number[]) {
+		let metadata = await this.getMetadata();
+		metadata._SERVER_models = newValue;
+		await this.setMetadata(metadata);
+	}
 
 	async agreeToToS() {
 		let metadata = await this.getMetadata();
