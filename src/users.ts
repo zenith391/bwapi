@@ -734,6 +734,7 @@ async function current_user_worlds(req: any, res: any) {
 				"error": 404,
 				"error_msg": "Could not load your worlds."
 			});
+			return;
 		}
 	}
 
