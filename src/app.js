@@ -155,7 +155,7 @@ app.use(function(req, res, next) {
 	}
 	console.debug(req.method + " " + req.url, userId);
 
-	res.set("Server", "Vaila");
+	res.set("Server", "BWAPI 0.9.1");
 	res.set("Access-Control-Allow-Origin", "*"); // allows client JavaScript code to access bwapi
 	try {
 		next();
@@ -167,7 +167,7 @@ app.use(function(req, res, next) {
 	}
 });
 
-app.disable("x-powered-by"); // as recommended by ExpressJS security best practices (https://expressjs.com/en/advanced/best-practice-security.html)
+app.disable("x-powered-by");
 
 app.use(function(req, res, next) {
 	if (req.headers["content-type"] != undefined) {

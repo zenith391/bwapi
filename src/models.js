@@ -361,12 +361,10 @@ async function purchaseModel(req, res) {
 			if (!fs.existsSync("users/" + user.id + "/purchased_u2u_models.json")) {
 				fs.writeFileSync("users/" + user.id + "/purchased_u2u_models.json", "{\"u2u_models\":[]}");
 			}
-			let usr = JSON.parse(fs.readFileSync("users/" + user.id + "/purchased_u2u_models.json"));
-			if (!usr["u2u_models"].includes(parseInt(id))) {
-				usr["u2u_models"].push(parseInt(id));
+
+			if (await user.appendPurchasedModel(parseInt(id))) {
 				model["popularity_count"] = model["popularity_count"] + 1;
 			}
-			fs.writeFileSync("users/" + user.id + "/purchased_u2u_models.json", JSON.stringify(usr));
 			fs.writeFileSync("models/" + id + "/metadata.json", JSON.stringify(model));
 
 			// notify model seller of the sale

@@ -197,7 +197,7 @@ export class User {
 
 		let date = new Date();
 		let line = date.toLocaleDateString("en-US");
-		let csv = fs.readFileSync("total_players.csv").toString();
+		let csv = fs.readFileSync("total_players.csv", {"encoding":"utf8"});
 		let lines = csv.split("\n");
 		let lastLine = lines[lines.length-1].split(",");
 		const totalWorlds = fs.readdirSync("users").length-2+3;
@@ -339,12 +339,15 @@ export class User {
 		return cloneArray(this._likedWorlds!);
 	}
 
-	async appendPurchasedModel(modelId: any) {
+	async appendPurchasedModel(modelId: number) {
+		let hasAdded = false;
 		let purchasedModels = await this.getPurchasedModels();
-		purchasedModels.push(modelId);
-		fs.writeFileSync("users/" + this.id + "/purchased_u2u_models.json", JSON.stringify({
-			u2u_models: purchasedModels
-		}));
+		if (!purchasedModels.includes(modelId)) {
+			purchasedModels.push(modelId);
+			hasAdded = true;
+		}
+		await this.setPurchasedModels(purchasedModels);
+		return hasAdded;
 	}
 
 	async addFeed(feed: any) {
@@ -420,6 +423,13 @@ export class User {
 		this._feeds = newValue;
 		fs.writeFileSync("users/" + this.id + "/news_feed.json", JSON.stringify({
 			news_feed: newValue
+		}));
+	}
+
+	async setPurchasedModels(newValue: number[]) {
+		this._purchasedModels = newValue;
+		fs.writeFileSync("users/" + this.id + "/purchased_u2u_models.json", JSON.stringify({
+			u2u_models: newValue
 		}));
 	}
 
