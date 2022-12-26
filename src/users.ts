@@ -304,6 +304,10 @@ export class User {
 		if (this._pendingPayouts === undefined) {
 			this._pendingPayouts = JSON.parse(fs.readFileSync("users/" + this.id + "/pending_payouts.json", { encoding: "utf8" }))["pending_payouts"];
 		}
+		if (!Array.isArray(this._pendingPayouts)) {
+			console.warn("User " + this.id + " has a non-array pending payouts!");
+			this._pendingPayouts = [];
+		}
 
 		return cloneArray(this._pendingPayouts!);
 	}
