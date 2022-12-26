@@ -228,7 +228,7 @@ async function updateModel(req, res) {
 				metadata["publication_status"] = 0; // unpublished
 			}
 			metadata["updated_at"] = dateString();
-			allModelsCache[id] = metadata;
+			allModelsCache[id] = await processUserWorld(metadata);
 
 			let metaStr = JSON.stringify(metadata);
 			fs.writeFile("models/"+id+"/metadata.json", metaStr, function(err) {
@@ -358,14 +358,12 @@ async function purchaseModel(req, res) {
 			if (!model["sales_count"]) model["sales_count"] = 0;
 			if (!model["popularity_count"]) model["popularity_count"] = model["sales_count"];
 			model["sales_count"] = model["sales_count"] + 1;
-			if (!fs.existsSync("users/" + user.id + "/purchased_u2u_models.json")) {
-				fs.writeFileSync("users/" + user.id + "/purchased_u2u_models.json", "{\"u2u_models\":[]}");
-			}
 
 			if (await user.appendPurchasedModel(parseInt(id))) {
 				model["popularity_count"] = model["popularity_count"] + 1;
 			}
 			fs.writeFileSync("models/" + id + "/metadata.json", JSON.stringify(model));
+			allModelsCache[id] = await processUserWorld(model);
 
 			// notify model seller of the sale
 			await author.addFeed({

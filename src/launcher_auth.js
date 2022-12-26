@@ -63,7 +63,7 @@ async function account_login(req, res) {
 
 				const user = new User(userId);
 				const userStatus = await user.getStatus();
-				if (EARLY_ACCESS) {
+				if (EARLY_ACCESS && (userStatus & 4) == 0) {
 					await user.setStatus(userStatus | 4);
 					console.log("Adding early access user status to user " + userId);
 				}

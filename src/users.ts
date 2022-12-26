@@ -19,13 +19,13 @@
 // TODO: dans worlds.ts, rajouter un query ?highres ?lowres, etc. ou alors ?width=440&height=440
 // pour choisir la taille de l'image, et la redimensionner puis compresser dans l'endpoint
 // permet d'économiser la bande passante et de rendre le chargement plus rapide
-import fs from "fs";
-import url from "url";
-import uuid from "uuid";
-import util from "util";
+import * as fs from "fs";
+import * as url from "url";
+import * as uuid from "uuid";
+import * as util from "util";
 import config from "./config.js";
 import { value2, validAuthToken, dateString, cloneArray } from "./util.js";
-import classTransformer from "class-transformer";
+import * as classTransformer from "class-transformer";
 
 type Payout = {
 	payout_type: string;
@@ -373,16 +373,16 @@ export class User {
 		}
 		user["attrs_for_follow_users"]["u"+targetId] = dateString();
 		targetFollowers["attrs_for_follow_users"]["u"+this.id] = dateString();
-		fs.writeFile("users/"+this.id+"/followed_users.json", JSON.stringify(user), function(err) {
+		fs.writeFile("users/"+this.id+"/followed_users.json", JSON.stringify(user), function(err: any) {
 			if (err) console.error(err);
-			fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(targetFollowers), function(err) {
+			fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(targetFollowers), function(err: any) {
 				if (err) console.error(err);
 			});
 		});
 	}
 
 	async setMetadata(newValue: UserMetadata) {
-		this._metadata = newValue;
+		this._metadata = structuredClone(newValue);
 		fs.writeFileSync("users/" + this.id + "/metadata.json", JSON.stringify(newValue));
 	}
 
@@ -676,10 +676,9 @@ async function save_current_user_profile_world(req: any, res: any) {
 		if (req.files && req.files["profile_image"]) {
 			fs.copyFileSync(req.files["profile_image"][0].path, "images/profiles/"+userId+".jpg");
 			userMeta["profile_image_url"] = "https://bwsecondary.ddns.net:8080/images/profiles/"+userId+".jpg";
-			fs.writeFileSync("users/"+userId+"/metadata.json", JSON.stringify(userMeta));
+			await valid.user.setMetadata(userMeta);
 		}
 	}
-	await valid.user.setMetadata(userMeta);
 
 	res.status(200).json(userMeta);
 }
@@ -799,9 +798,9 @@ function follow(req: any, res: any) {
 	}
 	user["attrs_for_follow_users"]["u"+targetId] = dateString();
 	target["attrs_for_follow_users"]["u"+userId] = dateString();
-	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err) {
+	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err: any) {
 		if (err) console.error(err);
-		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err) {
+		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err: any) {
 			if (err) console.error(err);
 			res.status(200).json({"ok":true});
 		});
@@ -825,9 +824,9 @@ function unfollow(req: any, res: any) {
 	}
 	user["attrs_for_follow_users"]["u"+targetId] = undefined;
 	target["attrs_for_follow_users"]["u"+userId] = undefined;
-	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err) {
+	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err: any) {
 		if (err) throw err;
-		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err) {
+		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err: any) {
 			if (err) throw err;
 			res.status(200).json({"ok":true});
 		});
