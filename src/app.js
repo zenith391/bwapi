@@ -27,7 +27,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 import { User } from "./users.js";
-import { run } from "./bwwool.js";
 
 global.__filename = fileURLToPath(import.meta.url);
 global.__dirname = path.dirname(__filename);
