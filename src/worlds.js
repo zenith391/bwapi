@@ -88,25 +88,29 @@ global.fullWorld = function(id, source, callback) {
 
 // Asynchronous version of the fullWorld(...) function
 global.fullWorldSync = async function(id, noSource) {
-	let world = {
-		id: id.toString()
-	}
-	console.debug("fullWorldSync(" + id + ")");
-	if (!fs.existsSync("worlds/" + id)) {
-		console.warn("World " + id + " does not exists!");
+	try {
+		let world = {
+			id: id.toString()
+		}
+		console.debug("fullWorldSync(" + id + ")");
+		if (!fs.existsSync("worlds/" + id)) {
+			console.warn("World " + id + " does not exists!");
+			return null;
+		}
+		let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
+		for (const key in metadata) {
+			world[key] = metadata[key];
+		}
+		world.id = parseInt(id);
+		if (!world["required_mods"]) world["required_mods"] = [];
+		if (noSource === undefined || noSource == null) {
+			world["source_json_str"] = fs.readFileSync("worlds/"+id+"/source.json",{"encoding":"utf8"});
+		}
+		world = await processUserWorld(world);
+		return world;
+	} catch (e) {
 		return null;
 	}
-	let metadata = JSON.parse(fs.readFileSync("worlds/"+id+"/metadata.json"));
-	for (const key in metadata) {
-		world[key] = metadata[key];
-	}
-	world.id = parseInt(id);
-	if (!world["required_mods"]) world["required_mods"] = [];
-	if (noSource === undefined || noSource == null) {
-		world["source_json_str"] = fs.readFileSync("worlds/"+id+"/source.json",{"encoding":"utf8"});
-	}
-	world = await processUserWorld(world);
-	return world;
 }
 
 let allWorldsCache = {};

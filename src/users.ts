@@ -1,19 +1,19 @@
 /**
 	bwapi - Blocksworld API server reimplementation
-    Copyright (C) 2020 zenith391
+		Copyright (C) 2020 zenith391
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+		This program is free software: you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation, either version 3 of the License, or
+		(at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		This program is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
 
 // TODO: dans worlds.ts, rajouter un query ?highres ?lowres, etc. ou alors ?width=440&height=440
@@ -153,11 +153,11 @@ export class User {
 	}
 
 	static async create(username: string, linkType: LinkType) {
-		const newId = fs.readFileSync("conf/new_account_id.txt", {"encoding": "utf8"});
-		fs.writeFileSync("conf/new_account_id.txt", (parseInt(newId)+1).toString());
+		const newId = fs.readFileSync("conf/new_account_id.txt", { "encoding": "utf8" });
+		fs.writeFileSync("conf/new_account_id.txt", (parseInt(newId) + 1).toString());
 
 		console.log("Creating user with ID " + newId);
-		fs.mkdirSync("users/"+newId);
+		fs.mkdirSync("users/" + newId);
 		let newUserStatus: number = linkType;
 		if (config.EARLY_ACCESS)
 			newUserStatus |= 4; // add "early access" flag
@@ -183,26 +183,26 @@ export class User {
 			"_SERVER_models": [],
 			"_SERVER_groups": []
 		}
-		fs.writeFileSync("users/"+newId+"/metadata.json", JSON.stringify(userInfo));
-		fs.writeFileSync("users/"+newId+"/followed_users.json", "{\"attrs_for_follow_users\": {}}");
-		fs.writeFileSync("users/"+newId+"/followers.json", "{\"attrs_for_follow_users\": {}}");
-		fs.writeFileSync("users/"+newId+"/liked_worlds.json", "{\"worlds\": []}");
-		fs.writeFileSync("users/"+newId+"/played_worlds.json", "{\"worlds\": []}");
-		fs.writeFileSync("users/"+newId+"/world_ratings.json", "{\"ratings\": {}}");
-		fs.writeFileSync("users/"+newId+"/model_ratings.json", "{\"ratings\": {}}");
-		fs.writeFileSync("users/"+newId+"/pending_payouts.json", "{\"pending_payouts\": []}");
-		fs.writeFileSync("users/"+newId+"/news_feed.json", JSON.stringify({
+		fs.writeFileSync("users/" + newId + "/metadata.json", JSON.stringify(userInfo));
+		fs.writeFileSync("users/" + newId + "/followed_users.json", "{\"attrs_for_follow_users\": {}}");
+		fs.writeFileSync("users/" + newId + "/followers.json", "{\"attrs_for_follow_users\": {}}");
+		fs.writeFileSync("users/" + newId + "/liked_worlds.json", "{\"worlds\": []}");
+		fs.writeFileSync("users/" + newId + "/played_worlds.json", "{\"worlds\": []}");
+		fs.writeFileSync("users/" + newId + "/world_ratings.json", "{\"ratings\": {}}");
+		fs.writeFileSync("users/" + newId + "/model_ratings.json", "{\"ratings\": {}}");
+		fs.writeFileSync("users/" + newId + "/pending_payouts.json", "{\"pending_payouts\": []}");
+		fs.writeFileSync("users/" + newId + "/news_feed.json", JSON.stringify({
 			"news_feed": [{ "type": 101, "timestamp": dateString() }]
 		}));
 
 		let date = new Date();
 		let line = date.toLocaleDateString("en-US");
-		let csv = fs.readFileSync("total_players.csv", {"encoding":"utf8"});
+		let csv = fs.readFileSync("total_players.csv", { "encoding": "utf8" });
 		let lines = csv.split("\n");
-		let lastLine = lines[lines.length-1].split(",");
-		const totalWorlds = fs.readdirSync("users").length-2+3;
+		let lastLine = lines[lines.length - 1].split(",");
+		const totalWorlds = fs.readdirSync("users").length - 2 + 3;
 		if (lastLine[0] == line) {
-			lines[lines.length-1] = line + "," + totalWorlds;
+			lines[lines.length - 1] = line + "," + totalWorlds;
 			fs.writeFileSync("total_players.csv", lines.join("\n"));
 		} else {
 			fs.appendFileSync("total_players.csv", "\n" + line + "," + totalWorlds);
@@ -235,9 +235,9 @@ export class User {
 
 		let nextId = 0;
 		for (const i in payouts) {
-			nextId = Math.max(nextId, parseInt(i)+1);
+			nextId = Math.max(nextId, parseInt(i) + 1);
 		}
-		payout["ref_id"] = nextId+1;
+		payout["ref_id"] = nextId + 1;
 		payouts.push(payout);
 		this.setPendingPayouts(payouts);
 	}
@@ -285,15 +285,21 @@ export class User {
 				fs.writeFileSync("users/" + this.id + "/followed_users.json", "{\"attrs_for_follow_users\":{}}");
 			}
 
-			const rawFollowedUsers = JSON.parse(fs.readFileSync("users/" + this.id + "/followed_users.json", { encoding: "utf8" }))["attrs_for_follow_users"];
-			this._followedUsers = [];
-			for (const i in rawFollowedUsers) {
-				if (rawFollowedUsers[i] != undefined) {
-					this._followedUsers.push({
-						user: new User(i.substring(1)),
-						date: new Date(rawFollowedUsers[i])
-					})
+			try {
+				const rawFollowedUsers = JSON.parse(fs.readFileSync("users/" + this.id + "/followed_users.json", { encoding: "utf8" }))["attrs_for_follow_users"];
+				this._followedUsers = [];
+				for (const i in rawFollowedUsers) {
+					if (rawFollowedUsers[i] != undefined) {
+						this._followedUsers.push({
+							user: new User(i.substring(1)),
+							date: new Date(rawFollowedUsers[i])
+						})
+					}
 				}
+			} catch (e) {
+				console.warn("Corrupted follower list of " + this.id);
+				console.error(e);
+				this._followedUsers = [];
 			}
 		}
 
@@ -364,10 +370,10 @@ export class User {
 
 	async follow(target: any) {
 		const targetId = target.id;
-		let user = JSON.parse(fs.readFileSync("users/"+this.id+"/followed_users.json", { encoding: "utf8" }));
+		let user = JSON.parse(fs.readFileSync("users/" + this.id + "/followed_users.json", { encoding: "utf8" }));
 		let targetFollowers: any;
-		if (fs.existsSync("users/"+targetId+"/followers.json")) {
-			targetFollowers = JSON.parse(fs.readFileSync("users/"+targetId+"/followers.json", { encoding: "utf8" }))
+		if (fs.existsSync("users/" + targetId + "/followers.json")) {
+			targetFollowers = JSON.parse(fs.readFileSync("users/" + targetId + "/followers.json", { encoding: "utf8" }))
 		} else {
 			// res.status(404).json({
 			// 	"error": "the target doesn't exists"
@@ -375,11 +381,11 @@ export class User {
 			console.error("the target doesn't exists");
 			return;
 		}
-		user["attrs_for_follow_users"]["u"+targetId] = dateString();
-		targetFollowers["attrs_for_follow_users"]["u"+this.id] = dateString();
-		fs.writeFile("users/"+this.id+"/followed_users.json", JSON.stringify(user), function(err: any) {
+		user["attrs_for_follow_users"]["u" + targetId] = dateString();
+		targetFollowers["attrs_for_follow_users"]["u" + this.id] = dateString();
+		fs.writeFile("users/" + this.id + "/followed_users.json", JSON.stringify(user), function(err: any) {
 			if (err) console.error(err);
-			fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(targetFollowers), function(err: any) {
+			fs.writeFile("users/" + targetId + "/followers.json", JSON.stringify(targetFollowers), function(err: any) {
 				if (err) console.error(err);
 			});
 		});
@@ -520,7 +526,7 @@ export class User {
 		metadata.user_status = newValue;
 		await this.setMetadata(metadata);
 	}
-	
+
 	async setOwnedModels(newValue: number[]) {
 		let metadata = await this.getMetadata();
 		metadata._SERVER_models = newValue;
@@ -650,10 +656,10 @@ async function save_current_user_profile_world(req: any, res: any) {
 
 	let userId = valid.user.id;
 	console.log("User " + userId + " uploading his profile world.");
-	if (!fs.existsSync("users/"+userId+"/profile_world")) {
-		fs.mkdirSync("users/"+userId+"/profile_world");
-		fs.copyFileSync("conf/default_profile_world.txt", "users/"+userId+"/profile_world/source.json");
-		fs.writeFileSync("users/"+userId+"/profile_world/metadata.json",
+	if (!fs.existsSync("users/" + userId + "/profile_world")) {
+		fs.mkdirSync("users/" + userId + "/profile_world");
+		fs.copyFileSync("conf/default_profile_world.txt", "users/" + userId + "/profile_world/source.json");
+		fs.writeFileSync("users/" + userId + "/profile_world/metadata.json",
 			JSON.stringify({
 				"app_version": req.headers["bw-app-version"],
 				"author_id": userId,
@@ -662,24 +668,24 @@ async function save_current_user_profile_world(req: any, res: any) {
 				"updated_at_timestamp": Date.now()
 			}));
 	}
-	let meta = JSON.parse(fs.readFileSync("users/"+userId+"/profile_world/metadata.json", { encoding: "utf8" }));
+	let meta = JSON.parse(fs.readFileSync("users/" + userId + "/profile_world/metadata.json", { encoding: "utf8" }));
 	if (req.body["source_json_str"]) {
-		fs.writeFileSync("users/"+userId+"/profile_world/source.json", value2(req.body["source_json_str"]));
+		fs.writeFileSync("users/" + userId + "/profile_world/source.json", value2(req.body["source_json_str"]));
 	}
 	if (req.body["avatar_source_json_str"]) {
-		fs.writeFileSync("users/"+userId+"/profile_world/avatar_source.json", value2(req.body["avatar_source_json_str"]));
+		fs.writeFileSync("users/" + userId + "/profile_world/avatar_source.json", value2(req.body["avatar_source_json_str"]));
 	}
 	if (req.body["profile_gender"]) {
 		meta["profile_gender"] = value2(req.body["profile_gender"]);
 	}
 	meta["updated_at_timestamp"] = Date.now();
-	fs.writeFileSync("users/"+userId+"/profile_world/metadata.json", JSON.stringify(meta));
+	fs.writeFileSync("users/" + userId + "/profile_world/metadata.json", JSON.stringify(meta));
 
 	let userMeta = await valid.user.getMetadata();
 	if (userMeta["is_image_locked"] != true) {
 		if (req.files && req.files["profile_image"]) {
-			fs.copyFileSync(req.files["profile_image"][0].path, "images/profiles/"+userId+".jpg");
-			userMeta["profile_image_url"] = "https://bwsecondary.ddns.net:8080/images/profiles/"+userId+".jpg";
+			fs.copyFileSync(req.files["profile_image"][0].path, "images/profiles/" + userId + ".jpg");
+			userMeta["profile_image_url"] = "https://bwsecondary.ddns.net:8080/images/profiles/" + userId + ".jpg";
 			await valid.user.setMetadata(userMeta);
 		}
 	}
@@ -692,10 +698,10 @@ async function current_user_profile_world(req: any, res: any) {
 	if (valid.ok === false) return;
 	let userId = valid.user.id;
 	console.log("User " + userId + " downloading his profile world.");
-	if (!fs.existsSync("users/"+userId+"/profile_world")) {
-		fs.mkdirSync("users/"+userId+"/profile_world");
-		fs.copyFileSync("conf/default_profile_world.txt", "users/"+userId+"/profile_world/source.json");
-		fs.writeFileSync("users/"+userId+"/profile_world/metadata.json",
+	if (!fs.existsSync("users/" + userId + "/profile_world")) {
+		fs.mkdirSync("users/" + userId + "/profile_world");
+		fs.copyFileSync("conf/default_profile_world.txt", "users/" + userId + "/profile_world/source.json");
+		fs.writeFileSync("users/" + userId + "/profile_world/metadata.json",
 			JSON.stringify({
 				"app_version": req.headers["bw-app-version"],
 				"author_id": userId,
@@ -705,12 +711,12 @@ async function current_user_profile_world(req: any, res: any) {
 			}));
 	}
 
-	let src = fs.readFileSync("users/"+userId+"/profile_world/source.json",{"encoding":"utf8"});
-	let meta = JSON.parse(fs.readFileSync("users/"+userId+"/profile_world/metadata.json", { encoding: "utf8" }));
+	let src = fs.readFileSync("users/" + userId + "/profile_world/source.json", { "encoding": "utf8" });
+	let meta = JSON.parse(fs.readFileSync("users/" + userId + "/profile_world/metadata.json", { encoding: "utf8" }));
 	meta["image_url"] = await valid.user.getProfileImageURL();
 	meta["source_json_str"] = src
-	if (fs.existsSync("users/"+userId+"/profile_world/avatar_source.json")) {
-		meta["avatar_source_json_str"] = fs.readFileSync("users/"+userId+"/profile_world/avatar_source.json",{"encoding":"utf8"});
+	if (fs.existsSync("users/" + userId + "/profile_world/avatar_source.json")) {
+		meta["avatar_source_json_str"] = fs.readFileSync("users/" + userId + "/profile_world/avatar_source.json", { "encoding": "utf8" });
 	}
 	meta = (global as any).processUserWorld(meta)
 	res.status(200).json(meta);
@@ -790,23 +796,23 @@ function follow(req: any, res: any) {
 	if (valid.ok === false) return;
 	let userId = valid.user.id;
 	let targetId = parseInt(req.params["id"]);
-	let user = JSON.parse(fs.readFileSync("users/"+userId+"/followed_users.json", { encoding: "utf8" }));
+	let user = JSON.parse(fs.readFileSync("users/" + userId + "/followed_users.json", { encoding: "utf8" }));
 	let target: any;
-	if (fs.existsSync("users/"+targetId+"/followers.json")) {
-		target = JSON.parse(fs.readFileSync("users/"+targetId+"/followers.json", { encoding: "utf8" }))
+	if (fs.existsSync("users/" + targetId + "/followers.json")) {
+		target = JSON.parse(fs.readFileSync("users/" + targetId + "/followers.json", { encoding: "utf8" }))
 	} else {
 		res.status(404).json({
 			"error": "the target doesn't exists"
 		});
 		return;
 	}
-	user["attrs_for_follow_users"]["u"+targetId] = dateString();
-	target["attrs_for_follow_users"]["u"+userId] = dateString();
-	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err: any) {
+	user["attrs_for_follow_users"]["u" + targetId] = dateString();
+	target["attrs_for_follow_users"]["u" + userId] = dateString();
+	fs.writeFile("users/" + userId + "/followed_users.json", JSON.stringify(user), function(err: any) {
 		if (err) console.error(err);
-		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err: any) {
+		fs.writeFile("users/" + targetId + "/followers.json", JSON.stringify(target), function(err: any) {
 			if (err) console.error(err);
-			res.status(200).json({"ok":true});
+			res.status(200).json({ "ok": true });
 		});
 	});
 }
@@ -816,23 +822,23 @@ function unfollow(req: any, res: any) {
 	if (valid.ok === false) return;
 	let userId = valid.user.id;
 	let targetId = parseInt(req.params["id"]);
-	let user = JSON.parse(fs.readFileSync("users/"+userId+"/followed_users.json", { encoding: "utf8" }));
+	let user = JSON.parse(fs.readFileSync("users/" + userId + "/followed_users.json", { encoding: "utf8" }));
 	let target: any;
-	if (fs.existsSync("users/"+targetId+"/followers.json")) {
-		target = JSON.parse(fs.readFileSync("users/"+targetId+"/followers.json", { encoding: "utf8" }))
+	if (fs.existsSync("users/" + targetId + "/followers.json")) {
+		target = JSON.parse(fs.readFileSync("users/" + targetId + "/followers.json", { encoding: "utf8" }))
 	} else {
 		res.status(404).json({
 			"error": "the target doesn't exists"
 		});
 		return;
 	}
-	user["attrs_for_follow_users"]["u"+targetId] = undefined;
-	target["attrs_for_follow_users"]["u"+userId] = undefined;
-	fs.writeFile("users/"+userId+"/followed_users.json", JSON.stringify(user), function(err: any) {
+	user["attrs_for_follow_users"]["u" + targetId] = undefined;
+	target["attrs_for_follow_users"]["u" + userId] = undefined;
+	fs.writeFile("users/" + userId + "/followed_users.json", JSON.stringify(user), function(err: any) {
 		if (err) throw err;
-		fs.writeFile("users/"+targetId+"/followers.json", JSON.stringify(target), function(err: any) {
+		fs.writeFile("users/" + targetId + "/followers.json", JSON.stringify(target), function(err: any) {
 			if (err) throw err;
-			res.status(200).json({"ok":true});
+			res.status(200).json({ "ok": true });
 		});
 	});
 }
@@ -917,7 +923,7 @@ export function run(app: any) {
 	app.get("/api/v1/current_user/pending_payouts", async function(req: any, res: any) {
 		let valid = validAuthToken(req, res, false);
 		if (valid.ok === false) return;
-		
+
 		res.status(200).json({
 			"pending_payouts": await valid.user.getPendingPayouts()
 		})
