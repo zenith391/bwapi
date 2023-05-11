@@ -97,6 +97,10 @@ function createModel(req, res) {
 		if (err != null)
 			console.log(err);
 		let newId = data;
+		while (fs.existsSync("models/" + newId)) {
+			newId += 1;
+			console.warn("nodejs did its thing again...");
+		}
 		fs.writeFileSync("conf/new_model_id.txt", (parseInt(newId)+1).toString());
 		let currDateStr = dateString();
 		let metadata = {
