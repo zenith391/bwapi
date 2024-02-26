@@ -325,6 +325,8 @@ function modelsGet(req, res) {
 				publishedModels.push(model);
 			}
 		}
+		// Temporarily disable model store
+		publishedModels = [];
 		let start = Math.min(publishedModels.length, 30*page);
 		let end = Math.min(publishedModels.length, start+30);
 		for (let i = start; i < end; i++) {
