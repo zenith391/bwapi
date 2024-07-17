@@ -7,25 +7,27 @@ import util from "util";
 import nodemailer from "nodemailer";
 import JSONTransport from "nodemailer/lib/json-transport/index.js";
 
-const smtpPassword = fs.readFileSync("conf/smtp_password.txt", { "encoding": "utf-8" });
-let transport = nodemailer.createTransport({
-	host: "smtp.ionos.com",
-	port: 587,
-	//secure: true,
-	auth: {
-		user: "no-reply@blocksverse.com",
-		pass: smtpPassword,
-	}
-});
-
-// verify connection configuration
-transport.verify(function (error) {
-	if (error) {
-	  console.log(error);
-	} else {
-	  console.log("SMTP backend is ready");
-	}
-  });  
+const smtpPassword = fs.existsSync("conf/smtp_password.txt") ? fs.readFileSync("conf/smtp_password.txt", { "encoding": "utf-8" }) : false;
+if(smtpPassword) {
+	var transport = nodemailer.createTransport({
+		host: "smtp.ionos.com",
+		port: 587,
+		//secure: true,
+		auth: {
+			user: "no-reply@blocksverse.com",
+			pass: smtpPassword,
+		}
+	});
+	
+	// verify connection configuration
+	transport.verify(function (error) {
+		if (error) {
+		  console.log(error);
+		} else {
+		  console.log("SMTP backend is ready");
+		}
+	  });  
+}
 
 // Init logging
 const logFilePath = "latest.log";
@@ -153,7 +155,7 @@ process.on('SIGTERM', () => {
 	});
 });
 
-if (process.env.NODE_ENV === "production" || true) {
+if ((process.env.NODE_ENV === "production" || true) && smtpPassword) {
 	process.on("uncaughtException", (err) => {
 		if (err === "exiting") return;
 		if (err.stack) console.error(err.stack);
