@@ -27,34 +27,21 @@ let dayLoginsDate;
 
 const ACCOUNTS_PATH = "/etc/nginx/html/users/";
 
-async function account_login(req, res) {
-	const username = req.body.username;
-
-	console.log(username + " is logging in (launcher)..")
+export async function loginToAccount(username, password) {
 	if (fs.existsSync(ACCOUNTS_PATH + username + ".json")) {
 		const accountData = JSON.parse(fs.readFileSync(ACCOUNTS_PATH + username + ".json",
 			{"encoding": "utf8"}));
 
 		if (!accountData["security_version"] || accountData["security_version"] === 1) {
 			console.log("Must BW Wool login.");
-			res.status(401).json({
-				"error": 401,
-				"error_msg": "Please login on the Blocksworld Wool website then login on the Blocksworld Launcher.",
-			});
-			return;
+			throw new Error("Please login on the Blocksworld Wool website then login on the Blocksworld Launcher.");
 		}
 		const userId = accountData["bw_user_id"];
-		bcrypt.compare(req.body.password, "$2a" + accountData.password.substring(3), async function(err, result) { // PHP produces $2y$ althought they're actually $2a$
+		bcrypt.compare(password, "$2a" + accountData.password.substring(3), async function(err, result) { // PHP produces $2y$ althought they're actually $2a$
 			console.log("Password valid: " + result);
 			if (result) {
 				if (!accountData["bw_link_id"]) {
-					console.log("Must link account");
-					res.status(401).json({
-						"error": 401,
-						"error_msg": "Link your account first!",
-						"error_details": "link_account"
-					});
-					return;
+					throw new Error("link_account");
 				}
 				if (!accountData["bw_user_id"] || isNaN(parseInt(accountData["bw_user_id"]))) {
 					accountData["bw_user_id"] = fs.readFileSync("usersWoolLinks/" + accountData["bw_link_id"] + ".txt", {"encoding": "utf8"});
@@ -71,21 +58,34 @@ async function account_login(req, res) {
 				const authToken = uuid.v4();
 				console.log("New auth token " + authToken + " for account " + username + " with user id " + userId);
 				authTokens[authToken] = userId;
-				res.status(200).json({
-					"auth_token": authToken
-				});
+				return authToken;
 			} else {
-				res.status(401).json({
-					"error": 401,
-					"error_msg": "Invalid password"
-				});
+				throw new Error("Invalid password");
 			}
 		});
 	} else {
-		res.status(401).json({
-			"error": 401,
-			"error_msg": "Invalid username or password. Do you have an account? If no, click the Register button"
-		});
+		throw new Error("Invalid username or password. Do you have an account? If no, click the Register button");
+	}
+}
+
+async function account_login(req, res) {
+	console.log(req.body.username + " is logging in (launcher)..")
+	try {
+		const authToken = await loginToAccount(req.body.username, req.body.password);
+	} catch (e) {
+		console.log("Login failed with error " + e.message);
+		if (e.message == "link_account") {
+			res.status(401).json({
+				"error": 401,
+				"error_msg": "Link your account first!",
+				"error_details": "link_account"
+			});
+		} else {
+			req.status(401).json({
+				"error": 401,
+				"error_msg": e.message
+			});
+		}
 	}
 }
 

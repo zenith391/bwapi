@@ -1,7 +1,7 @@
 <%- include("header", {title: "Login"}) %>
 	<div class="container">
 		<%- message %>
-		<form method="post" action="/webui/login">
+		<form method="post" action="javascript:sendForm()">
 			<div class="form-group">
 				<label for="uname">Username:</label>
 				<input type="text" class="form-control" name="username" id="uname">
@@ -13,4 +13,34 @@
 			<button type="submit" class="btn btn-primary">Submit</button>
 		</form>
 	</div>
+	
+	
+	<script src="https://bwsecondary.ddns.net/js/sha256.js"></script>
+	<script>
+	async function onFinished(response) {
+		var text = await response.text();
+		document.open();
+		document.write(text);
+		document.close();
+		<!-- window.location.href = "/webui/" -->
+	}
+
+	function sendForm() {
+		const name = document.querySelector("#uname").value;
+		const pwd = document.querySelector("#pwd").value;
+		const pwdHash = btoa(sha256(pwd));
+
+		if (window.fetch) {
+			let form = new FormData();
+			form.append("username", name);
+			form.append("password", pwdHash);
+			fetch("/webui/login", {
+				method: "POST",
+				body: form
+			}).then(onFinished)
+		} else {
+			alert("You appear to use an outdated browser");
+		}
+	}
+	</script>
 <%- include("footer") %>

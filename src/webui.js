@@ -20,22 +20,9 @@ import fs from "fs";
 import bcrypt from "bcrypt";
 import url from "url";
 import { User } from "./users.js";
+import { loginToAccount } from "./launcher_auth.js";
 
 let conf = {}
-
-function auth(name, pass, callback) {
-	var user = conf.accounts[name];
-	if (!user) {
-		return callback("Could not find user");
-	}
-	bcrypt.compare(pass, user["hash"], function(err, res) {
-		if (res) {
-			callback(null, name);
-		} else {
-			callback("Invalid password");
-		}
-	});
-}
 
 function loginPath(app) {
 	app.get("/webui/login", function(req, res) {
@@ -43,19 +30,24 @@ function loginPath(app) {
 		res.render("login");
 	});
 
-	app.post("/webui/login", function(req, res) {
+	app.post("/webui/login", async function(req, res) {
 		if (req.body.username && req.body.password) {
-			auth(req.body.username, req.body.password, function(err, name) {
-				if (err) {
-					res.locals.message = "Could not authenticate.";
+			try {
+				const authToken = await loginToAccount(req.body.username, req.body.password);
+				const userId = authTokens[authToken];
+				if (conf.moderators.indexOf(userId) === undefined) {
+					res.locals.message = "Not a moderator!";
 					res.render("login");
 				} else {
-					req.session.regenerate(function() {
-						req.session.user = name;
+					req.session.regenerate(() => {
+						req.session.user = authTokens[authToken];
 						res.redirect("/webui/");
 					});
 				}
-			});
+			} catch (e) {
+				res.locals.message = e.message;
+				res.render("login");
+			}
 		} else {
 			req.session.error = "Could not authenticate.";
 			res.render("login");
