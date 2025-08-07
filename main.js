@@ -7,65 +7,37 @@ import util from "util";
 import nodemailer from "nodemailer";
 import JSONTransport from "nodemailer/lib/json-transport/index.js";
 
-const smtpPassword = fs.readFileSync("conf/smtp_password.txt", { "encoding": "utf-8" });
-let transport = nodemailer.createTransport({
-	host: "smtp.ionos.com",
-	port: 587,
-	//secure: true,
-	auth: {
-		user: "no-reply@blocksverse.com",
-		pass: smtpPassword,
-	}
-});
+let transport;
+if (fs.existsSync("conf/smtp_password.txt")) {
+	const smtpPassword = fs.readFileSync("conf/smtp_password.txt", { "encoding": "utf-8" });
+	let transport = nodemailer.createTransport({
+		host: "smtp.ionos.com",
+		port: 587,
+		//secure: true,
+		auth: {
+			user: "no-reply@blocksverse.com",
+			pass: smtpPassword,
+		}
+	});
+} else {
+	console.warn("/!\\ SMTP transport disabled.");
+}
 
 // verify connection configuration
-transport.verify(function (error) {
-	if (error) {
-	  console.log(error);
-	} else {
-	  console.log("SMTP backend is ready");
-	}
-  });  
-
+if (transport) {
+	transport.verify(function (error) {
+		if (error) {
+		  console.log(error);
+		} else {
+		  console.log("SMTP backend is ready");
+		}
+  });
+}
 // Init logging
 const logFilePath = "latest.log";
 fs.writeFileSync(logFilePath, ""); // be sure log file is empty
 
 // Init CLI interface (allows to manipulate world cache)
-serverline.init();
-serverline.setPrompt("> ");
-serverline.setCompletion(["cache", "exit"]);
-serverline.on("line", function(line) {
-	if (line == "cache clear") {
-		console.log("Clearing world cache..");
-		invalidateWorldCache();
-		console.log("Done!");
-	} else if (line == "cache peek") {
-		if (!isWorldCacheValid()) {
-			console.log("Cache hasn't been filled yet!");
-		} else {
-			console.debug("Peeking cache..");
-			worldCache(function(err, worlds) {
-				console.log("Done: " + util.inspect(worlds, {"colors": true}));
-			});
-		}
-	} else if (line == "cache fill") {
-		if (isWorldCacheValid()) {
-			console.log("Cache is already filled, clear the cache first!");
-		} else {
-			console.debug("Filling cache..");
-			worldCache(function(err, worlds) {
-				console.debug("Done");
-			});
-		}
-	} else if (line == "cache") {
-		console.log("Usage: cache [clear|peek|fill]");
-	} else {
-		console.log("Commands:");
-		console.log("- cache [clear|peek|fill]")
-	}
-});
-
 serverline.on("SIGINT", function(line) {
 	process.exit(0);
 })
@@ -157,15 +129,17 @@ if (process.env.NODE_ENV === "production" || true) {
 	process.on("uncaughtException", (err) => {
 		if (err === "exiting") return;
 		if (err.stack) console.error(err.stack);
-		transport.sendMail({
-			from: "\"Production FAIIIL👻\" <no-reply@blocksverse.com>",
-			to: "zenith@blocksverse.com",
-			subject: "BW2: Production Failed",
-			text: err.message + "\n" + err.stack + "\n\nHere is the JSON:\n" + JSON.stringify(err),
-		}, (send_err) => {
-			if (send_err) console.error(send_err);
-			process.exit(1);
-		});
+		if (transport) {
+			transport.sendMail({
+				from: "\"Production FAIIIL👻\" <no-reply@blocksverse.com>",
+				to: "zenith@blocksverse.com",
+				subject: "BW2: Production Failed",
+				text: err.message + "\n" + err.stack + "\n\nHere is the JSON:\n" + JSON.stringify(err),
+			}, (send_err) => {
+				if (send_err) console.error(send_err);
+				process.exit(1);
+			});
+		}
 	});
 }
 
