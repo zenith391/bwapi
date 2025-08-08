@@ -1,14 +1,14 @@
 {
-	"extends": "@tsconfig/node17/tsconfig.json",
-	"compilerOptions": {
-		"outDir": "./modules",
-		"module": "es2020",
-		"moduleResolution": "node",
-		"allowJs": true,
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"strictNullChecks": true,
-		"strict": true,
-	},
-	"include": ["./src/*"]
+  "extends": "@tsconfig/node17/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./modules",
+    "module": "es2020",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strictNullChecks": true,
+    "strict": true
+  },
+  "include": ["./src/*"]
 }

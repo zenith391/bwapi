@@ -178,7 +178,7 @@
 // }
 
 export function run(app) {
-	//app.get("/api/sync/v1/start", startEndpoint);
-	//app.post("/api/sync/v1/request", requestEndpoint);
-	//app.post("/api/v2/sync/recv_data", recvDataEndpoint)
+  //app.get("/api/sync/v1/start", startEndpoint);
+  //app.post("/api/sync/v1/request", requestEndpoint);
+  //app.post("/api/v2/sync/recv_data", recvDataEndpoint)
 }

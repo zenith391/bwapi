@@ -16,9 +16,9 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
 export function run(app) {
-	app.get("/api/v2/capabilities", function(req, res) {
-		res.status(200).json({
-			"capabilities": global.capabilities
-		});
-	});
+  app.get("/api/v2/capabilities", function (req, res) {
+    res.status(200).json({
+      capabilities: global.capabilities,
+    });
+  });
 }

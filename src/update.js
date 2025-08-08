@@ -18,41 +18,41 @@
 import url from "url";
 
 const latestVersion = "0.6.0";
-const latestVersionId = (0 << 16) | (6 << 8) | (0); // 0 6 0 in separate bytes
+const latestVersionId = (0 << 16) | (6 << 8) | 0; // 0 6 0 in separate bytes
 
 export function run(app) {
-	app.get("/api/v2/exdilin/configuration", function(req, res) {
-		let query = url.parse(req.url, true).query;
-		let version = query.version;
+  app.get("/api/v2/exdilin/configuration", function (req, res) {
+    let query = url.parse(req.url, true).query;
+    let version = query.version;
 
-		res.status(200).json({
-			"latest_version": latestVersion,
-			"latest_version_id": latestVersionId
-		});
-	});
-	
-	app.get("/api/v2/ping", function(req, res) {
-		res.status(200).json({
-			"ok": true
-		});
-	});
+    res.status(200).json({
+      latest_version: latestVersion,
+      latest_version_id: latestVersionId,
+    });
+  });
 
-	app.get("/api/v2/exdilin/download", function(req, res) {
-		const query = url.parse(req.url, true).query;
-		if (query.version) {
-			if (query.version != latestVersion) {
-				res.status(500).json({
-					"error": "download old versions in an upcoming feature"
-				});
-			} else {
-				res.status(200).json({
-					"error": "TODO"
-				})
-			}
-		} else {
-			res.status(404).json({
-				"error": "query required: 'version'"
-			})
-		}
-	})
+  app.get("/api/v2/ping", function (req, res) {
+    res.status(200).json({
+      ok: true,
+    });
+  });
+
+  app.get("/api/v2/exdilin/download", function (req, res) {
+    const query = url.parse(req.url, true).query;
+    if (query.version) {
+      if (query.version != latestVersion) {
+        res.status(500).json({
+          error: "download old versions in an upcoming feature",
+        });
+      } else {
+        res.status(200).json({
+          error: "TODO",
+        });
+      }
+    } else {
+      res.status(404).json({
+        error: "query required: 'version'",
+      });
+    }
+  });
 }
