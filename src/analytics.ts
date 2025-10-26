@@ -52,48 +52,56 @@ export async function migrateOldFiles(db: Database) {
 }
 
 async function updateCsvFiles(db: Database) {
-  const steam_logins = await db.all<LoginRow[]>(
-    `SELECT created_at, event_type FROM Events WHERE event_type = "STEAM_LOGIN" ORDER BY created_at ASC`,
-  );
+  async function updateCsvFile(type: string, event_type: EventType) {
+    const logins = await db.all<LoginRow[]>(
+      `SELECT created_at, event_type FROM Events WHERE event_type = ? ORDER BY created_at ASC`,
+      event_type.toString(),
+    );
+    if (logins.length == 0) return;
 
-  const file = await fs.open("./steam_active_players_v2.csv", "w");
-  const earliest_time = new Date(steam_logins[0].created_at * 1000);
-  earliest_time.setUTCHours(0, 0, 0, 0); // set to the start of the day
+    const file = await fs.open("./" + type + "_active_players_v2.csv", "w");
+    const earliest_time = new Date(logins[0].created_at * 1000);
+    earliest_time.setUTCHours(0, 0, 0, 0); // set to the start of the day
 
-  // Iterate all days since the earliest event in the database
-  let current_day = earliest_time;
-  let event_index = 0;
+    // Iterate all days since the earliest event in the database
+    let current_day = earliest_time;
+    let event_index = 0;
 
-  const stream = file.createWriteStream({});
-  stream.cork();
+    const stream = file.createWriteStream({});
+    stream.cork();
 
-  stream.write("Date,Players\n");
-  while (current_day < new Date()) {
-    let counter = 0;
-    const end_of_day = new Date(current_day);
-    end_of_day.setUTCHours(23, 59, 59, 999);
+    stream.write("Date,Players\n");
+    while (current_day < new Date()) {
+      let counter = 0;
+      const end_of_day = new Date(current_day);
+      end_of_day.setUTCHours(23, 59, 59, 999);
 
-    while (event_index < steam_logins.length) {
-      const login = steam_logins[event_index];
-      const login_date = new Date(login.created_at * 1000);
-      if (login_date >= current_day && login_date <= end_of_day) {
-        counter++;
-      } else if (login_date > current_day) {
-        break;
+      while (event_index < logins.length) {
+        const login = logins[event_index];
+        const login_date = new Date(login.created_at * 1000);
+        if (login_date >= current_day && login_date <= end_of_day) {
+          counter++;
+        } else if (login_date > current_day) {
+          break;
+        }
+        event_index++;
       }
-      event_index++;
-    }
 
-    if (counter != 0) {
-      let date_string = current_day.toLocaleDateString("en-US");
-      stream.write(date_string + "," + counter + "\n");
-    }
+      if (counter != 0) {
+        let date_string = current_day.toLocaleDateString("en-US");
+        stream.write(date_string + "," + counter + "\n");
+      }
 
-    current_day.setUTCDate(current_day.getUTCDate() + 1);
+      current_day.setUTCDate(current_day.getUTCDate() + 1);
+    }
+    stream.uncork();
+    stream.end();
+    await file.close();
   }
-  stream.uncork();
-  stream.end();
-  await file.close();
+
+  await updateCsvFile("steam", EventType.STEAM_LOGIN);
+  await updateCsvFile("ios", EventType.IOS_LOGIN);
+  await updateCsvFile("launcher", EventType.LAUNCHER_LOGIN);
 }
 
 export async function insertLogin(

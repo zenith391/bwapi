@@ -235,13 +235,15 @@ export function run(app: Express) {
   app.get(
     "/webui/server_metrics/steam_active_players.csv",
     function (req: Request, res: Response) {
-      res.status(200).sendFile(config.ROOT_NAME + "/steam_active_players.csv");
+      res
+        .status(200)
+        .sendFile(config.ROOT_NAME + "/steam_active_players_v2.csv");
     },
   );
   app.get(
     "/webui/server_metrics/ios_active_players.csv",
     function (req: Request, res: Response) {
-      res.status(200).sendFile(config.ROOT_NAME + "/ios_active_players.csv");
+      res.status(200).sendFile(config.ROOT_NAME + "/ios_active_players_v2.csv");
     },
   );
   app.get(
@@ -249,7 +251,7 @@ export function run(app: Express) {
     function (req: Request, res: Response) {
       res
         .status(200)
-        .sendFile(config.ROOT_NAME + "/launcher_active_players.csv");
+        .sendFile(config.ROOT_NAME + "/launcher_active_players_v2.csv");
     },
   );
   app.get(
