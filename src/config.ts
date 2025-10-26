@@ -9,6 +9,7 @@ const Config = {
   VERSION: "0.9.3",
   /// How many worlds each player can have
   MAX_WORLD_LIMIT: 200,
+  DATABASE_PATH: "./database.db",
 };
 
 export default Config;

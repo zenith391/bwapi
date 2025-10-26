@@ -1,4 +1,11 @@
 import { User } from "./users.js";
+import { Request } from "express";
+import { Database } from "sqlite";
+
+export interface BWRequest extends Request {
+  files: any;
+  db: Database;
+}
 
 // Get the auth token from a request object
 export function getAuthToken(req: any): string | undefined {

@@ -18,14 +18,14 @@
 import { urlencoded } from "express";
 import fs from "fs";
 import url from "url";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
+import { insertLogin } from "./analytics.js";
 
 let dayLogins = 0;
 
 function steam_current_user(req, res, u) {
   let steam_id = u.query.steam_id;
   let auth_ticket = u.query.steam_auth_ticket;
-
   console.log(steam_id + " is logging in (steam)..");
   if (fs.existsSync("usersSteamLinks/" + steam_id + ".txt")) {
     let userId = fs.readFileSync("usersSteamLinks/" + steam_id + ".txt", {
@@ -55,7 +55,7 @@ function steam_current_user(req, res, u) {
         "users/" + userId + "/metadata.json",
         JSON.stringify(user),
       );
-    let authToken = uuid.v4();
+    let authToken = uuidv4();
     let worldTemplates = [];
     if (!fs.existsSync("users/" + userId + "/world_ratings.json")) {
       fs.writeFileSync(
@@ -78,7 +78,7 @@ function steam_current_user(req, res, u) {
     if (!fs.existsSync("users/" + userId + "/friends.json")) {
       fs.writeFileSync("users/" + userId + "/friends.json", '{"friends": {}}');
     }
-    fs.readdir("conf/world_templates", function (err, files) {
+    fs.readdir("conf/world_templates", async function (err, files) {
       for (const j in files) {
         let path = "conf/world_templates/" + files[j] + "/";
         let worldTemplate = JSON.parse(fs.readFileSync(path + "metadata.json"));
@@ -101,6 +101,7 @@ function steam_current_user(req, res, u) {
       user["api_v2_supported"] = true;
       global.authTokens[authToken] = parseInt(userId);
 
+      /*
       let date = new Date();
       let line = date.toLocaleDateString("en-US");
       let csv = fs.readFileSync("steam_active_players.csv").toString();
@@ -117,7 +118,8 @@ function steam_current_user(req, res, u) {
           "\n" + line + "," + dayLogins,
         );
       }
-
+      */
+      await insertLogin(req.db, "STEAM_LOGIN", new Date());
       res.status(200).json(user);
       console.log("Steam login done!");
     });
@@ -244,7 +246,7 @@ function create_steam_user(req, res) {
   });
 }
 
-export function run(app) {
+export function run(app, db) {
   if (!fs.existsSync("usersSteamLinks")) {
     fs.mkdirSync("usersSteamLinks");
     console.log('Created folder "usersSteamLinks"');
@@ -257,7 +259,7 @@ export function run(app) {
     fs.writeFileSync("steam_active_players.csv", "Data,Players", {});
   }
 
-  app.get("/api/v1/steam_current_user", function (req, res) {
+  app.get("/api/v1/steam_current_user", (req, res) => {
     steam_current_user(req, res, url.parse(req.url, true));
   });
   app.get("/api/v1/steam_current_user/locale", function (req, res) {
@@ -268,9 +270,7 @@ export function run(app) {
     urlencoded({ extended: false }),
     steam_set_username,
   );
-  app.post(
-    "/api/v1/steam_users",
-    urlencoded({ extended: false }),
-    create_steam_user,
+  app.post("/api/v1/steam_users", urlencoded({ extended: false }), (req, res) =>
+    create_steam_user(req, res, db),
   );
 }

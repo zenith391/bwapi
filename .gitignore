@@ -38,3 +38,9 @@ src/bwwool.ts
 
 # Node
 node_modules/
+
+# SQLite Database
+database.db*
+steam_active_players_v2.csv
+ios_active_players_v2.csv
+launcher_active_players_v2.csv

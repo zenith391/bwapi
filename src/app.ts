@@ -23,6 +23,9 @@ import express, { Express, Request, Response } from "express";
 import compression from "compression";
 import path from "path";
 import { fileURLToPath } from "url";
+import sqlite3 from "sqlite3";
+import { open } from "sqlite";
+import { BWRequest, getAuthToken } from "./util.js";
 
 import { User } from "./users.js";
 import config from "./config.js";
@@ -47,6 +50,16 @@ import config from "./config.js";
 const fileOptions = {
   root: __dirname,
 };
+
+const db = await open({
+  filename: config.DATABASE_PATH,
+  driver: sqlite3.cached.Database,
+});
+await db.run(
+  `PRAGMA journal_mode = wal;
+  PRAGMA foreign_keys = on;`,
+);
+await db.migrate({});
 
 const app: Express = express();
 
@@ -151,9 +164,10 @@ function datePart(num: number): string {
 
 app.use(compression());
 
-app.use(function (req: Request, res: Response, next: () => void) {
+app.use((express_req: Request, res: Response, next: () => void) => {
+  const req = express_req as BWRequest;
   // Log queries
-  let authToken = (global as any).getAuthToken(req);
+  let authToken = getAuthToken(req);
   let userId: string | undefined = undefined;
   if (authToken !== undefined) {
     userId = (global as any).authTokens[authToken];
@@ -167,6 +181,7 @@ app.use(function (req: Request, res: Response, next: () => void) {
   }
   console.debug(req.method + " " + req.url, userId);
 
+  req.db = db;
   res.set("Server", "BWAPI 0.9.1");
   res.set("Access-Control-Allow-Origin", "*"); // allows client JavaScript code to access bwapi
   try {
@@ -222,7 +237,7 @@ for (const i in cores) {
     const userModule = await import("./" + file);
     if (userModule.run) {
       console.debug("Init module " + file);
-      userModule.run(app);
+      userModule.run(app, db);
     }
   }
 }

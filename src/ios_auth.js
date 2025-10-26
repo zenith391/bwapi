@@ -1,6 +1,6 @@
 import fs from "fs";
 import url from "url";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { User } from "./users.js";
 
 let iosLinks = {};
@@ -16,7 +16,7 @@ async function ios_current_user(req, res, u) {
     const userId = iosLinks[gc_id];
     const user = new User(userId);
 
-    let authToken = uuid.v4();
+    let authToken = uuidv4();
     let worldTemplates = [];
     fs.readdir("conf/world_templates", async function (err, files) {
       for (const j in files) {
@@ -46,22 +46,7 @@ async function ios_current_user(req, res, u) {
       // user["api_v2_supported"] = true; // iOS can't be modded as of now
       global.authTokens[authToken] = parseInt(userId);
 
-      let date = new Date();
-      let line = date.toLocaleDateString("en-US");
-      let csv = fs.readFileSync("ios_active_players.csv").toString();
-      let lines = csv.split("\n");
-      let lastLine = lines[lines.length - 1].split(",");
-      if (lastLine[0] == line) {
-        dayLogins = parseInt(lastLine[1]) + 1;
-        lines[lines.length - 1] = line + "," + dayLogins;
-        fs.writeFileSync("ios_active_players.csv", lines.join("\n"));
-      } else {
-        dayLogins = 1; // we changed day
-        fs.appendFileSync(
-          "ios_active_players.csv",
-          "\n" + line + "," + dayLogins,
-        );
-      }
+      await insertLogin(req.db, "IOS_LOGIN", new Date());
 
       res.status(200).json(metadata);
       console.log("iOS login done!");

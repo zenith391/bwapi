@@ -26,6 +26,7 @@ import * as util from "util";
 import config from "./config.js";
 import { value2, validAuthToken, dateString, cloneArray } from "./util.js";
 import * as classTransformer from "class-transformer";
+import { Express, Request, Response } from "express";
 
 type Payout = {
   payout_type: string;
@@ -720,7 +721,7 @@ export async function socialUser(id: number, date: Date): Promise<SocialUser> {
 }
 
 // Module code //
-async function basic_info(req: any, res: any) {
+async function basic_info(req: Request, res: Response) {
   const userId = req.params.id;
   const user = new User(userId);
   if (!(await user.exists())) {
@@ -757,7 +758,7 @@ async function basic_info(req: any, res: any) {
   res.status(200).json(json);
 }
 
-async function save_current_user_profile_world(req: any, res: any) {
+async function save_current_user_profile_world(req: Request, res: Response) {
   let valid = validAuthToken(req, res, false);
   if (!valid.ok) return;
 
@@ -808,9 +809,9 @@ async function save_current_user_profile_world(req: any, res: any) {
 
   let userMeta = await valid.user.getMetadata();
   if (userMeta["is_image_locked"] != true) {
-    if (req.files && req.files["profile_image"]) {
+    if ((req as any).files && (req as any).files["profile_image"]) {
       fs.copyFileSync(
-        req.files["profile_image"][0].path,
+        (req as any).files["profile_image"][0].path,
         "images/profiles/" + userId + ".jpg",
       );
       userMeta["profile_image_url"] =
@@ -822,7 +823,7 @@ async function save_current_user_profile_world(req: any, res: any) {
   res.status(200).json(userMeta);
 }
 
-async function current_user_profile_world(req: any, res: any) {
+async function current_user_profile_world(req: Request, res: Response) {
   let valid = validAuthToken(req, res, false);
   if (valid.ok === false) return;
   let userId = valid.user.id;
@@ -865,7 +866,7 @@ async function current_user_profile_world(req: any, res: any) {
   res.status(200).json(meta);
 }
 
-async function current_user_worlds(req: any, res: any) {
+async function current_user_worlds(req: Request, res: Response) {
   const is_published = url.parse(req.url, true).query.is_published;
   const valid = validAuthToken(req, res, false);
   if (valid.ok === false) return;
@@ -913,7 +914,7 @@ async function current_user_worlds(req: any, res: any) {
   res.status(200).json(response);
 }
 
-async function current_user_worlds_for_teleport(req: any, res: any) {
+async function current_user_worlds_for_teleport(req: Request, res: Response) {
   let valid = validAuthToken(req, res, false);
   if (valid.ok === false) return;
   const ownedWorlds = await valid.user.getOwnedWorlds();
@@ -944,7 +945,7 @@ async function current_user_worlds_for_teleport(req: any, res: any) {
   });
 }
 
-function follow(req: any, res: any) {
+function follow(req: Request, res: Response) {
   let valid = validAuthToken(req, res, false);
   if (valid.ok === false) return;
   let userId = valid.user.id;
@@ -986,7 +987,7 @@ function follow(req: any, res: any) {
   );
 }
 
-function unfollow(req: any, res: any) {
+function unfollow(req: Request, res: Response) {
   let valid = validAuthToken(req, res, false);
   if (valid.ok === false) return;
   let userId = valid.user.id;
@@ -1028,7 +1029,7 @@ function unfollow(req: any, res: any) {
   );
 }
 
-export function run(app: any) {
+export function run(app: Express) {
   if (!fs.existsSync("users")) {
     fs.mkdirSync("users");
     console.log('Created folder "users"');
@@ -1053,7 +1054,7 @@ export function run(app: any) {
 
   app.get(
     "/api/v1/user/:id/followed_users",
-    async function (req: any, res: any) {
+    async function (req: Request, res: Response) {
       const id = req.params["id"];
       const user = new User(id);
       if ((await user.exists()) === false) {
@@ -1071,26 +1072,29 @@ export function run(app: any) {
     },
   );
 
-  app.get("/api/v1/user/:id/followers", async function (req: any, res: any) {
-    const id = req.params["id"];
-    const user = new User(id);
-    if ((await user.exists()) === false) {
-      res.status(404);
-      return;
-    }
-    let out = [];
-    const followers = await user.getFollowers();
-    for (const follower of followers) {
-      out.push(await socialUser(follower.user.id, follower.date));
-    }
-    res.status(200).json({
-      attrs_for_follow_users: out,
-    });
-  });
+  app.get(
+    "/api/v1/user/:id/followers",
+    async function (req: Request, res: Response) {
+      const id = req.params["id"];
+      const user = new User(id);
+      if ((await user.exists()) === false) {
+        res.status(404);
+        return;
+      }
+      let out = [];
+      const followers = await user.getFollowers();
+      for (const follower of followers) {
+        out.push(await socialUser(follower.user.id, follower.date));
+      }
+      res.status(200).json({
+        attrs_for_follow_users: out,
+      });
+    },
+  );
 
   app.post(
     "/api/v1/current_user/collected_payouts",
-    async function (req: any, res: any) {
+    async function (req: Request, res: Response) {
       let valid = validAuthToken(req, res, false);
       if (valid.ok === false) return;
       const user = valid.user;
@@ -1119,7 +1123,7 @@ export function run(app: any) {
 
   app.get(
     "/api/v1/current_user/pending_payouts",
-    async function (req: any, res: any) {
+    async function (req: Request, res: Response) {
       let valid = validAuthToken(req, res, false);
       if (valid.ok === false) return;
 
@@ -1129,18 +1133,21 @@ export function run(app: any) {
     },
   );
 
-  app.get("/api/v1/current_user/deleted_worlds", function (req: any, res: any) {
-    let valid = validAuthToken(req, res, false);
-    if (valid.ok === false) return;
+  app.get(
+    "/api/v1/current_user/deleted_worlds",
+    function (req: Request, res: Response) {
+      let valid = validAuthToken(req, res, false);
+      if (valid.ok === false) return;
 
-    res.status(200).json({
-      worlds: [],
-    });
-  });
+      res.status(200).json({
+        worlds: [],
+      });
+    },
+  );
 
   app.get(
     "/api/v1/users/:id/liked_worlds",
-    async function (req: any, res: any) {
+    async function (req: Request, res: Response) {
       const id = req.params["id"];
       const user = new User(id);
       if ((await user.exists()) === false) {

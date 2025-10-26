@@ -19,7 +19,7 @@ import url from "url";
 import fs from "fs";
 import bcrypt from "bcrypt";
 import crypto from "crypto";
-import uuid from "uuid";
+import { v4 as uuidv4 } from "uuid";
 import { User } from "./users.js";
 
 let dayLogins = 0;
@@ -74,7 +74,7 @@ export async function loginToAccount(username, password) {
         console.log("Adding early access user status to user " + userId);
       }
 
-      const authToken = uuid.v4();
+      const authToken = uuidv4();
       console.log(
         "New auth token " +
           authToken +
@@ -140,7 +140,7 @@ async function account_post_login(req, res) {
 
   let metadata = await user.getMetadata();
   let worldTemplates = [];
-  fs.readdir("conf/world_templates", function (err, files) {
+  fs.readdir("conf/world_templates", async function (err, files) {
     for (const j in files) {
       let path = "conf/world_templates/" + files[j] + "/";
       let worldTemplate = JSON.parse(fs.readFileSync(path + "metadata.json"));
@@ -160,22 +160,7 @@ async function account_post_login(req, res) {
     metadata["_SERVER_groups"] = undefined;
     metadata["api_v2_supported"] = true;
 
-    let date = new Date();
-    let line = date.toLocaleDateString("en-US");
-    let csv = fs.readFileSync("launcher_active_players.csv").toString();
-    let lines = csv.split("\n");
-    let lastLine = lines[lines.length - 1].split(",");
-    if (lastLine[0] == line) {
-      dayLogins = parseInt(lastLine[1]) + 1;
-      lines[lines.length - 1] = line + "," + dayLogins;
-      fs.writeFileSync("launcher_active_players.csv", lines.join("\n"));
-    } else {
-      dayLogins = 1; // we changed day
-      fs.appendFileSync(
-        "launcher_active_players.csv",
-        "\n" + line + "," + dayLogins,
-      );
-    }
+    await insertLogin(req.db, "LAUNCHER_LOGIN", new Date());
     res.status(200).json(metadata);
     console.log("Auth token login done!");
   });
@@ -208,7 +193,7 @@ async function create_account(req, res) {
           const newUser = await User.create(username, 1024);
           const newId = newUser.id;
 
-          const id = uuid.v4();
+          const id = uuidv4();
           fs.writeFile(
             "usersWoolLinks/" + id + ".txt",
             newId.toString(),
@@ -221,7 +206,7 @@ async function create_account(req, res) {
                 JSON.stringify(accountData),
               );
 
-              const authToken = uuid.v4();
+              const authToken = uuidv4();
               authTokens[authToken] = newId;
               res.status(200).json({
                 auth_token: authToken,
