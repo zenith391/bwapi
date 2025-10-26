@@ -57,6 +57,7 @@ async function updateCsvFiles(db: Database) {
 
   // Iterate all days since the earliest event in the database
   let current_day = earliest_time;
+  let event_index = 0;
 
   await file.write("Date,Players\n");
   while (current_day < new Date()) {
@@ -64,15 +65,21 @@ async function updateCsvFiles(db: Database) {
     const end_of_day = new Date(current_day);
     end_of_day.setUTCHours(23, 59, 59, 999);
 
-    for (const login of steam_logins) {
+    while (event_index < steam_logins.length) {
+      const login = steam_logins[event_index];
       const login_date = new Date(login.created_at * 1000);
       if (login_date >= current_day && login_date <= end_of_day) {
         counter++;
+      } else if (login_date > current_day) {
+        break;
       }
+      event_index++;
     }
 
-    let date_string = current_day.toLocaleDateString("en-US");
-    await file.write(date_string + "," + counter + "\n");
+    if (counter != 0) {
+      let date_string = current_day.toLocaleDateString("en-US");
+      await file.write(date_string + "," + counter + "\n");
+    }
 
     current_day.setUTCDate(current_day.getUTCDate() + 1);
   }
