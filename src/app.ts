@@ -243,6 +243,8 @@ for (const i in cores) {
   }
 }
 
+await migrateOldFiles(db);
+
 // Plain file hosting //
 
 // Minify files at start of the program so they don't have to be minified each time.
@@ -340,7 +342,5 @@ app.all("*", function (req: Request, res: Response) {
   res.set("Content-Type", "text/plain");
   res.status(403).send("Forbidden");
 });
-
-await migrateOldFiles(db);
 
 export default app;

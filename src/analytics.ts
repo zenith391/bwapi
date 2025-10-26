@@ -29,7 +29,7 @@ export async function migrateOldFiles(db: Database) {
           continue;
         }
         for (let j = 0; j < count; j++) {
-          await insertLogin(db, event_type, date);
+          await insertLogin(db, event_type, date, true);
         }
       }
       await file.close();
@@ -41,9 +41,14 @@ export async function migrateOldFiles(db: Database) {
     } catch (e) {}
   }
 
+  // BEGIN...END TRANSACTION is fine AS LONG AS migrateOldFiles is executed
+  // when there is no other asynchronous code.
+  await db.run(`BEGIN TRANSACTION`);
   await migrateType("steam", EventType.STEAM_LOGIN);
   await migrateType("ios", EventType.IOS_LOGIN);
   await migrateType("launcher", EventType.LAUNCHER_LOGIN);
+  await db.run(`END TRANSACTION`);
+  await updateCsvFiles(db);
 }
 
 async function updateCsvFiles(db: Database) {
@@ -59,7 +64,10 @@ async function updateCsvFiles(db: Database) {
   let current_day = earliest_time;
   let event_index = 0;
 
-  await file.write("Date,Players\n");
+  const stream = file.createWriteStream({});
+  stream.cork();
+
+  stream.write("Date,Players\n");
   while (current_day < new Date()) {
     let counter = 0;
     const end_of_day = new Date(current_day);
@@ -78,15 +86,22 @@ async function updateCsvFiles(db: Database) {
 
     if (counter != 0) {
       let date_string = current_day.toLocaleDateString("en-US");
-      await file.write(date_string + "," + counter + "\n");
+      stream.write(date_string + "," + counter + "\n");
     }
 
     current_day.setUTCDate(current_day.getUTCDate() + 1);
   }
+  stream.uncork();
+  stream.end();
   await file.close();
 }
 
-export async function insertLogin(db: Database, type: EventType, time: Date) {
+export async function insertLogin(
+  db: Database,
+  type: EventType,
+  time: Date,
+  noWrite?: boolean,
+) {
   console.log("Logging in of type " + type + " at " + time);
   const result = await db.run(
     `INSERT INTO Events(uuid, created_at, event_type) VALUES (:id, :time, :type)`,
@@ -96,5 +111,7 @@ export async function insertLogin(db: Database, type: EventType, time: Date) {
       ":type": type.toString(),
     },
   );
-  await updateCsvFiles(db);
+  if (!noWrite) {
+    await updateCsvFiles(db);
+  }
 }
