@@ -26,6 +26,7 @@ import { fileURLToPath } from "url";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { BWRequest, getAuthToken } from "./util.js";
+import { migrateOldFiles } from "./analytics.js";
 
 import { User } from "./users.js";
 import config from "./config.js";
@@ -339,5 +340,7 @@ app.all("*", function (req: Request, res: Response) {
   res.set("Content-Type", "text/plain");
   res.status(403).send("Forbidden");
 });
+
+await migrateOldFiles(db);
 
 export default app;

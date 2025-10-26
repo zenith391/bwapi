@@ -255,9 +255,6 @@ export function run(app, db) {
   if (!fs.existsSync("total_players.csv")) {
     fs.writeFileSync("total_players.csv", "Data,Players", {});
   }
-  if (!fs.existsSync("steam_active_players.csv")) {
-    fs.writeFileSync("steam_active_players.csv", "Data,Players", {});
-  }
 
   app.get("/api/v1/steam_current_user", (req, res) => {
     steam_current_user(req, res, url.parse(req.url, true));

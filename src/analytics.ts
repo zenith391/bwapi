@@ -4,15 +4,46 @@ import { open, Database } from "sqlite";
 import { parse as uuidParse, v7 as uuidv7 } from "uuid";
 
 export enum EventType {
-  STEAM_LOGIN,
-  IOS_LOGIN,
-  LAUNCHER_LOGIN,
+  STEAM_LOGIN = "STEAM_LOGIN",
+  IOS_LOGIN = "IOS_LOGIN",
+  LAUNCHER_LOGIN = "LAUNCHER_LOGIN",
 }
 
 interface LoginRow {
   /// The Unix timestamp of the Event, expressed in seconds relative to UTC.
   created_at: number;
   event_type: EventType;
+}
+
+export async function migrateOldFiles(db: Database) {
+  async function migrateType(type: string, event_type: EventType) {
+    try {
+      const file = await fs.open("./" + type + "_active_players.csv", "r");
+      console.log("Starting migration of analytics of '" + type + "'");
+      for await (const line of file.readLines()) {
+        if (line == "Date,Players" || line == "Data,Players") continue;
+        const date = new Date(line.split(",")[0] + " UTC");
+        const count = parseInt(line.split(",")[1]);
+        if (date == null || date === undefined || count === undefined) {
+          console.error("INVALID LINE: " + line);
+          continue;
+        }
+        for (let j = 0; j < count; j++) {
+          await insertLogin(db, event_type, date);
+        }
+      }
+      await file.close();
+
+      await fs.rename(
+        "./" + type + "_active_players.csv",
+        "./" + type + "_active_players.csv.bak",
+      );
+    } catch (e) {}
+  }
+
+  await migrateType("steam", EventType.STEAM_LOGIN);
+  await migrateType("ios", EventType.IOS_LOGIN);
+  await migrateType("launcher", EventType.LAUNCHER_LOGIN);
 }
 
 async function updateCsvFiles(db: Database) {
@@ -26,10 +57,8 @@ async function updateCsvFiles(db: Database) {
 
   // Iterate all days since the earliest event in the database
   let current_day = earliest_time;
-  console.log("EARLIST TIME:" + earliest_time);
-  console.log("NOW: " + new Date());
 
-  await file.write("Data,Players\n");
+  await file.write("Date,Players\n");
   while (current_day < new Date()) {
     let counter = 0;
     const end_of_day = new Date(current_day);
@@ -43,10 +72,11 @@ async function updateCsvFiles(db: Database) {
     }
 
     let date_string = current_day.toLocaleDateString("en-US");
-    await file.write(date_string + "," + counter);
+    await file.write(date_string + "," + counter + "\n");
 
     current_day.setUTCDate(current_day.getUTCDate() + 1);
   }
+  await file.close();
 }
 
 export async function insertLogin(db: Database, type: EventType, time: Date) {
