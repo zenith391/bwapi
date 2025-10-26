@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc",
     "start": "tsc && node --trace-warnings --unhandled-rejections=strict main.js",
-    "test": "tsc && mocha --exit",
+    "test": "tsc && mocha --no-experimental-require-module --exit",
     "format": "npx prettier . --write"
   },
   "author": "zenith391",
@@ -30,8 +30,11 @@
   "devDependencies": {
     "@tsconfig/node17": "^1.0.1",
     "@types/bcrypt": "^6.0.0",
+    "@types/compression": "^1.8.1",
     "@types/express": "^5.0.3",
     "@types/express-session": "^1.18.2",
+    "@types/ioredis": "^4.28.10",
+    "@types/multiparty": "^4.2.1",
     "@types/node": "^17.0.1",
     "@types/uuid": "^8.3.1",
     "chai": "^4.3.4",

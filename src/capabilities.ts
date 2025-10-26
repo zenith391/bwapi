@@ -15,10 +15,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 **/
-export function run(app) {
-  app.get("/api/v2/capabilities", function (req, res) {
+import { Express, Request, Response } from "express";
+
+export function run(app: Express) {
+  app.get("/api/v2/capabilities", function (req: Request, res: Response) {
     res.status(200).json({
-      capabilities: global.capabilities,
+      capabilities: (global as any).capabilities,
     });
   });
 }

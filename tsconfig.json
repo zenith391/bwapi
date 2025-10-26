@@ -2,8 +2,9 @@
   "extends": "@tsconfig/node17/tsconfig.json",
   "compilerOptions": {
     "outDir": "./modules",
-    "module": "es2020",
-    "moduleResolution": "node",
+    "module": "ES2022",
+    "target": "ES2022",
+    "moduleResolution": "node16",
     "allowJs": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

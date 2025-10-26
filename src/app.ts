@@ -1,49 +1,46 @@
 /**
-	bwapi - Blocksworld API server reimplementation
-    Copyright (C) 2020 zenith391
+ * bwapi - Blocksworld API server reimplementation
+ * Copyright (C) 2020 zenith391
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-**/
 import fs from "fs";
 import multiparty from "multiparty";
 import bodyParser from "body-parser";
-import util from "util";
-import serverline from "serverline";
-import Redis from "ioredis";
-import express from "express";
+import express, { Express, Request, Response } from "express";
 import compression from "compression";
 import path from "path";
 import { fileURLToPath } from "url";
 
 import { User } from "./users.js";
+import config from "./config.js";
 
-global.__filename = fileURLToPath(import.meta.url);
-global.__dirname = path.dirname(__filename);
+(global as any).__filename = fileURLToPath(import.meta.url);
+(global as any).__dirname = path.dirname(__filename);
 
-// you *MUST* change this to the address of your server (otherwise some features like thumbnails won't work) !
-global.HOST = "https://bwsecondary.ddns.net:8080";
-global.ROOT_NAME = path.dirname(__dirname);
-// is this server early access? (used for some status identifiers)
-global.EARLY_ACCESS = true;
-global.VERSION = "0.9.1";
-// how many worlds each player can have
-global.MAX_WORLD_LIMIT = 200;
+// TODO: remove the following (global as any) declarations
+(global as any).HOST = config.HOST;
+(global as any).ROOT_NAME = config.ROOT_NAME;
+(global as any).EARLY_ACCESS = config.EARLY_ACCESS;
+(global as any).VERSION = config.VERSION;
+(global as any).MAX_WORLD_LIMIT = config.MAX_WORLD_LIMIT;
 
-global.authTokens = {};
-global.capabilities = {
+(global as any).authTokens = {};
+(global as any).capabilities = {
   bwapi: {
-    version: VERSION,
+    version: config.VERSION,
   },
 }; // for modded
 
@@ -51,18 +48,18 @@ const fileOptions = {
   root: __dirname,
 };
 
-const app = express();
+const app: Express = express();
 
 // Utility Functions //
 
 // Get the auth token from a request object
-global.getAuthToken = function (req) {
+(global as any).getAuthToken = function (req: Request): string | undefined {
   const authToken = req.headers["bw-auth-token"];
-  return authToken;
+  return authToken as string | undefined;
 };
 
 // just internally used helper functions
-global.value2 = function (v) {
+(global as any).value2 = function (v: any): any {
   if (typeof v == "object") {
     return v[0];
   } else {
@@ -71,7 +68,7 @@ global.value2 = function (v) {
 };
 
 // Internally used
-global.value = function (body, name) {
+(global as any).value = function (body: any, name: string): any {
   let v = body[name];
   if (typeof v == "object") {
     return v[0];
@@ -81,8 +78,12 @@ global.value = function (body, name) {
 };
 
 // Function used to validate an user's auth token and get to whom it belongs.
-global.validAuthToken = function (req, res, bodyCheck) {
-  let authToken = getAuthToken(req);
+(global as any).validAuthToken = function (
+  req: Request,
+  res: Response,
+  bodyCheck: boolean,
+): { ok: boolean; user?: User; authToken?: string } {
+  let authToken = (global as any).getAuthToken(req);
   if (authToken === undefined) {
     res.status(405).json({
       error: 405,
@@ -90,7 +91,7 @@ global.validAuthToken = function (req, res, bodyCheck) {
     });
     return { ok: false };
   }
-  let userId = authTokens[authToken];
+  let userId = (global as any).authTokens[authToken];
   if (userId === undefined) {
     console.warn(
       "vat: User has auth token " +
@@ -119,7 +120,7 @@ global.validAuthToken = function (req, res, bodyCheck) {
 };
 
 // Helper function for ISO date formatting
-function datePart(num) {
+function datePart(num: number): string {
   let str = num.toString();
   if (str.length < 2) {
     str = "0" + str;
@@ -128,7 +129,7 @@ function datePart(num) {
 }
 
 // Format a 'Date' object in ISO format.
-global.dateString = function (date) {
+(global as any).dateString = function (date?: Date): string {
   if (date === undefined || date === null) {
     date = new Date(); // default to current date
   }
@@ -150,12 +151,12 @@ global.dateString = function (date) {
 
 app.use(compression());
 
-app.use(function (req, res, next) {
+app.use(function (req: Request, res: Response, next: () => void) {
   // Log queries
-  let authToken = global.getAuthToken(req);
-  let userId = undefined;
+  let authToken = (global as any).getAuthToken(req);
+  let userId: string | undefined = undefined;
   if (authToken !== undefined) {
-    userId = authTokens[authToken];
+    userId = (global as any).authTokens[authToken];
     if (userId === undefined) {
       console.warn(
         "User has auth token " +
@@ -170,7 +171,7 @@ app.use(function (req, res, next) {
   res.set("Access-Control-Allow-Origin", "*"); // allows client JavaScript code to access bwapi
   try {
     next();
-  } catch (e) {
+  } catch (e: any) {
     console.error("Request failed (" + req.url + ")");
     console.error("Error name: " + e.name);
     console.error("Error message: " + e.message);
@@ -180,18 +181,18 @@ app.use(function (req, res, next) {
 
 app.disable("x-powered-by");
 
-app.use(function (req, res, next) {
+app.use(function (req: Request, res: Response, next: () => void) {
   if (req.headers["content-type"] != undefined) {
     if (req.headers["content-type"].indexOf("multipart/form-data") != -1) {
       // The request is in HTTP form data which the 'multiparty' package can parse.
       let form = new multiparty.Form();
-      form.maxFieldsSize = 1024 * 1024 * 16; // 16 MiB
-      form.parse(req, function (err, fields, files) {
+      (form as any).maxFieldsSize = 1024 * 1024 * 16; // 16 MiB
+      form.parse(req, function (err: any, fields: any, files: any) {
         if (err) {
           console.error(err);
         }
         req.body = fields;
-        req.files = files;
+        (req as any).files = files;
         next();
       });
     } else if (req.headers["content-type"].indexOf("application/json") != -1) {
@@ -203,7 +204,7 @@ app.use(function (req, res, next) {
       ) != -1
     ) {
       // The request is URL-encoded which 'bodyParser' package can parse.
-      req.files = {};
+      (req as any).files = {};
       bodyParser.urlencoded({ extended: false, limit: "50mb" })(req, res, next);
     } else {
       next();
@@ -230,40 +231,68 @@ for (const i in cores) {
 
 // Minify files at start of the program so they don't have to be minified each time.
 const steamRemoteConf = JSON.stringify(
-  JSON.parse(fs.readFileSync("conf/steam_app_remote_configuration.json")),
+  JSON.parse(
+    fs.readFileSync("conf/steam_app_remote_configuration.json", {
+      encoding: "utf-8",
+    }),
+  ),
 );
-app.get("/api/v1/steam-app-remote-configuration", function (req, res) {
-  res.status(200).send(steamRemoteConf);
-});
+
+app.get(
+  "/api/v1/steam-app-remote-configuration",
+  function (req: Request, res: Response) {
+    res.status(200).send(steamRemoteConf);
+  },
+);
 
 const iosRemoteConf = JSON.parse(
-  fs.readFileSync("conf/app_remote_configuration.json"),
+  fs.readFileSync("conf/app_remote_configuration.json", {
+    encoding: "utf-8",
+  }),
 );
-app.get("/api/v1/app-remote-configuration", function (req, res) {
-  res.status(200).json(iosRemoteConf);
-});
+app.get(
+  "/api/v1/app-remote-configuration",
+  function (req: Request, res: Response) {
+    res.status(200).json(iosRemoteConf);
+  },
+);
 
 let contentCategories = JSON.stringify(
-  JSON.parse(fs.readFileSync("conf/content_categories.json")),
+  JSON.parse(
+    fs.readFileSync("conf/content_categories.json", {
+      encoding: "utf-8",
+    }),
+  ),
 );
-app.get("/api/v1/content-categories-no-ip", function (req, res) {
-  res.status(200).send(contentCategories);
-});
-app.get("/api/v1/content-categories", function (req, res) {
+app.get(
+  "/api/v1/content-categories-no-ip",
+  function (req: Request, res: Response) {
+    res.status(200).send(contentCategories);
+  },
+);
+app.get("/api/v1/content-categories", function (req: Request, res: Response) {
   res.status(200).send(contentCategories);
 });
 
 let blocksPricings = JSON.stringify(
-  JSON.parse(fs.readFileSync("conf/blocks_pricings.json")),
+  JSON.parse(
+    fs.readFileSync("conf/blocks_pricings.json", {
+      encoding: "utf-8",
+    }),
+  ),
 );
-app.get("/api/v1/block_items/pricing", function (req, res) {
+app.get("/api/v1/block_items/pricing", function (req: Request, res: Response) {
   res.status(200).send(blocksPricings);
 });
 
 let coinPacks = JSON.stringify(
-  JSON.parse(fs.readFileSync("conf/coin_packs.json")),
+  JSON.parse(
+    fs.readFileSync("conf/coin_packs.json", {
+      encoding: "utf-8",
+    }),
+  ),
 );
-app.get("/api/v1/store/coin_packs", function (req, res) {
+app.get("/api/v1/store/coin_packs", function (req: Request, res: Response) {
   res.status(200).send(coinPacks);
 });
 
@@ -273,7 +302,7 @@ app.use(
 ); // Serve the 'images' folder
 
 // Default handler that only acts if a non-existent endpoint is requested
-app.all("/api/v1/*", function (req, res) {
+app.all("/api/v1/*", function (req: Request, res: Response) {
   res.status(404).json({
     error: "404",
     error_msg: "Not Found",
@@ -282,7 +311,7 @@ app.all("/api/v1/*", function (req, res) {
 });
 
 // /api/v2 is an API dedicated to mods.
-app.all("/api/v2/*", function (req, res) {
+app.all("/api/v2/*", function (req: Request, res: Response) {
   res.status(404).json({
     error: "404",
     error_msg: "Missing or invalid API endpoint",
@@ -291,7 +320,7 @@ app.all("/api/v2/*", function (req, res) {
 });
 
 // Mimics BW1 behaviour by sending 'Forbidden' HTTP status code on every URL not starting by /api/v1/ (and by /api/v2/)
-app.all("*", function (req, res) {
+app.all("*", function (req: Request, res: Response) {
   res.set("Content-Type", "text/plain");
   res.status(403).send("Forbidden");
 });
