@@ -1,6 +1,6 @@
 /**
 	bwapi - Blocksworld API server reimplementation
-		Copyright (C) 2020 zenith391
+		Copyright (C) 2025 zenith391
 
 		This program is free software: you can redistribute it and/or modify
 		it under the terms of the GNU General Public License as published by
@@ -21,14 +21,13 @@
 // permet d'économiser la bande passante et de rendre le chargement plus rapide
 import * as fs from "fs";
 import * as url from "url";
-import * as uuid from "uuid";
 import * as util from "util";
 import config from "./config.js";
 import { value2, validAuthToken, dateString, cloneArray } from "./util.js";
 import * as classTransformer from "class-transformer";
 import { Express, Request, Response } from "express";
 
-type Payout = {
+export type Payout = {
   payout_type: string;
   coin_grants: number;
   title: string;
@@ -38,17 +37,18 @@ type Payout = {
   has_gold_border: boolean;
 };
 
-enum AccountType {
+export enum AccountType {
   User = "user",
   Group = "group",
 }
 
-enum LinkType {
+export enum LinkType {
   Wool = 1024,
   iOS = 256 | 512,
+  Steam = 2,
 }
 
-type UserMetadata = {
+export type UserMetadata = {
   id: number;
   username: string | null;
   is_username_blocked: boolean;
