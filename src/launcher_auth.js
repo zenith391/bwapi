@@ -102,6 +102,9 @@ async function account_login(req, res) {
       req.body.username,
       req.body.password,
     );
+    res.status(200).json(
+      { "auth_token": authToken }
+    );
   } catch (e) {
     console.log("Login failed with error " + e.message);
     if (e.message == "link_account") {
@@ -111,7 +114,7 @@ async function account_login(req, res) {
         error_details: "link_account",
       });
     } else {
-      req.status(401).json({
+      res.status(401).json({
         error: 401,
         error_msg: e.message,
       });
